@@ -1,4 +1,6 @@
 import { tracks, errors } from './data.js';
+import { parseRoute, routeURL, routeMetadata } from './routes.js';
+import { trackEvent, trackPageView } from './analytics.js';
 import {
   loadProgress, saveProgress, createInitialState, createBackup, parseBackup,
   MAX_BACKUP_BYTES, MAX_TEXT_LENGTH,
@@ -22,6 +24,7 @@ let pendingImport = null;
 let importRequest = 0;
 let importMessage = '';
 let importError = false;
+let routeNotice = '';
 const titles = { home: 'لوحة التحكم', tracks: 'مسارات التدريب', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
 const content = document.getElementById('content');
 const stageKey = (trackId, index) => `${trackId}-${index}`;
@@ -79,10 +82,62 @@ function queueSave(key) {
 function logActivity(message) {
   state.logs = [...state.logs, { msg: message, at: new Date().toISOString() }].slice(-100);
 }
+function currentRoute() {
+  return { view: currentView, trackId: currentTrack, stageIndex: currentStage };
+}
+function syncRoute(replace = false) {
+  const url = routeURL(currentRoute(), window.location.href);
+  if (url.href !== window.location.href) window.history[replace ? 'replaceState' : 'pushState'](null, '', url);
+}
+function updateMetadata() {
+  const metadata = routeMetadata(currentRoute());
+  document.title = metadata.title;
+  document.querySelector('meta[name="description"]').content = metadata.description;
+  document.querySelector('link[rel="canonical"]').href = metadata.canonical;
+  document.querySelector('meta[name="robots"]').content = metadata.shouldIndex ? 'index,follow' : 'noindex,follow';
+  for (const [key, value] of [['title', metadata.title], ['description', metadata.description], ['url', metadata.canonical]]) {
+    document.querySelector(`meta[property="og:${key}"]`).content = value;
+    const twitter = document.querySelector(`meta[name="twitter:${key}"]`);
+    if (twitter) twitter.content = value;
+  }
+}
+function applyLocation() {
+  flushDraft();
+  const route = parseRoute(window.location.href, currentTrack);
+  currentView = route.view;
+  currentTrack = route.trackId;
+  currentStage = route.stageIndex;
+  routeNotice = route.invalid ? 'الرابط غير مكتمل أو غير صالح. يمكنك اختيار مسار متاح من هنا.' : '';
+  if (currentView === 'exercise' && !stageOpen(currentTrack, currentStage)) {
+    currentView = 'tracks';
+    routeNotice = 'المرحلة الموجودة في الرابط مقفلة على هذا المتصفح. أكمل المرحلة السابقة أولًا؛ بقي تقدّمك كما هو.';
+  } else if (currentView === 'exercise') {
+    state.lastActivity = { trackId: currentTrack, stageIndex: currentStage, at: new Date().toISOString() };
+    persist();
+    trackEvent('stage_start', { track_id: currentTrack, stage_index: currentStage });
+  }
+  if (currentView === 'tracks') trackEvent('track_open', { track_id: currentTrack });
+  syncRoute(true);
+  render(true);
+}
 function navigate(view, focus = true) {
   flushDraft();
+  routeNotice = '';
   currentView = titles[view] ? view : 'home';
+  if (currentView === 'tracks') trackEvent('track_open', { track_id: currentTrack });
+  syncRoute();
   render(focus);
+}
+function openTrack(trackId) {
+  if (!trackById(trackId)) return;
+  flushDraft();
+  currentTrack = trackId;
+  currentView = 'tracks';
+  routeNotice = '';
+  syncRoute();
+  trackEvent('track_open', { track_id: trackId });
+  render();
+  document.getElementById('selectedTrack')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function openStage(trackId, index) {
   flushDraft();
@@ -91,8 +146,11 @@ function openStage(trackId, index) {
   currentTrack = trackId;
   currentStage = index;
   currentView = 'exercise';
+  routeNotice = '';
   state.lastActivity = { trackId, stageIndex: index, at: new Date().toISOString() };
   persist();
+  syncRoute();
+  trackEvent('stage_start', { track_id: trackId, stage_index: index });
   render(true);
 }
 function resumeActivity() {
@@ -112,6 +170,23 @@ function hero(title, description, eyebrow = 'YOUR TRAINING WORKSPACE') {
 function progressBar(value, total, label) {
   return `<progress class="native-progress" max="${total}" value="${value}" aria-label="${esc(label)}">${percentage(value, total)}%</progress>`;
 }
+function partnerURL(caseId = null) {
+  const url = new URL('https://cyber-trace-psi.vercel.app/');
+  if (caseId) url.searchParams.set('case', caseId);
+  else url.searchParams.set('view', 'library');
+  url.searchParams.set('utm_source', 'blackbox');
+  url.searchParams.set('utm_medium', 'referral');
+  url.searchParams.set('utm_campaign', 'training_path');
+  return url.href;
+}
+function relatedInvestigation(track) {
+  const related = { webgoat: ['INC-1101', 'حقن SQL وتسريب بيانات العملاء'], proxy: ['INC-1101', 'حقن SQL وتسريب بيانات العملاء'], network: ['INC-1104', 'تسريب بيانات عبر DNS'] }[track.id];
+  if (!related) return '';
+  return `<aside class="partner-panel section" aria-label="تحقيق مرتبط بالمهارة"><div><span class="eyebrow">CYBERTRACE / طبّق مهارة التحليل</span><h3>${esc(related[1])}</h3><p>حلّل سجلات حادثة مرتبطة بهذا المسار واتخذ قرار الاستجابة من المتصفح.</p></div><a class="secondary partner-link" href="${esc(partnerURL(related[0]))}" data-partner="track">جرّب التحقيق في CyberTrace ←</a></aside>`;
+}
+function partnerIntroduction() {
+  return `<section class="partner-panel section" aria-labelledby="partnerTitle"><div><span class="eyebrow">CYBERTRACE / تحليل الحوادث</span><h2 id="partnerTitle">من المهارة إلى قرار الاستجابة</h2><p>جرّب 16 تحقيقًا بالعربية: اقرأ السجلات، واختر الدليل، وراجع قرارك. تبدأ التجربة من المتصفح.</p></div><a class="secondary partner-link" href="${esc(partnerURL())}" data-partner="home">استكشف CyberTrace ←</a></section>`;
+}
 function home() {
   const done = completedCount();
   const next = resumeActivity();
@@ -119,7 +194,7 @@ function home() {
   const stage = track.stages[next.index];
   const allDone = done === allStages;
   const hasProgress = Boolean(state.lastActivity || done || checkedCount() || documentedCount());
-  return `${hero('مساحة تتقدّم معك', 'مسارات عملية واضحة، ملاحظات لا تضيع، وتقرير يجمع ما تعلمته. أكمل من حيث توقفت أو اختر مهارة جديدة.')}<section class="resume-card" aria-labelledby="resumeTitle"><div><span class="eyebrow">${allDone ? 'ALL STAGES COMPLETED' : hasProgress ? 'CONTINUE YOUR PROGRESS' : 'START YOUR FIRST SESSION'}</span><h2 id="resumeTitle">${allDone ? 'أكملت جميع المراحل. حان وقت المراجعة.' : hasProgress ? 'واصل من حيث توقفت' : 'خطوتك الأولى تبدأ هنا'}</h2><p><span>${esc(track.name)}</span><span aria-hidden="true"> / </span>${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : `${allStages} مرحلة تدريبية · يمكنك اختيار أي مسار`}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} <span aria-hidden="true">←</span></button></section><section class="grid stats" aria-label="تقدمك بالأرقام"><article class="card stat"><span class="stat-label">مراحل أنجزتها</span><strong class="stat-value" data-stat="completed">${done}<span> / ${allStages}</span></strong>${progressBar(done, allStages, 'المراحل المكتملة')}<span class="stat-foot">${percentage(done, allStages)}% من رحلتك</span></article><article class="card stat"><span class="stat-label">بنود تحقّقت منها</span><strong class="stat-value" data-stat="checks">${checkedCount()}<span> / ${allChecks}</span></strong><span class="stat-foot">خطوات نفّذتها وأشّرت عليها</span></article><article class="card stat"><span class="stat-label">مراحل موثّقة</span><strong class="stat-value" data-stat="notes">${documentedCount()}</strong><span class="stat-foot">نتائج أو ملاحظات كتبتها</span></article><article class="card stat"><span class="stat-label">مسارات متاحة</span><strong class="stat-value">${tracks.length}</strong><span class="stat-foot">اختر المهارة المناسبة لك</span></article></section><div class="grid dashboard-columns"><section class="card"><div class="section-head"><div><h2>مساراتك، بنظرة واحدة</h2><small>ثلاث مراحل لكل مهارة، وخطوة واضحة تليها</small></div><button type="button" class="link-btn" data-nav="tracks">استعرض المسارات ←</button></div>${pathCards(tracks)}</section><aside class="card quick-card"><div class="section-head"><h2>عملك يستحق أن تحتفظ به</h2></div><p>اجمع ملاحظاتك ونتائجك في تقرير، أو انقل تقدّمك إلى متصفح آخر بنسخة احتياطية.</p><button type="button" class="secondary full-width" data-nav="backups">النسخ الاحتياطي والتقارير</button><div class="quick-divider"></div><h3>أحدث نشاط</h3>${recentActivity()}<button type="button" class="link-btn" data-nav="journal">افتح سجل المختبر ←</button></aside></div><section class="card section"><div class="section-head"><div><h2>حالة بيئة التدريب</h2><small>سجّل ما تحقّقت منه في بيئتك المحلية</small></div><span class="badge">تأكيد يدوي</span></div>${statusControls()}</section>`;
+  return `${hero('مساحة تتقدّم معك', 'مسارات عملية واضحة، ملاحظات لا تضيع، وتقرير يجمع ما تعلمته. أكمل من حيث توقفت أو اختر مهارة جديدة.')}<section class="resume-card" aria-labelledby="resumeTitle"><div><span class="eyebrow">${allDone ? 'ALL STAGES COMPLETED' : hasProgress ? 'CONTINUE YOUR PROGRESS' : 'START YOUR FIRST SESSION'}</span><h2 id="resumeTitle">${allDone ? 'أكملت جميع المراحل. حان وقت المراجعة.' : hasProgress ? 'واصل من حيث توقفت' : 'خطوتك الأولى تبدأ هنا'}</h2><p><span>${esc(track.name)}</span><span aria-hidden="true"> / </span>${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : `${allStages} مرحلة تدريبية · يمكنك اختيار أي مسار`}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} <span aria-hidden="true">←</span></button></section><section class="grid stats" aria-label="تقدمك بالأرقام"><article class="card stat"><span class="stat-label">مراحل أنجزتها</span><strong class="stat-value" data-stat="completed">${done}<span> / ${allStages}</span></strong>${progressBar(done, allStages, 'المراحل المكتملة')}<span class="stat-foot">${percentage(done, allStages)}% من رحلتك</span></article><article class="card stat"><span class="stat-label">بنود تحقّقت منها</span><strong class="stat-value" data-stat="checks">${checkedCount()}<span> / ${allChecks}</span></strong><span class="stat-foot">خطوات نفّذتها وأشّرت عليها</span></article><article class="card stat"><span class="stat-label">مراحل موثّقة</span><strong class="stat-value" data-stat="notes">${documentedCount()}</strong><span class="stat-foot">نتائج أو ملاحظات كتبتها</span></article><article class="card stat"><span class="stat-label">مسارات متاحة</span><strong class="stat-value">${tracks.length}</strong><span class="stat-foot">اختر المهارة المناسبة لك</span></article></section><div class="grid dashboard-columns"><section class="card"><div class="section-head"><div><h2>مساراتك، بنظرة واحدة</h2><small>ثلاث مراحل لكل مهارة، وخطوة واضحة تليها</small></div><button type="button" class="link-btn" data-nav="tracks">استعرض المسارات ←</button></div>${pathCards(tracks)}</section><aside class="card quick-card"><div class="section-head"><h2>عملك يستحق أن تحتفظ به</h2></div><p>اجمع ملاحظاتك ونتائجك في تقرير، أو انقل تقدّمك إلى متصفح آخر بنسخة احتياطية.</p><button type="button" class="secondary full-width" data-nav="backups">النسخ الاحتياطي والتقارير</button><div class="quick-divider"></div><h3>أحدث نشاط</h3>${recentActivity()}<button type="button" class="link-btn" data-nav="journal">افتح سجل المختبر ←</button></aside></div><section class="card section"><div class="section-head"><div><h2>حالة بيئة التدريب</h2><small>سجّل ما تحقّقت منه في بيئتك المحلية</small></div><span class="badge">تأكيد يدوي</span></div>${statusControls()}</section>${partnerIntroduction()}`;
 }
 function recentActivity() {
   const recent = [...state.logs].reverse().slice(0, 3);
@@ -144,7 +219,7 @@ function stageRows(track) {
 function tracksPage() {
   const track = trackById(currentTrack) || tracks[0];
   const matches = filteredTracks();
-  return `${hero('اختر مهارتك التالية', 'ابحث في المسارات ومحتواها، وابدأ بما يناسبك. تُفتح مراحل كل مسار بالتتابع بعد تأكيد إنجازها.')}<section class="card"><div class="search-tools"><div class="field search-field"><label for="trackSearch">ابحث في المسارات والمراحل</label><input class="search" id="trackSearch" type="search" placeholder="مثل Nmap، التقاط الحزم، الويب…" value="${esc(trackQuery)}"></div><div class="field filter-field"><label for="trackFilter">حالة التقدّم</label><select id="trackFilter" class="select-control">${[['all', 'كل المسارات'], ['new', 'لم تبدأ بعد'], ['progress', 'قيد التقدم'], ['done', 'مكتملة']].map(([value, label]) => `<option value="${value}" ${trackFilter === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div><span class="results-count" role="status">${matches.length} من ${tracks.length} مسارات</span></div>${pathCards(matches)}</section><section class="card section" id="selectedTrack"><div class="track-head"><div><div class="eyebrow">TRAINING PATH / ${track.icon}</div><h2>${esc(track.name)}</h2><p>${esc(track.sub)}</p></div><span class="badge">${trackDone(track)}/${track.stages.length} مراحل مكتملة</span></div>${stageRows(track)}</section>`;
+  return `${hero('اختر مهارتك التالية', 'ابحث في المسارات ومحتواها، وابدأ بما يناسبك. تُفتح مراحل كل مسار بالتتابع بعد تأكيد إنجازها.')}<section class="card"><div class="search-tools"><div class="field search-field"><label for="trackSearch">ابحث في المسارات والمراحل</label><input class="search" id="trackSearch" type="search" placeholder="مثل Nmap، التقاط الحزم، الويب…" value="${esc(trackQuery)}"></div><div class="field filter-field"><label for="trackFilter">حالة التقدّم</label><select id="trackFilter" class="select-control">${[['all', 'كل المسارات'], ['new', 'لم تبدأ بعد'], ['progress', 'قيد التقدم'], ['done', 'مكتملة']].map(([value, label]) => `<option value="${value}" ${trackFilter === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div><span class="results-count" role="status">${matches.length} من ${tracks.length} مسارات</span></div>${pathCards(matches)}</section><section class="card section" id="selectedTrack"><div class="track-head"><div><div class="eyebrow">TRAINING PATH / ${track.icon}</div><h2>${esc(track.name)}</h2><p>${esc(track.sub)}</p></div><div class="track-actions"><span class="badge">${trackDone(track)}/${track.stages.length} مراحل مكتملة</span><button type="button" class="secondary compact" data-share-track="${track.id}">نسخ رابط المسار</button></div></div>${stageRows(track)}</section>${relatedInvestigation(track)}`;
 }
 function exercisePage() {
   const track = trackById(currentTrack);
@@ -155,7 +230,7 @@ function exercisePage() {
   const key = stageKey(track.id, currentStage);
   const checks = state.checks[key] || [];
   const done = isDone(track.id, currentStage);
-  return `<div class="exercise-breadcrumb"><button type="button" class="link-btn" data-nav="tracks">المسارات</button><span aria-hidden="true">/</span><span>${esc(track.name)}</span><span aria-hidden="true">/</span><span>المرحلة ${currentStage + 1} من ${track.stages.length}</span></div><section class="track-head exercise-heading"><div><div class="eyebrow">${done ? 'COMPLETED / REVIEW MODE' : 'FOCUS SESSION'}</div><h1 tabindex="-1">${esc(stage.name)}</h1><p>${esc(stage.goal)}</p></div><span class="badge ${done ? 'done' : 'current'}">${done ? 'مكتملة' : 'قيد التدريب'}</span></section><div class="exercise"><section class="card exercise-main"><div class="box-title first-title">ابدأ بفهم المهمة</div><p class="stage-guide">${esc(stage.guide)}</p><h2 class="box-title">أوامر وعناوين التمرين</h2>${stage.commands.map(([label, command]) => `<div class="field command-field"><span class="command-label">${esc(label)}</span><div class="cmd"><button type="button" class="copy" data-copy="${esc(command)}" aria-label="نسخ: ${esc(label)}">نسخ</button><code>${esc(command)}</code></div></div>`).join('')}<p class="context-note">الموقع يقدّم التعليمات والتوثيق؛ تنفيذ الأوامر والتحقق من النتائج يتمّان في بيئتك المحلية.</p><div class="section-head notes-heading"><h2>دوّن ما توصلت إليه</h2><span class="badge">حفظ تلقائي</span></div><div class="field"><label for="stageResult">النتائج والأدلة</label><textarea id="stageResult" class="notearea" data-result="${key}" maxlength="${MAX_TEXT_LENGTH}" placeholder="المخرجات المهمة، ما الذي لاحظته، وكيف تحقّقت منه…">${esc(state.results[key] || '')}</textarea></div><div class="field"><label for="stageNotes">ملاحظات وخطوات المتابعة</label><textarea id="stageNotes" class="notearea" data-notes="${key}" maxlength="${MAX_TEXT_LENGTH}" placeholder="ما الذي تعلّمته؟ وما الذي ستراجعه في المرة القادمة؟">${esc(state.notes[key] || '')}</textarea></div><div class="save-line"><span id="draftStatus" class="draft-status" role="status" aria-live="polite"></span><button type="button" class="secondary" id="saveDraft">حفظ الآن</button></div></section><aside class="card check-card"><div class="section-head"><div><h2>خطوات إنجازك</h2><small>أشّر على البنود بعد تنفيذها</small></div><span class="badge" id="checkCount">${checks.length}/${stage.check.length}</span></div><div class="steps">${stage.check.map((label, index) => `<label class="step ${checks.includes(index) ? 'done' : ''}"><input type="checkbox" data-check="${key}" data-index="${index}" ${checks.includes(index) ? 'checked' : ''} ${done ? 'disabled' : ''}><span>${esc(label)}</span></label>`).join('')}</div><p class="context-note">التأشير يحفظ الخطوات. تأكيد المرحلة يسجّل إنجازها ويفتح المرحلة التالية.</p><button type="button" class="primary confirm" id="confirmStage" ${done || checks.length < stage.check.length ? 'disabled' : ''}>${done ? '✓ المرحلة مكتملة' : 'تأكيد إكمال المرحلة'}</button>${done ? `<p class="completion-date">أكّدت إنجازها في ${esc(dateLabel(state.completed[key]))}</p>${currentStage + 1 < track.stages.length ? `<button type="button" class="secondary full-width" data-open="${track.id}" data-stage="${currentStage + 1}">الانتقال إلى المرحلة التالية ←</button>` : '<button type="button" class="secondary full-width" data-nav="tracks">اختيار مسار آخر ←</button>'}` : ''}<div class="mini-progress"><span>تقدّم المسار</span><strong>${trackDone(track)}/${track.stages.length}</strong>${progressBar(trackDone(track), track.stages.length, `تقدم مسار ${track.name}`)}</div></aside></div>`;
+  return `<div class="exercise-breadcrumb"><button type="button" class="link-btn" data-nav="tracks">المسارات</button><span aria-hidden="true">/</span><span>${esc(track.name)}</span><span aria-hidden="true">/</span><span>المرحلة ${currentStage + 1} من ${track.stages.length}</span></div><section class="track-head exercise-heading"><div><div class="eyebrow">${done ? 'COMPLETED / REVIEW MODE' : 'FOCUS SESSION'}</div><h1 tabindex="-1">${esc(stage.name)}</h1><p>${esc(stage.goal)}</p></div><div class="track-actions"><span class="badge ${done ? 'done' : 'current'}">${done ? 'مكتملة' : 'قيد التدريب'}</span><button type="button" class="secondary compact" data-share-stage="${track.id}" data-stage-index="${currentStage}">نسخ رابط المرحلة</button></div></section><div class="exercise"><section class="card exercise-main"><div class="box-title first-title">ابدأ بفهم المهمة</div><p class="stage-guide">${esc(stage.guide)}</p><h2 class="box-title">أوامر وعناوين التمرين</h2>${stage.commands.map(([label, command]) => `<div class="field command-field"><span class="command-label">${esc(label)}</span><div class="cmd"><button type="button" class="copy" data-copy="${esc(command)}" aria-label="نسخ: ${esc(label)}">نسخ</button><code>${esc(command)}</code></div></div>`).join('')}<p class="context-note">الموقع يقدّم التعليمات والتوثيق؛ تنفيذ الأوامر والتحقق من النتائج يتمّان في بيئتك المحلية.</p><div class="section-head notes-heading"><h2>دوّن ما توصلت إليه</h2><span class="badge">حفظ تلقائي</span></div><div class="field"><label for="stageResult">النتائج والأدلة</label><textarea id="stageResult" class="notearea" data-result="${key}" maxlength="${MAX_TEXT_LENGTH}" placeholder="المخرجات المهمة، ما الذي لاحظته، وكيف تحقّقت منه…">${esc(state.results[key] || '')}</textarea></div><div class="field"><label for="stageNotes">ملاحظات وخطوات المتابعة</label><textarea id="stageNotes" class="notearea" data-notes="${key}" maxlength="${MAX_TEXT_LENGTH}" placeholder="ما الذي تعلّمته؟ وما الذي ستراجعه في المرة القادمة؟">${esc(state.notes[key] || '')}</textarea></div><div class="save-line"><span id="draftStatus" class="draft-status" role="status" aria-live="polite"></span><button type="button" class="secondary" id="saveDraft">حفظ الآن</button></div></section><aside class="card check-card"><div class="section-head"><div><h2>خطوات إنجازك</h2><small>أشّر على البنود بعد تنفيذها</small></div><span class="badge" id="checkCount">${checks.length}/${stage.check.length}</span></div><div class="steps">${stage.check.map((label, index) => `<label class="step ${checks.includes(index) ? 'done' : ''}"><input type="checkbox" data-check="${key}" data-index="${index}" ${checks.includes(index) ? 'checked' : ''} ${done ? 'disabled' : ''}><span>${esc(label)}</span></label>`).join('')}</div><p class="context-note">التأشير يحفظ الخطوات. تأكيد المرحلة يسجّل إنجازها ويفتح المرحلة التالية.</p><button type="button" class="primary confirm" id="confirmStage" ${done || checks.length < stage.check.length ? 'disabled' : ''}>${done ? '✓ المرحلة مكتملة' : 'تأكيد إكمال المرحلة'}</button>${done ? `<p class="completion-date">أكّدت إنجازها في ${esc(dateLabel(state.completed[key]))}</p>${currentStage + 1 < track.stages.length ? `<button type="button" class="secondary full-width" data-open="${track.id}" data-stage="${currentStage + 1}">الانتقال إلى المرحلة التالية ←</button>` : '<button type="button" class="secondary full-width" data-nav="tracks">اختيار مسار آخر ←</button>'}` : ''}<div class="mini-progress"><span>تقدّم المسار</span><strong>${trackDone(track)}/${track.stages.length}</strong>${progressBar(trackDone(track), track.stages.length, `تقدم مسار ${track.name}`)}</div></aside></div>`;
 }
 function statusControls() {
   const devices = [['kali', 'Kali Linux'], ['windows', 'Windows Host'], ['target', 'الآلة الهدف'], ['network', 'شبكة المختبر']];
@@ -184,6 +259,7 @@ function troublePage() {
   return `${hero('حلّ العائق، وواصل التدريب', 'إرشادات عملية للأعطال الشائعة في بيئتك المحلية وأدوات المختبر.')}<div class="section-head"><h2>دليل حلول الأعطال</h2><div class="field"><label for="errorSearch">ابحث عن المشكلة</label><input type="search" class="search" id="errorSearch" placeholder="مثل WebGoat أو عنوان IP…" value="${esc(errorQuery)}"></div></div><div class="error-grid">${list.map(([title, description]) => `<article class="error-card"><h3>${esc(title)}</h3><p>${esc(description)}</p></article>`).join('') || '<div class="card empty"><h2>لم نجد نتيجة مطابقة</h2><p>جرّب اسم الأداة أو وصفًا أقصر للمشكلة.</p></div>'}</div>`;
 }
 function render(focus = false) {
+  updateMetadata();
   document.querySelectorAll('#nav [data-view]').forEach(button => {
     const active = button.dataset.view === currentView || (currentView === 'exercise' && button.dataset.view === 'tracks');
     button.classList.toggle('active', active);
@@ -194,9 +270,10 @@ function render(focus = false) {
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
   const pages = { home, tracks: tracksPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
-  content.innerHTML = pages[currentView]();
+  content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${pages[currentView]()}`;
   bind();
   updateSaveStatus(Boolean(saveTimer));
+  trackPageView();
   if (focus) {
     window.scrollTo({ top: 0, behavior: 'instant' });
     content.querySelector('h1')?.focus({ preventScroll: true });
@@ -217,6 +294,7 @@ function exportBackup() {
   try {
     const backup = createBackup(state);
     download(JSON.stringify(backup, null, 2), 'application/json;charset=utf-8', `blackbox-backup-${new Date().toISOString().slice(0, 10)}.json`);
+    trackEvent('backup_export', { format: 'json' });
     toast('جهّزنا نسختك الاحتياطية للتنزيل');
   } catch (error) { toast(error.message || 'تعذّر تجهيز النسخة الاحتياطية'); }
 }
@@ -241,6 +319,7 @@ function reportMarkdown() {
 function exportReport() {
   flushDraft();
   download(reportMarkdown(), 'text/markdown;charset=utf-8', `blackbox-report-${new Date().toISOString().slice(0, 10)}.md`);
+  trackEvent('report_export', { format: 'markdown' });
   toast('جهّزنا تقرير التدريب للتنزيل');
 }
 async function readImport(file) {
@@ -275,6 +354,7 @@ function confirmImport() {
     return;
   }
   state = pendingImport;
+  trackEvent('backup_restore', { completed_count: Object.keys(state.completed).length });
   importRequest += 1;
   pendingImport = null;
   saveState = result;
@@ -294,7 +374,7 @@ function refreshSearch(id, value, position) {
 function bind() {
   document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => navigate(button.dataset.view));
   document.querySelectorAll('[data-nav]').forEach(button => button.onclick = () => navigate(button.dataset.nav));
-  document.querySelectorAll('[data-track]').forEach(button => button.onclick = () => { flushDraft(); currentTrack = button.dataset.track; currentView = 'tracks'; render(); document.getElementById('selectedTrack')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  document.querySelectorAll('[data-track]').forEach(button => button.onclick = () => openTrack(button.dataset.track));
   document.querySelectorAll('[data-open]').forEach(button => button.onclick = () => openStage(button.dataset.open, Number(button.dataset.stage)));
   document.querySelectorAll('[data-device]').forEach(select => select.onchange = () => { state.devices[select.dataset.device] = select.value; logActivity(`تحديث حالة بيئة التدريب: ${select.options[select.selectedIndex].text}`); persist(); });
   document.querySelectorAll('[data-result], [data-notes]').forEach(input => input.addEventListener('input', () => {
@@ -325,6 +405,7 @@ function bind() {
     state.stageUpdatedAt[key] = timestamp;
     logActivity(`إنجاز مرحلة: ${track.name} — ${track.stages[currentStage].name}`);
     persist();
+    trackEvent('stage_complete', { track_id: currentTrack, stage_index: currentStage });
     render();
     toast(currentStage + 1 < track.stages.length ? 'سُجّل إنجازك، والمرحلة التالية متاحة الآن' : 'أكملت هذا المسار. أحسنت التوثيق!');
   });
@@ -333,6 +414,18 @@ function bind() {
     try { await navigator.clipboard.writeText(button.dataset.copy); toast('نُسخ الأمر'); }
     catch { toast('تعذّر النسخ التلقائي؛ يمكنك تحديد نص الأمر ونسخه'); }
   });
+  document.querySelectorAll('[data-share-track], [data-share-stage]').forEach(button => button.onclick = async () => {
+    const route = button.dataset.shareStage
+      ? { view: 'exercise', trackId: button.dataset.shareStage, stageIndex: Number(button.dataset.stageIndex) }
+      : { view: 'tracks', trackId: button.dataset.shareTrack };
+    const url = routeURL(route, 'https://blackboxlab.dev/', { preserveCampaign: false }).href;
+    try { await navigator.clipboard.writeText(url); toast('نُسخ الرابط المباشر، ويمكن فتحه على أي جهاز'); }
+    catch { toast('تعذّر النسخ التلقائي؛ يمكنك مشاركة الرابط الموجود في شريط العنوان'); }
+  });
+  document.querySelectorAll('[data-partner]').forEach(link => link.addEventListener('click', () => {
+    flushDraft();
+    trackEvent('partner_click', { destination: 'cybertrace', context: link.dataset.partner });
+  }));
   document.getElementById('trackSearch')?.addEventListener('input', event => { trackQuery = event.target.value; refreshSearch('trackSearch'); });
   document.getElementById('trackFilter')?.addEventListener('change', event => { trackFilter = event.target.value; render(); document.getElementById('trackFilter')?.focus(); });
   document.getElementById('clearTrackSearch')?.addEventListener('click', () => { trackQuery = ''; trackFilter = 'all'; render(); document.getElementById('trackSearch')?.focus(); });
@@ -359,6 +452,12 @@ function bind() {
 }
 
 document.getElementById('quickBackup').addEventListener('click', exportBackup);
+document.querySelector('.brand').addEventListener('click', event => {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  navigate('home');
+});
 window.addEventListener('beforeunload', flushDraft);
+window.addEventListener('popstate', applyLocation);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushDraft(); });
-render();
+applyLocation();

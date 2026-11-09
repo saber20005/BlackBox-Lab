@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://blackboxlab.dev/</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=recon</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=nmap</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=network</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=webgoat</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=proxy</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=metasploit</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=troubleshoot</loc></url>
+</urlset>
