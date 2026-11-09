@@ -171,9 +171,8 @@ function progressBar(value, total, label) {
   return `<progress class="native-progress" max="${total}" value="${value}" aria-label="${esc(label)}">${percentage(value, total)}%</progress>`;
 }
 function partnerURL(caseId = null) {
-  const url = new URL('https://cyber-trace-psi.vercel.app/');
+  const url = new URL('https://cybertracelab.dev/');
   if (caseId) url.searchParams.set('case', caseId);
-  else url.searchParams.set('view', 'library');
   url.searchParams.set('utm_source', 'blackbox');
   url.searchParams.set('utm_medium', 'referral');
   url.searchParams.set('utm_campaign', 'training_path');
@@ -185,7 +184,7 @@ function relatedInvestigation(track) {
   return `<aside class="partner-panel section" aria-label="تحقيق مرتبط بالمهارة"><div><span class="eyebrow">CYBERTRACE / طبّق مهارة التحليل</span><h3>${esc(related[1])}</h3><p>حلّل سجلات حادثة مرتبطة بهذا المسار واتخذ قرار الاستجابة من المتصفح.</p></div><a class="secondary partner-link" href="${esc(partnerURL(related[0]))}" data-partner="track">جرّب التحقيق في CyberTrace ←</a></aside>`;
 }
 function partnerIntroduction() {
-  return `<section class="partner-panel section" aria-labelledby="partnerTitle"><div><span class="eyebrow">CYBERTRACE / تحليل الحوادث</span><h2 id="partnerTitle">من المهارة إلى قرار الاستجابة</h2><p>جرّب 16 تحقيقًا بالعربية: اقرأ السجلات، واختر الدليل، وراجع قرارك. تبدأ التجربة من المتصفح.</p></div><a class="secondary partner-link" href="${esc(partnerURL())}" data-partner="home">استكشف CyberTrace ←</a></section>`;
+  return `<section class="partner-panel section" aria-labelledby="partnerTitle"><div><span class="eyebrow">CYBERTRACE / تحليل الحوادث</span><h2 id="partnerTitle">من المهارة إلى قرار الاستجابة</h2><p>تدرّب على تحقيقات أمنية تفاعلية بالعربية: اقرأ السجلات، واختر الدليل، وراجع قرارك. تبدأ التجربة من المتصفح.</p></div><a class="secondary partner-link" href="${esc(partnerURL())}" data-partner="home">استكشف CyberTrace ←</a></section>`;
 }
 function home() {
   const done = completedCount();
