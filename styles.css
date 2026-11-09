@@ -460,3 +460,14 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 8px; }
 }
 /* Keep numeric progress fractions readable inside the Arabic interface. */
 .stat-value, #sideProgress, .mini-progress strong { direction: ltr; unicode-bidi: isolate; text-align: right; }
+.track-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; }
+.partner-panel { display: flex; gap: 24px; align-items: center; justify-content: space-between; padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(120deg, #10231d, var(--panel)); }
+.partner-panel h2, .partner-panel h3 { margin: 6px 0; font-size: 20px; }
+.partner-panel p { margin: 8px 0 0; color: var(--muted); max-width: 650px; }
+.partner-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
+.route-notice { margin-bottom: 20px; padding: 14px 18px; border-radius: 12px; border: 1px solid #6c582c; background: #2b2317; color: #f0d59d; }
+@media (max-width: 650px) {
+  .partner-panel { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
+  .track-actions { justify-content: flex-start; }
+  .track-actions .secondary, .partner-link { width: 100%; }
+}
