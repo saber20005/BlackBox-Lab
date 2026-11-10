@@ -1,6 +1,8 @@
 import { tracks, errors } from './data.js';
 import { parseRoute, routeURL, routeMetadata } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
+import { createAccountSync } from './account-sync.js';
+import { mountAccountUI } from './account-ui.js';
 import {
   loadProgress, saveProgress, createInitialState, createBackup, parseBackup,
   MAX_BACKUP_BYTES, MAX_TEXT_LENGTH,
@@ -11,6 +13,9 @@ try { storage = window.localStorage; } catch { storage = undefined; }
 const loaded = loadProgress(storage);
 let state = loaded.state;
 let saveState = { ok: loaded.ok, message: loaded.message };
+let accountStatus = { phase: 'guest', user: null, configured: false, pending: false, syncing: false, conflict: false, message: '', error: null };
+let accountController;
+let accountUI;
 const recoveryNotice = loaded.recovered ? loaded.message : '';
 let currentView = 'home';
 let currentTrack = state.lastActivity?.trackId || tracks[0].id;
@@ -53,12 +58,13 @@ function toast(message) {
 }
 function updateSaveStatus(pending = false) {
   const status = document.getElementById('saveStatus');
-  status.className = `save-status ${pending ? 'pending' : saveState.ok ? 'saved' : 'error'}`;
-  status.textContent = pending ? 'جارٍ حفظ التغييرات…' : saveState.ok ? 'محفوظ على هذا المتصفح' : 'التغييرات في ذاكرة التبويب';
+  const accountError = Boolean(accountStatus.user && (accountStatus.error || accountStatus.conflict));
+  status.className = `save-status ${pending || accountStatus.syncing || accountStatus.phase === 'loading' ? 'pending' : saveState.ok && !accountError ? 'saved' : 'error'}`;
+  status.textContent = pending ? 'جارٍ حفظ التغييرات…' : accountStatus.user && accountStatus.phase === 'loading' ? 'جارٍ تحميل تقدّم الحساب…' : !saveState.ok ? 'التغييرات في ذاكرة التبويب' : accountStatus.user ? accountStatus.conflict ? 'تحتاج المزامنة إلى مراجعة' : accountStatus.syncing ? 'جارٍ مزامنة الحساب…' : accountStatus.pending || accountStatus.error ? 'محفوظ هنا · بانتظار المزامنة' : 'محفوظ في حسابك' : 'محفوظ على هذا المتصفح';
   const draft = document.getElementById('draftStatus');
   if (draft) {
-    draft.textContent = pending ? 'جارٍ حفظ المسودة…' : saveState.ok ? 'تم الحفظ محليًا' : 'تعذّر الحفظ الدائم؛ نزّل نسخة قبل إغلاق التبويب';
-    draft.className = `draft-status ${saveState.ok ? '' : 'error'}`;
+    draft.textContent = pending ? 'جارٍ حفظ المسودة…' : !saveState.ok ? 'تعذّر الحفظ المحلي؛ نزّل نسخة قبل إغلاق التبويب' : accountStatus.user ? accountStatus.pending || accountStatus.syncing || accountStatus.error || accountStatus.conflict ? 'حُفظت على هذا الجهاز؛ راجع حالة المزامنة' : 'تم الحفظ في حسابك' : 'تم الحفظ محليًا';
+    draft.className = `draft-status ${saveState.ok && !accountError ? '' : 'error'}`;
   }
   const notice = document.getElementById('storageNotice');
   notice.classList.toggle('hidden', saveState.ok && !recoveryNotice);
@@ -68,7 +74,7 @@ function persist() {
   clearTimeout(saveTimer);
   saveTimer = undefined;
   state.updatedAt = new Date().toISOString();
-  saveState = saveProgress(state, storage);
+  saveState = accountController ? accountController.save(state) : saveProgress(state, storage);
   updateSaveStatus();
   return saveState.ok;
 }
@@ -165,7 +171,7 @@ function resumeActivity() {
   return { trackId: last?.trackId || tracks[0].id, index: last?.stageIndex || 0 };
 }
 function hero(title, description, eyebrow = 'YOUR TRAINING WORKSPACE') {
-  return `<section class="hero"><div><div class="eyebrow">${eyebrow}</div><h1 tabindex="-1">${esc(title)}</h1><p>${esc(description)}</p></div><span class="workspace-tag"><span class="dot ok" aria-hidden="true"></span>تدريب منظم · حفظ محلي</span></section>`;
+  return `<section class="hero"><div><div class="eyebrow">${eyebrow}</div><h1 tabindex="-1">${esc(title)}</h1><p>${esc(description)}</p></div><span class="workspace-tag"><span class="dot ok" aria-hidden="true"></span>تدريب منظم · ${accountStatus.user ? 'حساب التدريب' : 'حفظ محلي'}</span></section>`;
 }
 function progressBar(value, total, label) {
   return `<progress class="native-progress" max="${total}" value="${value}" aria-label="${esc(label)}">${percentage(value, total)}%</progress>`;
@@ -248,9 +254,13 @@ function journalPage() {
   return `${hero('من خطوات متفرّقة إلى معرفة موثّقة', 'نتائجك وملاحظاتك محفوظة هنا، بالتاريخ الفعلي عند توفره. عدّل أي مرحلة أو اجمع عملك في تقرير.')}<div class="section-head"><h2>${entries.length} مراحل في سجلك</h2><button type="button" class="secondary" data-report>تنزيل تقرير Markdown</button></div>${entries.length ? `<section class="journal-grid">${entries.map(({ track, index, key, at }) => `<article class="card journal-entry"><div class="section-head"><span class="eyebrow">${esc(track.name)}</span><span class="badge ${isDone(track.id, index) ? 'done' : 'current'}">${isDone(track.id, index) ? 'مكتملة' : 'مسودة'}</span></div><h3>${esc(track.stages[index].name)}</h3><time datetime="${esc(at || '')}">${esc(dateLabel(at))}</time>${state.results[key] ? `<div class="journal-text"><strong>النتائج</strong><p>${esc(state.results[key])}</p></div>` : ''}${state.notes[key] ? `<div class="journal-text"><strong>الملاحظات</strong><p>${esc(state.notes[key])}</p></div>` : ''}<button type="button" class="link-btn" data-open="${track.id}" data-stage="${index}" ${stageOpen(track.id, index) ? '' : 'disabled'}>فتح المرحلة ←</button></article>`).join('')}</section>` : '<section class="card empty"><div class="empty-mark" aria-hidden="true">▧</div><h2>ابدأ أول صفحة في سجلّك</h2><p>اكتب نتيجة أو ملاحظة داخل أي تمرين، وستُحفظ تلقائيًا هنا.</p><button type="button" class="primary" data-nav="tracks">اختيار تمرين</button></section>'}`;
 }
 function backupsPage() {
+  const description = accountStatus.user ? 'نزّل نسخة من التقدّم المعروض في حسابك أو تقريرًا للقراءة والمشاركة. راجع حالة المزامنة قبل الانتقال إلى جهاز آخر.' : 'نزّل نسخة قابلة للاستعادة أو تقريرًا للقراءة والمشاركة. بيانات الضيف محلية؛ النسخة الاحتياطية تساعدك على نقلها إلى متصفح آخر.';
+  const resetTitle = accountStatus.user ? 'إعادة ضبط تقدّم الحساب' : 'بداية جديدة على هذا المتصفح';
+  const resetDescription = accountStatus.user ? 'يعيد هذا الإجراء ضبط التقدّم والملاحظات في حسابك، ويُزامَن التغيير مع أجهزتك. نزّل نسخة للاحتفاظ بعملك أولًا.' : 'مسح البيانات يزيل تقدّمك وملاحظاتك هنا. يمكنك الاحتفاظ بها بتنزيل نسخة أولًا.';
+  const resetLabel = accountStatus.user ? 'إعادة ضبط تقدّم الحساب' : 'مسح البيانات المحلية';
   const candidate = pendingImport;
   const importStats = candidate ? { completed: Object.keys(candidate.completed).length, documented: new Set([...Object.keys(candidate.notes), ...Object.keys(candidate.results)].filter(key => candidate.notes[key] || candidate.results[key])).size } : null;
-  return `${hero('احتفظ بعملك، أينما تتدرّب', 'نزّل نسخة قابلة للاستعادة أو تقريرًا للقراءة والمشاركة. بياناتك محلية؛ النسخة الاحتياطية تساعدك على نقلها إلى متصفح آخر.')}<div class="grid backup-grid"><section class="card backup-card"><span class="feature-symbol" aria-hidden="true">↓</span><h2>نسخة احتياطية كاملة</h2><p>ملف JSON يحتوي على الخطوات والملاحظات والنتائج والتقدّم وآخر نشاط وحالات بيئتك.</p><dl class="backup-summary"><div><dt>مراحل مكتملة</dt><dd>${completedCount()} / ${allStages}</dd></div><div><dt>مراحل موثّقة</dt><dd>${documentedCount()}</dd></div><div><dt>آخر حفظ</dt><dd>${esc(dateLabel(state.updatedAt))}</dd></div></dl><button type="button" class="primary" data-backup>تنزيل نسخة JSON</button></section><section class="card backup-card"><span class="feature-symbol" aria-hidden="true">↑</span><h2>استعادة نسخة محفوظة</h2><p>اختر نسخة BLACKBOX بصيغة JSON. تُفحص البيانات أولًا، ثم تؤكّد الاستعادة قبل استبدال تقدّمك الحالي.</p><label class="file-label" for="importFile">اختر ملف النسخة الاحتياطية</label><input id="importFile" class="file-input" type="file" accept=".json,application/json" aria-describedby="importHint importStatus"><small id="importHint" class="muted">حتى ${Math.round(MAX_BACKUP_BYTES / 1024 / 1024)} MB · تقبل النسخ القديمة من هذا المختبر أيضًا</small><p id="importStatus" class="import-status ${importError ? 'error' : ''}" role="${importError ? 'alert' : 'status'}">${esc(importMessage)}</p>${candidate ? `<div class="import-preview"><strong>النسخة جاهزة للاستعادة</strong><p>${importStats.completed} مراحل مكتملة · ${importStats.documented} مراحل موثّقة</p><p>ستستبدل هذه النسخة البيانات الحالية. ننصح بتنزيل نسختك الحالية قبل المتابعة.</p><div class="button-row"><button type="button" class="primary" id="confirmImport">استعادة هذه النسخة</button><button type="button" class="secondary" id="cancelImport">إلغاء</button></div></div>` : ''}</section></div><section class="card report-card section"><div><span class="eyebrow">TRAINING REPORT</span><h2>تقرير يروي ما أنجزته</h2><p>ملف Markdown مرتب حسب المسار، ويشمل المراحل وحالتها وبنود التحقّق ونتائجك وملاحظاتك وتواريخ الإنجاز.</p></div><button type="button" class="secondary" data-report>تنزيل التقرير</button></section><section class="card reset-card section"><div><h2>بداية جديدة على هذا المتصفح</h2><p>مسح البيانات يزيل تقدّمك وملاحظاتك هنا. يمكنك الاحتفاظ بها بتنزيل نسخة أولًا.</p></div><button type="button" class="secondary danger" id="resetProgress">مسح البيانات المحلية</button></section>`;
+  return `${hero('احتفظ بعملك، أينما تتدرّب', description)}<div class="grid backup-grid"><section class="card backup-card"><span class="feature-symbol" aria-hidden="true">↓</span><h2>نسخة احتياطية كاملة</h2><p>ملف JSON يحتوي على الخطوات والملاحظات والنتائج والتقدّم وآخر نشاط وحالات بيئتك.</p><dl class="backup-summary"><div><dt>مراحل مكتملة</dt><dd>${completedCount()} / ${allStages}</dd></div><div><dt>مراحل موثّقة</dt><dd>${documentedCount()}</dd></div><div><dt>آخر حفظ</dt><dd>${esc(dateLabel(state.updatedAt))}</dd></div></dl><button type="button" class="primary" data-backup>تنزيل نسخة JSON</button></section><section class="card backup-card"><span class="feature-symbol" aria-hidden="true">↑</span><h2>استعادة نسخة محفوظة</h2><p>اختر نسخة BLACKBOX بصيغة JSON. تُفحص البيانات أولًا، ثم تؤكّد الاستعادة قبل استبدال تقدّمك الحالي.</p><label class="file-label" for="importFile">اختر ملف النسخة الاحتياطية</label><input id="importFile" class="file-input" type="file" accept=".json,application/json" aria-describedby="importHint importStatus"><small id="importHint" class="muted">حتى ${Math.round(MAX_BACKUP_BYTES / 1024 / 1024)} MB · تقبل النسخ القديمة من هذا المختبر أيضًا</small><p id="importStatus" class="import-status ${importError ? 'error' : ''}" role="${importError ? 'alert' : 'status'}">${esc(importMessage)}</p>${candidate ? `<div class="import-preview"><strong>النسخة جاهزة للاستعادة</strong><p>${importStats.completed} مراحل مكتملة · ${importStats.documented} مراحل موثّقة</p><p>ستستبدل هذه النسخة البيانات الحالية. ننصح بتنزيل نسختك الحالية قبل المتابعة.</p><div class="button-row"><button type="button" class="primary" id="confirmImport">استعادة هذه النسخة</button><button type="button" class="secondary" id="cancelImport">إلغاء</button></div></div>` : ''}</section></div><section class="card report-card section"><div><span class="eyebrow">TRAINING REPORT</span><h2>تقرير يروي ما أنجزته</h2><p>ملف Markdown مرتب حسب المسار، ويشمل المراحل وحالتها وبنود التحقّق ونتائجك وملاحظاتك وتواريخ الإنجاز.</p></div><button type="button" class="secondary" data-report>تنزيل التقرير</button></section><section class="card reset-card section"><div><h2>${resetTitle}</h2><p>${resetDescription}</p></div><button type="button" class="secondary danger" id="resetProgress">${resetLabel}</button></section>`;
 }
 function troublePage() {
   const query = errorQuery.trim().toLocaleLowerCase('ar');
@@ -296,6 +306,16 @@ function exportBackup() {
     trackEvent('backup_export', { format: 'json' });
     toast('جهّزنا نسختك الاحتياطية للتنزيل');
   } catch (error) { toast(error.message || 'تعذّر تجهيز النسخة الاحتياطية'); }
+}
+function exportRecovery(id) {
+  flushDraft();
+  const copies = accountController.getRecoveryBackups();
+  const index = copies.findIndex(copy => copy.id === id);
+  if (index < 0) { toast('لم تعد هذه المسودة متاحة؛ يمكنك تنزيل نسخة من التقدّم المعروض.'); return; }
+  const backup = createBackup(copies[index].progress);
+  download(JSON.stringify(backup, null, 2), 'application/json;charset=utf-8', `blackbox-recovery-${new Date().toISOString().slice(0, 10)}-${index + 1}.json`);
+  trackEvent('backup_export', { format: 'json' });
+  toast('جهّزنا نسخة المسودة للتنزيل');
 }
 function reportMarkdown() {
   const lines = ['# تقرير التدريب — BLACKBOX', '', `تاريخ إنشاء التقرير: ${new Date().toISOString()}`, '', `المراحل المكتملة: ${completedCount()} / ${allStages}`, `بنود التحقق المنجزة: ${checkedCount()} / ${allChecks}`, `المراحل الموثّقة: ${documentedCount()}`, '', '## حالة البيئة — إدخال يدوي', ''];
@@ -345,7 +365,7 @@ async function readImport(file) {
 }
 function confirmImport() {
   if (!pendingImport) return;
-  const result = saveProgress(pendingImport, storage);
+  const result = accountController ? accountController.save(pendingImport, { requireLocal: true }) : saveProgress(pendingImport, storage);
   if (!result.ok) {
     importMessage = `${result.message} لم تتغيّر بياناتك الحالية؛ احتفظ بالنسخة وحاول بعد إتاحة التخزين.`;
     importError = true;
@@ -357,12 +377,12 @@ function confirmImport() {
   importRequest += 1;
   pendingImport = null;
   saveState = result;
-  importMessage = 'تمت استعادة النسخة بنجاح.';
+  importMessage = accountStatus.user ? 'استُعيدت النسخة على هذا الجهاز؛ تابع حالة مزامنتها مع حسابك.' : 'تمت استعادة النسخة بنجاح.';
   importError = false;
   currentTrack = state.lastActivity?.trackId || tracks[0].id;
   currentStage = state.lastActivity?.stageIndex || 0;
   navigate('home');
-  toast('تمت استعادة تقدّمك وملاحظاتك بنجاح');
+  toast(accountStatus.user ? 'استُعيدت النسخة؛ تابع حالة مزامنة الحساب' : 'تمت استعادة تقدّمك وملاحظاتك بنجاح');
 }
 function refreshSearch(id, value, position) {
   render();
@@ -435,9 +455,10 @@ function bind() {
   document.getElementById('confirmImport')?.addEventListener('click', confirmImport);
   document.getElementById('cancelImport')?.addEventListener('click', () => { importRequest += 1; pendingImport = null; importMessage = 'أُلغيت الاستعادة. بياناتك الحالية محفوظة.'; importError = false; render(); });
   document.getElementById('resetProgress')?.addEventListener('click', () => {
-    if (!window.confirm('سيُمسح التقدم والملاحظات من هذا المتصفح. هل نزّلت نسخة احتياطية وتريد بدء رحلة جديدة؟')) return;
+    const prompt = accountStatus.user ? 'سيُعاد ضبط تقدّم هذا الحساب وملاحظاته، ويُزامَن التغيير مع أجهزتك. هل نزّلت نسخة احتياطية وتريد المتابعة؟' : 'سيُمسح التقدم والملاحظات من هذا المتصفح. هل نزّلت نسخة احتياطية وتريد بدء رحلة جديدة؟';
+    if (!window.confirm(prompt)) return;
     const fresh = createInitialState();
-    const result = saveProgress(fresh, storage);
+    const result = accountController ? accountController.save(fresh, { requireLocal: true }) : saveProgress(fresh, storage);
     if (!result.ok) { toast(`${result.message} لم يتم مسح بياناتك.`); return; }
     state = fresh;
     saveState = result;
@@ -459,4 +480,61 @@ document.querySelector('.brand').addEventListener('click', event => {
 window.addEventListener('beforeunload', flushDraft);
 window.addEventListener('popstate', applyLocation);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushDraft(); });
+accountUI = mountAccountUI({
+  beforeOpen: flushDraft,
+  onExport: exportBackup,
+  getRecoveries: () => accountController?.getRecoveryBackups() || [],
+  onAction: async (action, payload) => {
+    flushDraft();
+    if (action === 'exportRecovery') return exportRecovery(payload.id);
+    if (action === 'signInEmail') return accountController.signInEmail(payload.email, payload.password);
+    if (action === 'signUpEmail') return accountController.signUpEmail(payload.email, payload.password);
+    if (action === 'signInGoogle') return accountController.signInGoogle();
+    if (action === 'resetPassword') return accountController.resetPassword(payload.email);
+    if (action === 'signOut') return accountController.signOut(payload);
+    if (action === 'importGuest') {
+      if (!await accountController.importGuest()) throw Object.assign(new Error(), { code: 'account/sync-failed' });
+      return;
+    }
+    if (action === 'resolveConflict') {
+      if (!await accountController.resolveConflict(payload.choice)) throw Object.assign(new Error(), { code: 'account/sync-failed' });
+      return;
+    }
+    if (action === 'syncNow') return accountController.syncNow();
+    if (action === 'retry') {
+      await accountController.start();
+      if (accountController.getStatus().user) return accountController.syncNow();
+    }
+  },
+});
+accountController = createAccountSync({
+  guestState: state,
+  storage,
+  beforeScopeChange: flushDraft,
+  onState: next => {
+    clearTimeout(saveTimer);
+    saveTimer = undefined;
+    state = next;
+    accountStatus = accountController.getStatus();
+    if (typeof accountStatus.localSaved === 'boolean') saveState = { ok: accountStatus.localSaved, message: '' };
+    importRequest += 1;
+    pendingImport = null;
+    importMessage = '';
+    importError = false;
+    if (currentView === 'exercise' && !stageOpen(currentTrack, currentStage)) {
+      currentView = 'tracks';
+      routeNotice = 'اختر مرحلة متاحة في التقدّم المعروض حاليًا.';
+      syncRoute(true);
+    }
+    render();
+  },
+  onStatus: next => {
+    accountStatus = next;
+    if (typeof next.localSaved === 'boolean') saveState = { ok: next.localSaved, message: '' };
+    accountUI.update(next);
+    content.inert = Boolean(next.user && next.phase === 'loading');
+    updateSaveStatus(Boolean(saveTimer));
+  },
+});
 applyLocation();
+void accountController.start().catch(() => accountUI.update(accountController.getStatus()));
