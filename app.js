@@ -3,6 +3,8 @@ import { parseRoute, routeURL, routeMetadata } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';
 import { mountAccountUI } from './account-ui.js';
+import { accountConfig } from './account-config.js';
+import { linkedSkillsPage, linkedSkillsSummary } from './linked-skills-ui.js';
 import {
   loadProgress, saveProgress, createInitialState, createBackup, parseBackup,
   MAX_BACKUP_BYTES, MAX_TEXT_LENGTH,
@@ -16,6 +18,8 @@ let saveState = { ok: loaded.ok, message: loaded.message };
 let accountStatus = { phase: 'guest', user: null, configured: false, pending: false, syncing: false, conflict: false, message: '', error: null };
 let accountController;
 let accountUI;
+let skillOwnerUid = null;
+let skillState = { enabled: accountConfig.linkedSkillsEnabled === true, phase: 'guest', receipts: {}, fromCache: false, error: null, message: '' };
 const recoveryNotice = loaded.recovered ? loaded.message : '';
 let currentView = 'home';
 let currentTrack = state.lastActivity?.trackId || tracks[0].id;
@@ -30,7 +34,7 @@ let importRequest = 0;
 let importMessage = '';
 let importError = false;
 let routeNotice = '';
-const titles = { home: 'لوحة التحكم', tracks: 'مسارات التدريب', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
+const titles = { home: 'لوحة التحكم', tracks: 'مسارات التدريب', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
 const content = document.getElementById('content');
 const stageKey = (trackId, index) => `${trackId}-${index}`;
 const trackById = id => tracks.find(track => track.id === id);
@@ -44,6 +48,20 @@ const checkedCount = () => Object.values(state.checks).reduce((sum, checks) => s
 const documentedCount = () => new Set([...Object.keys(state.notes), ...Object.keys(state.results)].filter(key => state.notes[key]?.trim() || state.results[key]?.trim())).size;
 const esc = (value = '') => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const percentage = (value, total) => total ? Math.round(value / total * 100) : 0;
+
+function resetSkillOwner(uid) {
+  if (uid === skillOwnerUid) return false;
+  skillOwnerUid = uid;
+  skillState = { enabled: accountConfig.linkedSkillsEnabled === true, phase: uid ? 'loading' : 'guest', receipts: {}, fromCache: false, error: null, message: '' };
+  return true;
+}
+function repaintLinkedSkills() {
+  // Receipt updates must never replace a textarea while a draft is being edited.
+  if (['home', 'skills'].includes(currentView)) render();
+}
+function skillsPage() {
+  return `${hero('مهاراتك تتقدّم مع تحقيقاتك', 'اجمع أفضل نتائج CyberTrace في حساب BlackBox، وتابع نمو مهارات التحقيق بجانب تدريبك العملي.')}${linkedSkillsPage(skillState, accountStatus.user)}`;
+}
 
 function dateLabel(value) {
   if (!value || Number.isNaN(new Date(value).getTime())) return 'تاريخ الحفظ غير مسجّل';
@@ -199,7 +217,7 @@ function home() {
   const stage = track.stages[next.index];
   const allDone = done === allStages;
   const hasProgress = Boolean(state.lastActivity || done || checkedCount() || documentedCount());
-  return `${hero('مساحة تتقدّم معك', 'مسارات عملية واضحة، ملاحظات لا تضيع، وتقرير يجمع ما تعلمته. أكمل من حيث توقفت أو اختر مهارة جديدة.')}<section class="resume-card" aria-labelledby="resumeTitle"><div><span class="eyebrow">${allDone ? 'ALL STAGES COMPLETED' : hasProgress ? 'CONTINUE YOUR PROGRESS' : 'START YOUR FIRST SESSION'}</span><h2 id="resumeTitle">${allDone ? 'أكملت جميع المراحل. حان وقت المراجعة.' : hasProgress ? 'واصل من حيث توقفت' : 'خطوتك الأولى تبدأ هنا'}</h2><p><span>${esc(track.name)}</span><span aria-hidden="true"> / </span>${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : `${allStages} مرحلة تدريبية · يمكنك اختيار أي مسار`}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} <span aria-hidden="true">←</span></button></section><section class="grid stats" aria-label="تقدمك بالأرقام"><article class="card stat"><span class="stat-label">مراحل أنجزتها</span><strong class="stat-value" data-stat="completed">${done}<span> / ${allStages}</span></strong>${progressBar(done, allStages, 'المراحل المكتملة')}<span class="stat-foot">${percentage(done, allStages)}% من رحلتك</span></article><article class="card stat"><span class="stat-label">بنود تحقّقت منها</span><strong class="stat-value" data-stat="checks">${checkedCount()}<span> / ${allChecks}</span></strong><span class="stat-foot">خطوات نفّذتها وأشّرت عليها</span></article><article class="card stat"><span class="stat-label">مراحل موثّقة</span><strong class="stat-value" data-stat="notes">${documentedCount()}</strong><span class="stat-foot">نتائج أو ملاحظات كتبتها</span></article><article class="card stat"><span class="stat-label">مسارات متاحة</span><strong class="stat-value">${tracks.length}</strong><span class="stat-foot">اختر المهارة المناسبة لك</span></article></section><div class="grid dashboard-columns"><section class="card"><div class="section-head"><div><h2>مساراتك، بنظرة واحدة</h2><small>ثلاث مراحل لكل مهارة، وخطوة واضحة تليها</small></div><button type="button" class="link-btn" data-nav="tracks">استعرض المسارات ←</button></div>${pathCards(tracks)}</section><aside class="card quick-card"><div class="section-head"><h2>عملك يستحق أن تحتفظ به</h2></div><p>اجمع ملاحظاتك ونتائجك في تقرير، أو انقل تقدّمك إلى متصفح آخر بنسخة احتياطية.</p><button type="button" class="secondary full-width" data-nav="backups">النسخ الاحتياطي والتقارير</button><div class="quick-divider"></div><h3>أحدث نشاط</h3>${recentActivity()}<button type="button" class="link-btn" data-nav="journal">افتح سجل المختبر ←</button></aside></div><section class="card section"><div class="section-head"><div><h2>حالة بيئة التدريب</h2><small>سجّل ما تحقّقت منه في بيئتك المحلية</small></div><span class="badge">تأكيد يدوي</span></div>${statusControls()}</section>${partnerIntroduction()}`;
+  return `${hero('مساحة تتقدّم معك', 'مسارات عملية واضحة، ملاحظات لا تضيع، وتقرير يجمع ما تعلمته. أكمل من حيث توقفت أو اختر مهارة جديدة.')}<section class="resume-card" aria-labelledby="resumeTitle"><div><span class="eyebrow">${allDone ? 'ALL STAGES COMPLETED' : hasProgress ? 'CONTINUE YOUR PROGRESS' : 'START YOUR FIRST SESSION'}</span><h2 id="resumeTitle">${allDone ? 'أكملت جميع المراحل. حان وقت المراجعة.' : hasProgress ? 'واصل من حيث توقفت' : 'خطوتك الأولى تبدأ هنا'}</h2><p><span>${esc(track.name)}</span><span aria-hidden="true"> / </span>${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : `${allStages} مرحلة تدريبية · يمكنك اختيار أي مسار`}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} <span aria-hidden="true">←</span></button></section><section class="grid stats" aria-label="تقدمك بالأرقام"><article class="card stat"><span class="stat-label">مراحل أنجزتها</span><strong class="stat-value" data-stat="completed">${done}<span> / ${allStages}</span></strong>${progressBar(done, allStages, 'المراحل المكتملة')}<span class="stat-foot">${percentage(done, allStages)}% من رحلتك</span></article><article class="card stat"><span class="stat-label">بنود تحقّقت منها</span><strong class="stat-value" data-stat="checks">${checkedCount()}<span> / ${allChecks}</span></strong><span class="stat-foot">خطوات نفّذتها وأشّرت عليها</span></article><article class="card stat"><span class="stat-label">مراحل موثّقة</span><strong class="stat-value" data-stat="notes">${documentedCount()}</strong><span class="stat-foot">نتائج أو ملاحظات كتبتها</span></article><article class="card stat"><span class="stat-label">مسارات متاحة</span><strong class="stat-value">${tracks.length}</strong><span class="stat-foot">اختر المهارة المناسبة لك</span></article></section><div class="grid dashboard-columns"><section class="card"><div class="section-head"><div><h2>مساراتك، بنظرة واحدة</h2><small>ثلاث مراحل لكل مهارة، وخطوة واضحة تليها</small></div><button type="button" class="link-btn" data-nav="tracks">استعرض المسارات ←</button></div>${pathCards(tracks)}</section><aside class="card quick-card"><div class="section-head"><h2>عملك يستحق أن تحتفظ به</h2></div><p>اجمع ملاحظاتك ونتائجك في تقرير، أو انقل تقدّمك إلى متصفح آخر بنسخة احتياطية.</p><button type="button" class="secondary full-width" data-nav="backups">النسخ الاحتياطي والتقارير</button><div class="quick-divider"></div><h3>أحدث نشاط</h3>${recentActivity()}<button type="button" class="link-btn" data-nav="journal">افتح سجل المختبر ←</button></aside></div><section class="card section"><div class="section-head"><div><h2>حالة بيئة التدريب</h2><small>سجّل ما تحقّقت منه في بيئتك المحلية</small></div><span class="badge">تأكيد يدوي</span></div>${statusControls()}</section>${linkedSkillsSummary(skillState, accountStatus.user)}${partnerIntroduction()}`;
 }
 function recentActivity() {
   const recent = [...state.logs].reverse().slice(0, 3);
@@ -269,6 +287,7 @@ function troublePage() {
 }
 function render(focus = false) {
   updateMetadata();
+  document.querySelector('#nav [data-view="skills"]').classList.toggle('hidden', !skillState.enabled);
   document.querySelectorAll('#nav [data-view]').forEach(button => {
     const active = button.dataset.view === currentView || (currentView === 'exercise' && button.dataset.view === 'tracks');
     button.classList.toggle('active', active);
@@ -278,7 +297,7 @@ function render(focus = false) {
   const count = completedCount();
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
-  const pages = { home, tracks: tracksPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
+  const pages = { home, tracks: tracksPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
   content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${pages[currentView]()}`;
   bind();
   updateSaveStatus(Boolean(saveTimer));
@@ -393,6 +412,13 @@ function refreshSearch(id, value, position) {
 function bind() {
   document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => navigate(button.dataset.view));
   document.querySelectorAll('[data-nav]').forEach(button => button.onclick = () => navigate(button.dataset.nav));
+  document.querySelectorAll('[data-open-account]').forEach(button => button.onclick = () => accountUI.open());
+  document.querySelectorAll('[data-retry-skills]').forEach(button => button.onclick = async () => {
+    button.disabled = true;
+    try { await accountController.retrySkills(); }
+    catch { toast('تعذّر تحديث إنجازات التحقيق. حاول مجددًا عند الاتصال.'); }
+    finally { if (button.isConnected) button.disabled = false; }
+  });
   document.querySelectorAll('[data-track]').forEach(button => button.onclick = () => openTrack(button.dataset.track));
   document.querySelectorAll('[data-open]').forEach(button => button.onclick = () => openStage(button.dataset.open, Number(button.dataset.stage)));
   document.querySelectorAll('[data-device]').forEach(select => select.onchange = () => { state.devices[select.dataset.device] = select.value; logActivity(`تحديث حالة بيئة التدريب: ${select.options[select.selectedIndex].text}`); persist(); });
@@ -516,6 +542,7 @@ accountController = createAccountSync({
     saveTimer = undefined;
     state = next;
     accountStatus = accountController.getStatus();
+    resetSkillOwner(accountStatus.user?.uid ?? null);
     if (typeof accountStatus.localSaved === 'boolean') saveState = { ok: accountStatus.localSaved, message: '' };
     importRequest += 1;
     pendingImport = null;
@@ -530,10 +557,18 @@ accountController = createAccountSync({
   },
   onStatus: next => {
     accountStatus = next;
+    const skillOwnerChanged = resetSkillOwner(next.user?.uid ?? null);
     if (typeof next.localSaved === 'boolean') saveState = { ok: next.localSaved, message: '' };
     accountUI.update(next);
     content.inert = Boolean(next.user && next.phase === 'loading');
     updateSaveStatus(Boolean(saveTimer));
+    if (skillOwnerChanged) repaintLinkedSkills();
+  },
+  onSkillState: next => {
+    resetSkillOwner(accountController?.getStatus().user?.uid ?? null);
+    const previous = JSON.stringify(skillState);
+    skillState = { ...skillState, ...next };
+    if (previous !== JSON.stringify(skillState)) repaintLinkedSkills();
   },
 });
 applyLocation();

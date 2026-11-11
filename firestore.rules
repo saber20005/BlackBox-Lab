@@ -91,6 +91,46 @@ service cloud.firestore {
       allow delete, list: if false;
     }
 
+    function isKnownCybertraceCase(caseId) {
+      return caseId in [
+        'INC-0417', 'INC-0512', 'INC-0633', 'INC-0701',
+        'INC-0755', 'INC-0812', 'INC-0890', 'INC-0944',
+        'INC-1002', 'INC-1055', 'INC-1101', 'INC-1102',
+        'INC-1103', 'INC-1104', 'INC-1105', 'INC-1106'
+      ];
+    }
+
+    function validCybertraceReceipt(caseId) {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'schemaVersion', 'source', 'caseId', 'bestScore',
+          'firstSyncedAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'schemaVersion', 'source', 'caseId', 'bestScore',
+          'firstSyncedAt', 'updatedAt'
+        ])
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.source == 'cybertrace'
+        && data.caseId == caseId
+        && isKnownCybertraceCase(caseId)
+        && data.bestScore is int && data.bestScore >= 0 && data.bestScore <= 70
+        && data.firstSyncedAt is timestamp
+        && data.updatedAt is timestamp && data.updatedAt == request.time;
+    }
+
+    // Complementary investigation skills have their own owner-scoped records.
+    // They never complete practical lab stages or modify the progress document.
+    match /blackboxUsers/{uid}/cybertrace/{caseId} {
+      allow get, list: if isOwner(uid);
+      allow create: if isOwner(uid) && validCybertraceReceipt(caseId)
+        && request.resource.data.firstSyncedAt == request.time;
+      allow update: if isOwner(uid) && validCybertraceReceipt(caseId)
+        && request.resource.data.firstSyncedAt == resource.data.firstSyncedAt
+        && request.resource.data.bestScore > resource.data.bestScore;
+      allow delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

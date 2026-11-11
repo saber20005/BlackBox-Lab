@@ -9,6 +9,7 @@ test('public track and zero-based stage links parse without changing progress', 
   assert.deepEqual(parseRoute('?track=recon&stage=0'), { view: 'exercise', trackId: 'recon', stageIndex: 0, invalid: false });
   assert.equal(parseRoute('?view=journal&track=webgoat&stage=2').view, 'exercise');
   assert.equal(parseRoute('?view=tracks', 'network').trackId, 'network');
+  assert.deepEqual(parseRoute('?view=skills'), { view: 'skills', trackId: 'recon', stageIndex: 0, invalid: false });
 });
 
 test('unknown, duplicated and malformed route values fall back to known pages', () => {
@@ -42,6 +43,7 @@ test('navigation keeps allowed attribution and removes stale routes, arbitrary f
   assert.equal(url.hash, '');
   assert.equal(routeURL({ view: 'home' }, base).search, '?utm_source=club&utm_campaign=launch30');
   assert.equal(routeURL({ view: 'tracks', trackId: 'webgoat' }, base, { preserveCampaign: false }).search, '?view=tracks&track=webgoat');
+  assert.equal(routeURL({ view: 'skills' }, base, { preserveCampaign: false }).search, '?view=skills');
 });
 
 test('invalid generated routes cannot create unknown stages or unsafe URLs', () => {
@@ -55,7 +57,7 @@ test('canonicals discard campaigns and private views while preserving public tra
   assert.equal(canonicalURL({ view: 'home' }), 'https://blackboxlab.dev/');
   assert.equal(canonicalURL({ view: 'tracks', trackId: 'network' }), 'https://blackboxlab.dev/?view=tracks&track=network');
   assert.equal(canonicalURL({ view: 'exercise', trackId: 'webgoat', stageIndex: 2 }), 'https://blackboxlab.dev/?view=tracks&track=webgoat');
-  for (const view of ['journal', 'backups']) {
+  for (const view of ['skills', 'journal', 'backups']) {
     assert.equal(canonicalURL({ view }), 'https://blackboxlab.dev/');
     assert.equal(routeMetadata({ view }).shouldIndex, false);
   }

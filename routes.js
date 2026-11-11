@@ -2,7 +2,7 @@ import { tracks } from './data.js';
 
 export const SITE_ORIGIN = 'https://blackboxlab.dev';
 const HOME = `${SITE_ORIGIN}/`;
-const VIEWS = new Set(['home', 'tracks', 'journal', 'backups', 'troubleshoot']);
+const VIEWS = new Set(['home', 'tracks', 'skills', 'journal', 'backups', 'troubleshoot']);
 const CAMPAIGN_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 const trackById = id => tracks.find(track => track.id === id);
 const defaultTrack = id => trackById(id)?.id || tracks[0].id;
@@ -88,7 +88,7 @@ export function routeMetadata(route) {
     title: 'BLACKBOX | مساحة التدريب السيبراني',
     description: 'مساحة تدريب عربية تضم 6 مسارات و18 مرحلة للمختبر المحلي، مع حفظ الملاحظات والتقدم والنسخ الاحتياطية والتقارير.',
     canonical: canonicalURL(route),
-    shouldIndex: !['exercise', 'journal', 'backups'].includes(route?.view),
+    shouldIndex: !['exercise', 'skills', 'journal', 'backups'].includes(route?.view),
   };
   if (route?.view === 'exercise' && track && stage) {
     return { ...base, title: `${stage.name} | ${track.name} | BLACKBOX`, description: stage.goal };
@@ -100,6 +100,7 @@ export function routeMetadata(route) {
   }
   if (route?.view === 'troubleshoot') return { ...base, title: 'حلول أعطال المختبر | BLACKBOX', description: 'إرشادات عملية لحل أعطال المختبر المحلي والشبكة وأدوات التدريب، مع البحث في الحلول.' };
   if (route?.view === 'journal') return { ...base, title: 'سجل المختبر | BLACKBOX' };
+  if (route?.view === 'skills') return { ...base, title: 'المهارات المترابطة | BLACKBOX', description: 'نتائج تحقيقات CyberTrace المرتبطة بحسابك، ونقاط التعلّم حسب المهارة.' };
   if (route?.view === 'backups') return { ...base, title: 'النسخ الاحتياطي والتقارير | BLACKBOX' };
   return base;
 }

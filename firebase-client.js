@@ -1,5 +1,6 @@
 import { accountConfig } from './account-config.js';
 import { createBackup, parseBackup } from './progress.js';
+import { normalizeReceipt } from './cybertrace-catalog.js';
 
 export const MAX_CLOUD_BYTES = 700000;
 const SDK_VERSION = '12.18.0';
@@ -54,6 +55,25 @@ export async function createFirebaseBackend(config = accountConfig) {
     signInGoogle: () => authSDK.signInWithPopup(auth, new authSDK.GoogleAuthProvider()),
     resetPassword: email => authSDK.sendPasswordResetEmail(auth, email),
     signOut: () => authSDK.signOut(auth),
+    watchCybertrace(uid, onData, onError) {
+      // Keep the collection query beneath one authenticated UID; never use a
+      // collection-group query or derive ownership from an email address.
+      documentFor(uid);
+      const reference = storeSDK.collection(database, 'blackboxUsers', uid, 'cybertrace');
+      return storeSDK.onSnapshot(reference, { includeMetadataChanges: true }, snapshot => {
+        // A local pending write is not proof that a receipt reached the server.
+        if (snapshot.metadata.hasPendingWrites) return;
+        try {
+          const receipts = {};
+          for (const document of snapshot.docs) {
+            const receipt = normalizeReceipt(document.data(), document.id);
+            if (!receipt) throw Object.assign(new Error('تعذّر التحقق من إنجازات CyberTrace في الحساب.'), { code: 'skills/invalid-receipt' });
+            receipts[document.id] = receipt;
+          }
+          onData({ receipts, fromCache: snapshot.metadata.fromCache });
+        } catch (reason) { onError(reason); }
+      }, onError);
+    },
     async read(uid) { return readSnapshot(await storeSDK.getDocFromServer(documentFor(uid))); },
     async write(uid, progress, expectedRevision) {
       const data = validateCloudProgress(progress);

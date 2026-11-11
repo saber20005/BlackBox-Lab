@@ -509,6 +509,45 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 8px; }
 .account-choice-buttons button { flex: 1 1 140px; }
 .account-session-actions { margin-top: 20px; }
 .account-retry { margin-top: 17px; }
+/* Investigation points are complementary to practical stage completion. */
+.linked-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; background: linear-gradient(125deg, #14291d, var(--panel)); }
+.linked-summary h2, .linked-intro h2 { margin: 6px 0 10px; }
+.linked-summary p, .linked-intro p { color: var(--muted); line-height: 1.9; margin: 8px 0; }
+.linked-summary > button { flex-shrink: 0; }
+.linked-intro { margin-bottom: 20px; }
+.linked-intro .button-row { margin-top: 20px; }
+.linked-status { font-size: 12px; line-height: 1.9; color: #a8c2b1; }
+.linked-status.error { padding: 12px 14px; border: 1px solid #796333; border-radius: 10px; background: #261f12; color: #e4cf9b; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.linked-status.error .link-btn { flex-shrink: 0; }
+.linked-totals { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 22px; }
+.linked-skill-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.linked-skill-card { min-width: 0; }
+.linked-skill-card .section-head { align-items: flex-start; gap: 12px; }
+.linked-skill-card h2 { font-size: 18px; margin: 0; }
+.linked-skill-card .badge { flex-shrink: 0; }
+.linked-meter-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 8px; font-size: 11px; color: var(--muted); }
+.linked-meter-label strong { color: var(--green); direction: ltr; unicode-bidi: isolate; }
+.linked-skill-caption { margin: 9px 0 20px; font-size: 11px; color: var(--muted); }
+.linked-case-list { list-style: none; padding: 0; margin: 0; }
+.linked-case-list li { padding: 14px 0; border-top: 1px solid var(--line); display: flex; gap: 16px; align-items: center; justify-content: space-between; }
+.linked-case-list li > div { min-width: 0; }
+.linked-case-list strong { display: block; font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.linked-case-list small { display: block; font-size: 10px; line-height: 1.8; color: var(--muted); margin-top: 5px; }
+.linked-case-list .link-btn { flex-shrink: 0; text-decoration: none; font-size: 11px; }
+.linked-case-score { direction: ltr; unicode-bidi: isolate; display: inline-block; color: #c7e8b2; }
+.linked-follow-ups { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 6px; }
+.linked-follow-ups > span { font-size: 11px; color: var(--muted); }
+.linked-follow-ups > div { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 10px; }
+@media(max-width:1000px) {
+  .linked-skill-grid { grid-template-columns: minmax(0, 1fr); }
+  .linked-summary { align-items: stretch; flex-direction: column; gap: 14px; }
+}
+@media(max-width:600px) {
+  .linked-totals { grid-template-columns: minmax(0, 1fr); }
+  .linked-case-list li { align-items: flex-start; gap: 10px; }
+  .linked-status.error { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .linked-intro .section-head { align-items: stretch; flex-direction: column; }
+}
 @media(max-width:700px) {
   .right-actions { flex-wrap: wrap; }
   .right-actions .save-status { flex: 1 1 100%; }

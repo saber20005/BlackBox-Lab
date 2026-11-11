@@ -3,6 +3,8 @@
 export const accountConfig = Object.freeze({
   // Authentication, the production domain, and owner-only reads are verified.
   enabled: true,
+  // Activate after CyberTrace is authorized and receipt rules are published.
+  linkedSkillsEnabled: false,
   firebase: Object.freeze({
     apiKey: 'AIzaSyAXZixrz0V0-68NwGDHZFYwveIW20AsiRA',
     authDomain: 'black-box-lab.firebaseapp.com',
