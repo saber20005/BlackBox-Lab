@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function stageKeys() {
+      return [
+        'recon-0', 'recon-1', 'recon-2',
+        'nmap-0', 'nmap-1', 'nmap-2',
+        'network-0', 'network-1', 'network-2',
+        'webgoat-0', 'webgoat-1', 'webgoat-2',
+        'proxy-0', 'proxy-1', 'proxy-2',
+        'metasploit-0', 'metasploit-1', 'metasploit-2'
+      ];
+    }
+
+    function isStageMap(value) {
+      return value is map && value.keys().hasOnly(stageKeys());
+    }
+
+    function isNullableDate(value) {
+      return value == null || (value is string && value.size() <= 40);
+    }
+
+    function validDevices(devices) {
+      return devices is map
+        && devices.keys().hasAll(['kali', 'windows', 'target', 'network'])
+        && devices.keys().hasOnly(['kali', 'windows', 'target', 'network'])
+        && devices.kali in ['unknown', 'on', 'off']
+        && devices.windows in ['unknown', 'on', 'off']
+        && devices.target in ['unknown', 'on', 'off']
+        && devices.network in ['unknown', 'isolated', 'notset'];
+    }
+
+    function validActivity(activity) {
+      return activity == null || (
+        activity is map
+        && activity.keys().hasAll(['trackId', 'stageIndex', 'at'])
+        && activity.keys().hasOnly(['trackId', 'stageIndex', 'at'])
+        && activity.trackId in ['recon', 'nmap', 'network', 'webgoat', 'proxy', 'metasploit']
+        && activity.stageIndex is int
+        && activity.stageIndex >= 0 && activity.stageIndex <= 2
+        && activity.at is string && activity.at.size() <= 40
+      );
+    }
+
+    // The client additionally checks each note, date and checklist value before
+    // sending or using a snapshot, and caps UTF-8 payloads below 700,000 bytes.
+    // These rules enforce ownership, the exact document envelope, and bounded
+    // top-level progress structure. They do not parse arbitrary note contents.
+    function validProgress(progress) {
+      return progress is map
+        && progress.keys().hasAll([
+          'checks', 'notes', 'results', 'completed', 'devices', 'logs',
+          'lastActivity', 'updatedAt', 'stageUpdatedAt'
+        ])
+        && progress.keys().hasOnly([
+          'checks', 'notes', 'results', 'completed', 'devices', 'logs',
+          'lastActivity', 'updatedAt', 'stageUpdatedAt'
+        ])
+        && isStageMap(progress.checks)
+        && isStageMap(progress.notes)
+        && isStageMap(progress.results)
+        && isStageMap(progress.completed)
+        && isStageMap(progress.stageUpdatedAt)
+        && validDevices(progress.devices)
+        && progress.logs is list && progress.logs.size() <= 100
+        && validActivity(progress.lastActivity)
+        && isNullableDate(progress.updatedAt);
+    }
+
+    function validEnvelope() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['schemaVersion', 'revision', 'progress', 'updatedAt'])
+        && data.keys().hasOnly(['schemaVersion', 'revision', 'progress', 'updatedAt'])
+        && data.schemaVersion is int && data.schemaVersion == 1
+        && data.revision is int && data.revision >= 1 && data.revision <= 2147483647
+        && validProgress(data.progress)
+        && data.updatedAt is timestamp && data.updatedAt == request.time;
+    }
+
+    match /blackboxUsers/{uid}/state/progress {
+      allow get: if isOwner(uid);
+      allow create: if isOwner(uid) && validEnvelope() && request.resource.data.revision == 1;
+      allow update: if isOwner(uid) && validEnvelope()
+        && request.resource.data.revision == resource.data.revision + 1;
+      // Clearing progress writes an empty valid snapshot at the next revision.
+      // Direct deletion and collection listing are intentionally not permitted.
+      allow delete, list: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

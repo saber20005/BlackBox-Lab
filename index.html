@@ -48,17 +48,18 @@
       </div>
       <div class="side-bottom">
         <section class="side-progress" aria-label="ملخص تقدمك"><span>رحلتك في المختبر</span><strong id="sideProgress">0 / 18</strong><progress id="sideProgressBar" max="18" value="0">0</progress><small>مراحل أكّدت إنجازها</small></section>
-        <div class="profile"><span class="avatar" aria-hidden="true">BB</span><div><b>مساحتك الخاصة</b><small>البيانات محفوظة على هذا المتصفح</small></div></div>
+        <div class="profile"><span class="avatar" aria-hidden="true">BB</span><div><b id="accountSidebarName">مساحتك الخاصة</b><small id="accountSidebarNote">تدريب متاح للضيف</small></div></div>
       </div>
     </aside>
     <main class="main" id="main-content" tabindex="-1">
       <header class="topbar">
         <div class="crumb"><span class="mono">BLACKBOX</span><span aria-hidden="true"> / </span><b id="crumb">لوحة التحكم</b></div>
-        <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة</button></div>
+        <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة</button><button type="button" class="secondary compact account-trigger" id="accountButton">سجّل لحفظ تقدّمك</button></div>
       </header>
       <div id="storageNotice" class="storage-notice hidden" role="status"></div>
+      <div id="accountSyncNotice" class="account-sync-notice hidden" role="status"><span id="accountSyncNoticeText"></span><button type="button" class="link-btn" id="reviewAccountSync">مراجعة الحساب</button></div>
       <div id="content"></div>
-      <footer class="footer">BLACKBOX · تعلّم، وثّق، وراجع تقدّمك · حفظ محلي دون مزامنة بين الأجهزة</footer>
+      <footer class="footer">BLACKBOX · تعلّم، وثّق، وراجع تقدّمك · تدريب للضيف وحفظ اختياري في الحساب</footer>
     </main>
   </div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
