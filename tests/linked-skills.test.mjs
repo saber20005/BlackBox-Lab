@@ -8,6 +8,8 @@ const receipt = (id = 'INC-0417', bestScore = 35, extra = {}) => ({
   schemaVersion: 1, source: 'cybertrace', caseId: id, bestScore,
   firstSyncedAt: first, updatedAt: updated, ...extra,
 });
+const LEGACY_CASE_IDS = ['INC-0417', 'INC-0512', 'INC-0633', 'INC-0701', 'INC-0755', 'INC-0812', 'INC-0890', 'INC-0944', 'INC-1002', 'INC-1055', 'INC-1101', 'INC-1102', 'INC-1103', 'INC-1104', 'INC-1105', 'INC-1106'];
+const NEW_CASE_IDS = ['INC-1201', 'INC-1202', 'INC-1203', 'INC-1204', 'INC-1205', 'INC-1206', 'INC-1207', 'INC-1208', 'INC-1209', 'INC-1210', 'INC-1211', 'INC-1212'];
 function timestamp(iso) {
   const milliseconds = Date.parse(iso);
   const seconds = Math.floor(milliseconds / 1000);
@@ -17,19 +19,32 @@ function timestamp(iso) {
   };
 }
 
-test('catalogue covers the exact 16 cases and eight complementary skills', () => {
+test('catalogue preserves the original cases and adds exactly twelve cases across eight complementary skills', () => {
   assert.equal(MAX_CASE_SCORE, 70);
-  assert.deepEqual(CASE_IDS, ['INC-0417', 'INC-0512', 'INC-0633', 'INC-0701', 'INC-0755', 'INC-0812', 'INC-0890', 'INC-0944', 'INC-1002', 'INC-1055', 'INC-1101', 'INC-1102', 'INC-1103', 'INC-1104', 'INC-1105', 'INC-1106']);
+  assert.deepEqual(CASE_IDS, [...LEGACY_CASE_IDS, ...NEW_CASE_IDS]);
+  assert.equal(CASE_IDS.length, 28);
+  assert.equal(new Set(CASE_IDS).size, CASE_IDS.length);
   assert.deepEqual(SKILLS.map(skill => skill.id), ['identity', 'email', 'malware', 'web', 'data', 'cloud', 'network', 'supply-chain']);
   for (const id of CASE_IDS) {
     assert.equal(typeof CASE_META[id].title, 'string');
     assert(SKILLS.some(skill => skill.id === CASE_META[id].skillId));
-    assert(CASE_META[id].trackIds.every(track => ['webgoat', 'proxy', 'network'].includes(track)));
+    assert(CASE_META[id].trackIds.every(track => ['webgoat', 'proxy', 'network', 'nmap'].includes(track)));
   }
   assert.deepEqual(CASE_META['INC-0701'].trackIds, ['webgoat', 'proxy']);
   assert.deepEqual(CASE_META['INC-1104'].trackIds, ['network']);
   assert.deepEqual(CASE_META['INC-1102'].trackIds, []);
+  assert.deepEqual(CASE_META['INC-1203'].trackIds, ['webgoat', 'proxy']);
+  assert.deepEqual(CASE_META['INC-1211'].trackIds, ['network', 'nmap']);
   assert(Object.isFrozen(SKILLS) && Object.isFrozen(CASE_META) && Object.isFrozen(CASE_IDS));
+});
+
+test('each new case accepts only its own valid scored receipt', () => {
+  for (const id of NEW_CASE_IDS) {
+    assert.deepEqual(normalizeReceipt(receipt(id, 70), id), receipt(id, 70));
+    assert.equal(normalizeReceipt(receipt(id, 70, { privateNotes: 'not a receipt field' }), id), null);
+    assert.equal(normalizeReceipt(receipt('INC-0417', 70), id), null);
+  }
+  assert.equal(normalizeReceipt(receipt('INC-1213', 70), 'INC-1213'), null);
 });
 
 test('valid scored receipts normalize without mutating or inventing fields', () => {
@@ -82,13 +97,13 @@ test('empty or unknown receipt data leaves fixed catalogue denominators intact',
   for (const input of [undefined, null, 5, {}, [], { unknown: receipt() }, { 'INC-0417': receipt('INC-0812') }]) {
     const progress = aggregateSkillProgress(input);
     assert.equal(progress.points, 0);
-    assert.equal(progress.maxPoints, 1120);
+    assert.equal(progress.maxPoints, CASE_IDS.length * MAX_CASE_SCORE);
     assert.equal(progress.percent, 0);
     assert.equal(progress.completedCount, 0);
-    assert.equal(progress.totalCases, 16);
+    assert.equal(progress.totalCases, CASE_IDS.length);
   }
   assert.deepEqual(Object.fromEntries(aggregateSkillProgress({}).skills.map(skill => [skill.id, skill.totalCases])), {
-    identity: 4, email: 1, malware: 2, web: 2, data: 2, cloud: 2, network: 2, 'supply-chain': 1,
+    identity: 6, email: 3, malware: 3, web: 3, data: 3, cloud: 3, network: 4, 'supply-chain': 3,
   });
 });
 
@@ -96,16 +111,33 @@ test('partial best scores increase their named skill without changing practical 
   const input = { 'INC-0417': receipt('INC-0417', 35), 'INC-1101': receipt('INC-1101', 70), 'INC-1104': receipt('INC-1104', 14) };
   const progress = aggregateSkillProgress(input);
   assert.equal(progress.points, 119);
-  assert.equal(progress.percent, 11);
+  assert.equal(progress.percent, Math.round(119 * 100 / (CASE_IDS.length * MAX_CASE_SCORE)));
   assert.equal(progress.completedCount, 3);
   const byId = Object.fromEntries(progress.skills.map(skill => [skill.id, skill]));
   assert.equal(byId.identity.points, 35);
-  assert.equal(byId.identity.percent, 13);
-  assert.equal(byId.web.percent, 50);
-  assert.equal(byId.data.percent, 10);
-  assert.deepEqual(byId.web.caseIds, ['INC-0701', 'INC-1101']);
+  assert.equal(byId.identity.percent, Math.round(35 * 100 / byId.identity.maxPoints));
+  assert.equal(byId.web.percent, Math.round(70 * 100 / byId.web.maxPoints));
+  assert.equal(byId.data.percent, Math.round(14 * 100 / byId.data.maxPoints));
+  assert.deepEqual(byId.web.caseIds, ['INC-0701', 'INC-1101', 'INC-1203']);
   assert.equal(Object.hasOwn(progress, 'completed'), false);
   assert.deepEqual(aggregateSkillProgress(input), progress);
+});
+
+test('old stored receipts retain scores and timestamps when catalogue coverage expands', () => {
+  const saved = Object.freeze(Object.fromEntries(LEGACY_CASE_IDS.map(id => [id, Object.freeze(receipt(id, 70))])));
+  const before = JSON.stringify(saved);
+  const expanded = aggregateSkillProgress(saved);
+  assert.equal(expanded.points, 1120);
+  assert.equal(expanded.completedCount, LEGACY_CASE_IDS.length);
+  assert.equal(expanded.totalCases, 28);
+  assert.equal(expanded.maxPoints, 1960);
+  assert.equal(expanded.percent, Math.round(1120 * 100 / 1960));
+  for (const id of LEGACY_CASE_IDS) assert.deepEqual(normalizeReceipt(saved[id], id), saved[id]);
+  assert.equal(JSON.stringify(saved), before);
+  const withNewResult = aggregateSkillProgress({ ...saved, 'INC-1203': receipt('INC-1203', 35) });
+  assert.equal(withNewResult.points, expanded.points + 35);
+  assert.equal(withNewResult.completedCount, expanded.completedCount + 1);
+  assert.equal(JSON.stringify(saved), before);
 });
 
 test('duplicate snapshots contribute the highest valid per-case score once, independently of order', () => {
@@ -136,8 +168,9 @@ test('a valid zero-score completion is counted without granting points, and comp
   assert.equal(zero.completedCount, 1);
   assert.equal(zero.points, 0);
   const full = aggregateSkillProgress(Object.fromEntries(CASE_IDS.map(id => [id, receipt(id, 70)])));
-  assert.equal(full.points, 1120);
+  assert.equal(full.points, 1960);
+  assert.equal(full.maxPoints, CASE_IDS.length * MAX_CASE_SCORE);
   assert.equal(full.percent, 100);
-  assert.equal(full.completedCount, 16);
+  assert.equal(full.completedCount, 28);
   assert(full.skills.every(skill => skill.percent === 100 && skill.points === skill.maxPoints));
 });

@@ -1,6 +1,7 @@
 const { chromium } = await import(process.env.BLACKBOX_PLAYWRIGHT_MODULE || 'playwright');
 const { CASES } = await import(process.env.CYBERTRACE_CASES_MODULE || new URL('../../CyberTrace/src/data/cases.js', import.meta.url).href);
 import assert from 'node:assert/strict';
+import { CASE_IDS, CASE_META } from '../cybertrace-catalog.js';
 
 const cyberBase = new URL(process.env.CYBERTRACE_TEST_URL || 'http://127.0.0.1:4175/');
 const blackboxBase = new URL(process.env.BLACKBOX_TEST_URL || 'http://127.0.0.1:4176/');
@@ -78,7 +79,8 @@ try {
   await cyber.getByRole('button', { name: 'إعادة المحاولة', exact: true }).click();
   await solve(cyber, 'INC-0417', true, true, false);
   await points(blackbox, 70);
-  assert.equal(await blackbox.locator('[data-skill-id="identity"] progress').getAttribute('value'), '25');
+  const identityCaseCount = CASE_IDS.filter(id => CASE_META[id].skillId === 'identity').length;
+  assert.equal(await blackbox.locator('[data-skill-id="identity"] progress').getAttribute('value'), String(Math.round(100 / identityCaseCount)));
   await cyber.getByRole('button', { name: 'إعادة المحاولة', exact: true }).click();
   await solve(cyber, 'INC-0417', true, true, false);
   await cyber.waitForFunction(() => document.querySelector('.bb-link-mini-status')?.textContent === 'الحساب مرتبط');
@@ -122,12 +124,21 @@ try {
   assert(!await blackbox.locator('[data-linked-case-id="INC-0417"] .linked-case-score').count());
   console.log('PASS account switching clears previous receipts and credits only the newly linked UID');
 
+  const newCaseScore = await solve(cyber, 'INC-1203', true);
+  await points(blackbox, 70 + newCaseScore);
+  assert.equal(await blackbox.locator('[data-linked-case-id="INC-1203"] .linked-case-score').textContent(), `${newCaseScore} / 70`);
+  const webCaseCount = CASE_IDS.filter(id => CASE_META[id].skillId === 'web').length;
+  assert.equal(await blackbox.locator('[data-skill-id="web"] progress').getAttribute('value'), String(Math.round(100 / webCaseCount)));
+  assert.equal(await blackbox.locator('#sideProgress').textContent(), '0 / 18');
+  console.log('PASS new catalogue case syncs through the current rules and contributes only to its linked skill');
+
   const independent = await context();
   const original = await independent.newPage();
   await original.goto(new URL('?view=skills', blackboxBase).href);
   await blackboxAuth(original, alice);
   await points(original, 210);
   assert(!await original.locator('[data-linked-case-id="INC-0633"] .linked-case-score').count());
+  assert(!await original.locator('[data-linked-case-id="INC-1203"] .linked-case-score').count());
   assert.deepEqual(errors, []);
   console.log('PASS original account remains intact in a separate browser; no uncaught browser errors');
 } catch (error) {
