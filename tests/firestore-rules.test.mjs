@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { createInitialState } from '../progress.js';
+import { CASE_IDS } from '../cybertrace-catalog.js';
 
 // No production requests or accounts are used by this suite. Without an
 // explicit emulator address it skips instead of falling back to live Firebase.
@@ -14,11 +15,16 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     ? createRequire(`${dependencyRoot.replace(/\/$/, '')}/package.json`)
     : createRequire(import.meta.url);
   const { initializeTestEnvironment, assertFails, assertSucceeds } = require('@firebase/rules-unit-testing');
-  const { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp } = require('firebase/firestore');
+  const { doc, collection, collectionGroup, getDoc, getDocs, setDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp } = require('firebase/firestore');
   let environment;
   const path = uid => `blackboxUsers/${uid}/state/progress`;
   const snapshot = (revision = 1, progress = createInitialState()) => ({
     schemaVersion: 1, revision, progress, updatedAt: serverTimestamp(),
+  });
+  const receiptPath = (uid, caseId = CASE_IDS[0]) => `blackboxUsers/${uid}/cybertrace/${caseId}`;
+  const receipt = (caseId = CASE_IDS[0], bestScore = 40) => ({
+    schemaVersion: 1, source: 'cybertrace', caseId, bestScore,
+    firstSyncedAt: serverTimestamp(), updatedAt: serverTimestamp(),
   });
 
   before(async () => {
@@ -100,5 +106,100 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     candidates.push({ ...createInitialState(), logs: Array.from({ length: 101 }, () => ({ msg: 'x', at: '2026-11-09T00:00:00Z' })) });
     candidates.push({ ...createInitialState(), lastActivity: { trackId: 'recon', stageIndex: 9, at: '2026-11-09T00:00:00Z' } });
     for (const progress of candidates) await assertFails(setDoc(reference, snapshot(1, progress)));
+  });
+
+  test('an owner can create and list receipts for every case in the shared catalogue', async () => {
+    const alice = environment.authenticatedContext('alice').firestore();
+    for (const caseId of CASE_IDS) {
+      const reference = doc(alice, receiptPath('alice', caseId));
+      await assertSucceeds(setDoc(reference, receipt(caseId)));
+      const saved = await assertSucceeds(getDoc(reference));
+      assert.equal(saved.data().caseId, caseId);
+      assert.equal(saved.data().source, 'cybertrace');
+      assert(saved.data().firstSyncedAt instanceof Timestamp);
+      assert(saved.data().updatedAt instanceof Timestamp);
+    }
+    const list = await assertSucceeds(getDocs(collection(alice, 'blackboxUsers/alice/cybertrace')));
+    assert.deepEqual(list.docs.map(item => item.id).sort(), [...CASE_IDS].sort());
+  });
+
+  test('visitors and another UID cannot read, list or write receipt data', async () => {
+    const alice = environment.authenticatedContext('alice').firestore();
+    await setDoc(doc(alice, receiptPath('alice')), receipt());
+    for (const viewer of [environment.unauthenticatedContext().firestore(), environment.authenticatedContext('bob').firestore()]) {
+      const reference = doc(viewer, receiptPath('alice'));
+      await assertFails(getDoc(reference));
+      await assertFails(getDocs(collection(viewer, 'blackboxUsers/alice/cybertrace')));
+      await assertFails(setDoc(reference, receipt(CASE_IDS[0], 50)));
+      await assertFails(setDoc(doc(viewer, receiptPath('alice', CASE_IDS[1])), receipt(CASE_IDS[1])));
+      await assertFails(updateDoc(reference, { bestScore: 70, updatedAt: serverTimestamp() }));
+      await assertFails(deleteDoc(reference));
+    }
+    const bob = environment.authenticatedContext('bob').firestore();
+    await assertSucceeds(setDoc(doc(bob, receiptPath('bob')), receipt()));
+    await assertSucceeds(getDocs(collection(bob, 'blackboxUsers/bob/cybertrace')));
+    await assertFails(getDocs(collectionGroup(alice, 'cybertrace')));
+    await assertFails(getDocs(collection(alice, 'blackboxUsers')));
+  });
+
+  test('a receipt only accepts a strictly improved score and preserves its first sync time', async () => {
+    const alice = environment.authenticatedContext('alice').firestore();
+    const reference = doc(alice, receiptPath('alice'));
+    await setDoc(reference, receipt(CASE_IDS[0], 20));
+    const firstSyncedAt = (await getDoc(reference)).data().firstSyncedAt;
+    await assertSucceeds(updateDoc(reference, { bestScore: 50, updatedAt: serverTimestamp() }));
+    assert.equal((await getDoc(reference)).data().firstSyncedAt.toMillis(), firstSyncedAt.toMillis());
+    for (const bestScore of [50, 20, 0]) {
+      await assertFails(updateDoc(reference, { bestScore, updatedAt: serverTimestamp() }));
+    }
+    await assertFails(updateDoc(reference, { bestScore: 60, firstSyncedAt: Timestamp.fromMillis(0), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(reference, { bestScore: 60, firstSyncedAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(reference, { bestScore: 70, updatedAt: serverTimestamp() }));
+    assert.equal((await getDoc(reference)).data().bestScore, 70);
+    await assertFails(deleteDoc(reference));
+  });
+
+  test('unknown cases, forged envelopes, unbounded scores and client timestamps are denied', async () => {
+    const alice = environment.authenticatedContext('alice').firestore();
+    const reference = doc(alice, receiptPath('alice'));
+    const missingField = receipt();
+    delete missingField.firstSyncedAt;
+    const candidates = [
+      { ...receipt(), schemaVersion: 2 },
+      { ...receipt(), source: 'other-site' },
+      { ...receipt(), caseId: CASE_IDS[1] },
+      { ...receipt(), bestScore: -1 },
+      { ...receipt(), bestScore: 71 },
+      { ...receipt(), bestScore: 40.5 },
+      { ...receipt(), bestScore: '70' },
+      { ...receipt(), bestScore: Number.NaN },
+      { ...receipt(), firstSyncedAt: Timestamp.fromMillis(0) },
+      { ...receipt(), updatedAt: Timestamp.fromMillis(0) },
+      { ...receipt(), unexpected: true },
+      missingField,
+    ];
+    for (const value of candidates) await assertFails(setDoc(reference, value));
+    await assertFails(setDoc(doc(alice, receiptPath('alice', 'INC-9999')), receipt('INC-9999')));
+    await setDoc(reference, receipt());
+    for (const value of [
+      { source: 'other-site' }, { schemaVersion: 2 }, { caseId: CASE_IDS[1] },
+      { bestScore: 71 }, { updatedAt: Timestamp.fromMillis(0) }, { unexpected: true },
+    ]) await assertFails(updateDoc(reference, { bestScore: 50, updatedAt: serverTimestamp(), ...value }));
+  });
+
+  test('receipt credits cannot mutate or complete practical training progress', async () => {
+    const alice = environment.authenticatedContext('alice').firestore();
+    const practical = createInitialState();
+    practical.notes['recon-0'] = 'العمل العملي مستقل عن تحقيقات CyberTrace';
+    const reference = doc(alice, path('alice'));
+    await setDoc(reference, snapshot(1, practical));
+    await setDoc(doc(alice, receiptPath('alice')), receipt(CASE_IDS[0], 70));
+    const afterCredit = (await getDoc(reference)).data();
+    assert.equal(afterCredit.revision, 1);
+    assert.deepEqual(afterCredit.progress, practical);
+    const progress = { ...practical, notes: { ...practical.notes, 'recon-0': 'تعديل عملي بعد المزامنة' } };
+    await assertSucceeds(setDoc(reference, snapshot(2, progress)));
+    assert.equal((await getDoc(doc(alice, receiptPath('alice')))).data().bestScore, 70);
+    await assertFails(setDoc(doc(alice, 'blackboxUsers/alice/integrations/cybertrace'), receipt()));
   });
 }

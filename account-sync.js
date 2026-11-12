@@ -1,6 +1,7 @@
 import { accountConfig } from './account-config.js';
 import { createFirebaseBackend, validateCloudProgress } from './firebase-client.js';
 import { createInitialState, normalizeState, loadProgress, saveProgress, STORAGE_KEY } from './progress.js';
+import { normalizeReceipt } from './cybertrace-catalog.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const accountKey = uid => `blackbox-account-progress-v1:${uid}`;
@@ -66,10 +67,82 @@ export function createAccountSync(options = {}) {
   let providers = options.backend ? { email: true, google: true } : { ...accountConfig.providers };
   let phase = 'guest', error = null, message = 'تدرّب كضيف، أو سجّل لحفظ تقدمك في حسابك.';
   const delay = options.debounceMs ?? 700;
+  const linkedSkillsEnabled = Boolean(options.linkedSkillsEnabled ?? accountConfig.linkedSkillsEnabled);
+  let skillWatchStop, skillGeneration = 0;
+  let skillState = {
+    enabled: linkedSkillsEnabled, phase: linkedSkillsEnabled ? 'guest' : 'disabled',
+    receipts: {}, fromCache: false, error: null,
+    message: linkedSkillsEnabled ? 'سجّل الدخول لعرض تقدّم مهاراتك المرتبط بـCyberTrace.' : 'ربط مهارات CyberTrace قيد الإعداد.',
+  };
 
   const snapshot = () => ({ phase, user: user ? { uid: user.uid, email: user.email ?? '', displayName: user.displayName ?? '' } : null, configured, providers: { ...providers }, syncing, pending: dirty, conflict: remoteConflict !== undefined, recoveryCount: distinctRecoveries(recoveryEntries).length, recoveryConflict, guestAvailable: Boolean(user && hasProgress(guest)), localSaved, message, error });
   const notify = () => { if (!disposed) options.onStatus?.(snapshot()); };
   const show = () => { if (!disposed) options.onState?.(clone(current)); };
+  const notifySkills = () => { if (!disposed) options.onSkillState?.(clone(skillState)); };
+  function stopSkillWatch() {
+    const stop = skillWatchStop;
+    skillWatchStop = undefined;
+    try { stop?.(); } catch { /* A failed optional unsubscribe must not block an account switch. */ }
+  }
+  function resetSkills(nextPhase, keepReceipts = false) {
+    skillGeneration += 1;
+    stopSkillWatch();
+    skillState = {
+      enabled: linkedSkillsEnabled, phase: nextPhase,
+      receipts: keepReceipts ? skillState.receipts : {},
+      fromCache: keepReceipts && Object.keys(skillState.receipts).length > 0,
+      error: null,
+      message: nextPhase === 'disabled' ? 'ربط مهارات CyberTrace قيد الإعداد.' : nextPhase === 'guest' ? 'سجّل الدخول لعرض تقدّم مهاراتك المرتبط بـCyberTrace.' : 'جارٍ تحميل إنجازات CyberTrace…',
+    };
+    notifySkills();
+  }
+  function watchSkills({ reset = true, keepReceipts = false } = {}) {
+    if (disposed) return false;
+    const uid = user?.uid, scope = generation;
+    const nextPhase = !linkedSkillsEnabled ? 'disabled' : uid ? 'loading' : 'guest';
+    if (reset) resetSkills(nextPhase, keepReceipts && Boolean(uid));
+    if (!linkedSkillsEnabled || !uid) return false;
+    const subscription = skillGeneration;
+    const isCurrent = () => !disposed && scope === generation && subscription === skillGeneration && user?.uid === uid;
+    const failed = reason => {
+      if (!isCurrent()) return;
+      skillState = {
+        ...skillState, phase: 'error', fromCache: Object.keys(skillState.receipts).length > 0,
+        error: reason?.code || 'skills/read-failed',
+        message: reason?.code === 'skills/invalid-receipt' ? 'تعذّر التحقق من إنجازات CyberTrace؛ احتُفظ بآخر نسخة صالحة لهذا الحساب.' : 'تعذّر تحديث إنجازات CyberTrace. يمكنك إعادة المحاولة؛ تقدّم المختبر العملي مستقل ومحفوظ.',
+      };
+      notifySkills();
+    };
+    if (typeof backend?.watchCybertrace !== 'function') {
+      failed(codeError('skills/unavailable', 'خدمة ربط المهارات غير متاحة.'));
+      return false;
+    }
+    try {
+      const stop = backend.watchCybertrace(uid, data => {
+        if (!isCurrent()) return;
+        try {
+          const raw = data?.receipts;
+          if (!raw || typeof raw !== 'object' || Array.isArray(raw) || ![Object.prototype, null].includes(Object.getPrototypeOf(raw))) throw codeError('skills/invalid-receipt', 'بيانات الإنجازات غير صالحة.');
+          const receipts = {};
+          for (const [id, value] of Object.entries(raw)) {
+            const receipt = normalizeReceipt(value, id);
+            if (!receipt) throw codeError('skills/invalid-receipt', 'نتيجة تحقيق غير صالحة.');
+            receipts[id] = receipt;
+          }
+          const fromCache = data.fromCache !== false;
+          const available = fromCache && !Object.keys(receipts).length ? skillState.receipts : receipts;
+          skillState = {
+            enabled: true, phase: fromCache && !Object.keys(available).length ? 'loading' : 'ready', receipts: available, fromCache, error: null,
+            message: fromCache ? 'تُعرض نسخة مخبأة من إنجازات حسابك؛ ننتظر تأكيد الاتصال.' : 'إنجازات CyberTrace محدثة لهذا الحساب.',
+          };
+          notifySkills();
+        } catch (reason) { failed(reason); }
+      }, failed);
+      if (isCurrent()) skillWatchStop = typeof stop === 'function' ? stop : undefined;
+      else if (typeof stop === 'function') stop();
+      return isCurrent();
+    } catch (reason) { failed(reason); return false; }
+  }
   function refreshGuest() {
     const loaded = loadProgress(storage);
     // A failed local write may leave a newer draft only in memory.
@@ -187,6 +260,8 @@ export function createAccountSync(options = {}) {
     const scope = ++generation;
     user = nextUser;
     remoteConflict = undefined; conflictBackup = null; recoveryEntries = []; eligibleRecoveries = []; recoveryConflict = false; revision = null; dirty = false; syncing = false; cloudReady = false; error = null; editSequence = 0;
+    // Clear the old owner's achievements before any practical state renders.
+    resetSkills(!linkedSkillsEnabled ? 'disabled' : user ? 'loading' : 'guest');
     if (!user) {
       current = refreshGuest(); phase = 'guest'; message = 'عدت إلى تقدم الضيف على هذا المتصفح.'; show(); notify(); return;
     }
@@ -194,6 +269,7 @@ export function createAccountSync(options = {}) {
     current = clone(prior?.progress ?? createInitialState());
     revision = prior?.revision ?? null; dirty = prior?.dirty ?? false;
     phase = 'loading'; message = 'جارٍ تحميل تقدم الحساب…'; show(); notify();
+    watchSkills({ reset: false });
     try { if (await loadRemote(scope, user.uid)) queue(); }
     catch (reason) {
       if (scope !== generation || disposed) return;
@@ -252,6 +328,7 @@ export function createAccountSync(options = {}) {
         const service = await ensureBackend();
         if (disposed) return;
         unsubscribe = service.onUserChanged(next => { void scopeChanged(next); });
+        notifySkills();
         notify();
       } catch (reason) {
         started = false; configured = false; phase = 'guest'; fail(reason, 'الحسابات قيد الإعداد. يمكنك متابعة التدريب كضيف.');
@@ -332,6 +409,8 @@ export function createAccountSync(options = {}) {
       }
     },
     getStatus: snapshot,
+    getSkillState: () => clone(skillState),
+    retrySkills: () => watchSkills({ keepReceipts: true }),
     getConflictBackup: () => conflictBackup ? clone(conflictBackup) : null,
     getRecoveryBackups() {
       if (!user) return [];
@@ -339,7 +418,11 @@ export function createAccountSync(options = {}) {
       if (dirty && !entries.some(entry => JSON.stringify(entry.progress) === JSON.stringify(current))) entries.push({ key: 'current-tab', revision, progress: current });
       return entries.map(entry => ({ id: entry.key, revision: entry.revision, savedAt: entry.savedAt ?? null, progress: clone(entry.progress) }));
     },
-    dispose() { disposed = true; generation += 1; cancelTimer(); unsubscribe?.(); },
+    dispose() {
+      disposed = true; generation += 1; skillGeneration += 1;
+      cancelTimer(); unsubscribe?.(); stopSkillWatch();
+      skillState = { ...skillState, phase: linkedSkillsEnabled ? 'guest' : 'disabled', receipts: {}, fromCache: false, error: null, message: '' };
+    },
   };
   return controller;
 }
