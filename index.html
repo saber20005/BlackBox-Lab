@@ -26,6 +26,8 @@
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./app.js"></script>
+  <script defer src="./onboarding.js"></script>
+  <link rel="stylesheet" href="./onboarding.css">
 </head>
 <body>
   <noscript><p>BLACKBOX مساحة تدريب عربية تضم 6 مسارات و18 مرحلة للمختبر المحلي. فعّل JavaScript لفتح المسارات وحفظ نتائجك وملاحظاتك وتنزيل تقاريرك.</p></noscript>
@@ -60,6 +62,24 @@
       </header>
       <div id="storageNotice" class="storage-notice hidden" role="status"></div>
       <div id="accountSyncNotice" class="account-sync-notice hidden" role="status"><span id="accountSyncNoticeText"></span><button type="button" class="link-btn" id="reviewAccountSync">مراجعة الحساب</button></div>
+  <button type="button" id="welcome-reopen" class="welcome-reopen" hidden>؟ عرض دليل البداية</button>
+  <section class="welcome-guide" id="welcome-guide" aria-labelledby="welcome-title">
+    <div class="welcome-head"><div><span class="welcome-kicker">WELCOME TO BLACKBOX LAB</span><h1 id="welcome-title">تعلّم الأمن السيبراني بالتطبيق، لا بالحفظ فقط.</h1></div><button type="button" id="welcome-dismiss" class="welcome-dismiss" aria-label="إخفاء دليل البداية">إخفاء الدليل ×</button></div>
+    <p>BLACKBOX مساحة عربية لتنظيم تدريبك داخل مختبر آمن. اختر مساراً، نفّذ الخطوات على أجهزتك الافتراضية، سجّل الأدلة والملاحظات، وتابع تقدّمك. الموقع لا ينفذ الأوامر على جهازك تلقائياً.</p>
+    <div class="welcome-actions"><button type="button" data-guide-nav="tracks">استكشف مسارات التدريب ←</button><button type="button" data-guide-nav="plan">أنشئ خطة جلستك</button><button type="button" data-guide-nav="backups">كيف أحفظ تقدّمي؟</button></div>
+    <div class="guide-tips" aria-label="نصائح تعليمية تفاعلية">
+      <div class="guide-tip" data-guide-tip><button type="button" aria-expanded="false" aria-controls="tip-1">💡 ما الفرق بين المسار والمرحلة؟</button><div id="tip-1" class="guide-tip-body" hidden>المسار يجمع مهارة مثل تحليل الشبكات، والمرحلة مهمة صغيرة ذات خطوات ونتائج. أكمل المراحل بالتتابع.</div></div>
+      <div class="guide-tip" data-guide-tip><button type="button" aria-expanded="false" aria-controls="tip-2">📝 أين تُحفظ الملاحظات؟</button><div id="tip-2" class="guide-tip-body" hidden>تُحفظ بيانات الضيف في متصفحك. يمكنك تنزيل نسخة احتياطية أو تسجيل الدخول لمزامنة تقدم الحساب عندما تكون الخدمة متاحة.</div></div>
+      <div class="guide-tip" data-guide-tip><button type="button" aria-expanded="false" aria-controls="tip-3">🛡️ لماذا نستخدم مختبراً معزولاً؟</button><div id="tip-3" class="guide-tip-body" hidden>لتجربة الأدوات على آلات تملكها أو لديك تصريح باختبارها، دون تعريض شبكتك الفعلية أو الآخرين للخطر.</div></div>
+    </div>
+    <section class="kali-guide" aria-labelledby="kali-guide-title">
+      <span class="welcome-kicker">KALI LINUX / LOCAL LAB</span>
+      <h2 id="kali-guide-title">تجهيز الربط مع Kali Linux</h2>
+      <p>حالة الاتصال: <strong>غير متصل — الربط المباشر لم يُفعّل بعد.</strong> يمكنك الآن تجهيز المختبر بأمان؛ تشغيل الأوامر وقراءة حالة Kali من الموقع يتطلبان تطبيقاً محلياً منفصلاً.</p>
+      <ol><li>شغّل Kali Linux داخل VirtualBox على جهازك الشخصي.</li><li>استخدم شبكة <strong>Host-only</strong> أو <strong>Internal Network</strong> بحسب حاجة المختبر، ولا تعرض آلة ضعيفة على شبكة Bridged عامة.</li><li>أنشئ لقطة Snapshot قبل التجارب، وحدّد الآلات المسموح باختبارها.</li><li>بعد تطوير وكيل BLACKBOX المحلي والتحقق من هويته وصلاحياته، يمكن إضافة فحص حالة Kali وتبادل نتائج التدريب بموافقتك.</li></ol>
+      <p class="guide-caution">تنبيه: هذه تعليمات إعداد فقط، وليست اتصالاً حقيقياً. لا تفتح SSH أو API للعامة، ولا تُدخل كلمات مرور Kali داخل الموقع.</p>
+    </section>
+  </section>
       <div id="content"></div>
       <footer class="footer">BLACKBOX · تعلّم، وثّق، وراجع تقدّمك · تدريب للضيف وحفظ اختياري في الحساب</footer>
     </main>
