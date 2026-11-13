@@ -28,10 +28,39 @@
   <script type="module" src="./app.js"></script>
   <script defer src="./onboarding.js"></script>
   <link rel="stylesheet" href="./onboarding.css">
+  <link rel="stylesheet" href="./landing.css">
+  <script defer src="./landing.js"></script>
 </head>
 <body>
   <noscript><p>BLACKBOX مساحة تدريب عربية تضم 6 مسارات و18 مرحلة للمختبر المحلي. فعّل JavaScript لفتح المسارات وحفظ نتائجك وملاحظاتك وتنزيل تقاريرك.</p></noscript>
   <a class="skip-link" href="#main-content">تجاوز إلى المحتوى</a>
+  <div id="landing-page" class="bb-landing" aria-labelledby="landing-title">
+    <header class="bb-landing-nav"><a href="./" class="bb-landing-brand"><span>B.</span><strong>BLACKBOX <em>Lab</em></strong></a><button type="button" id="landing-enter-top">الدخول إلى مساحة التدريب ←</button></header>
+    <main class="bb-landing-main">
+      <section class="bb-landing-hero">
+        <div><span class="bb-kicker">CYBERSECURITY / INTERACTIVE LEARNING</span><h1 id="landing-title">مختبرك السيبراني يبدأ <span>من هنا.</span></h1><p>BLACKBOX منصة عربية لتنظيم تعلم الأمن السيبراني عملياً. تعرّف على خطوات إعداد مختبرك داخل VirtualBox، ثم اختر المسار المناسب وسجّل نتائجك خطوة بخطوة.</p><div class="bb-landing-actions"><button type="button" id="landing-start-tour">ابدأ الجولة الإرشادية ←</button><button type="button" id="landing-enter">استكشف مساحة التدريب</button></div><div class="bb-landing-meta"><span>◈ 6 مسارات</span><span>▤ 18 مرحلة</span><span>✓ توثيق التقدم</span></div></div>
+        <div class="bb-landing-terminal" aria-label="رسم توضيحي لخطوات المختبر"><div class="bb-terminal-bar"><i></i><i></i><i></i><span>BLACKBOX / LAB SETUP</span></div><pre>01  PREPARE WINDOWS HOST
+02  INSTALL VIRTUALBOX
+03  START KALI LINUX
+04  ISOLATE LAB NETWORK
+05  SELECT TRAINING TRACK
+06  DOCUMENT YOUR RESULTS
+
+<span>STATUS: READY TO LEARN</span></pre><div class="bb-terminal-logo">B.</div></div>
+      </section>
+      <section class="bb-landing-section" aria-labelledby="bb-how-title"><span class="bb-kicker">HOW IT WORKS</span><h2 id="bb-how-title">كيف تنشئ مختبرك؟</h2><p>اتبع هذه الخطوات بالترتيب. يمكنك فتح شرح كل خطوة قبل الانتقال إلى التدريب.</p><div class="bb-setup-grid">
+        <details open><summary><b>01</b><span>جهّز جهاز Windows</span></summary><p>تأكد من توفر مساحة تخزين وذاكرة كافيتين، ومن تفعيل دعم المحاكاة الافتراضية. احتفظ بنسخة احتياطية من الملفات المهمة.</p></details>
+        <details><summary><b>02</b><span>ثبّت VirtualBox</span></summary><p>ثبّت VirtualBox من المصدر الرسمي، ثم أنشئ آلة افتراضية جديدة أو استورد آلة Kali الموجودة لديك.</p></details>
+        <details><summary><b>03</b><span>شغّل Kali Linux</span></summary><p>أقلع Kali داخل VirtualBox، وتأكد من عمل النظام، ثم أنشئ Snapshot قبل أي تجربة عملية.</p></details>
+        <details><summary><b>04</b><span>اعزل شبكة المختبر</span></summary><p>استخدم Host-only عند الحاجة للتواصل مع Windows، أو Internal Network لعزل الآلات عن المضيف. لا تستخدم Bridged للأهداف الضعيفة دون ضرورة وضوابط واضحة.</p></details>
+        <details><summary><b>05</b><span>اختر مسار التدريب</span></summary><p>افتح «مسارات التدريب» في لوحة BLACKBOX، واختر المجال ثم المرحلة المتاحة واتبع تعليماتها على الأنظمة المصرح بها.</p></details>
+        <details><summary><b>06</b><span>وثّق واحفظ نتائجك</span></summary><p>سجّل الأدلة والملاحظات، وراجع سجل المختبر، ثم نزّل نسخة احتياطية من صفحة «النسخ والتقارير».</p></details>
+      </div></section>
+      <section class="bb-landing-section bb-landing-how"><span class="bb-kicker">GUIDED EXPERIENCE</span><h2>لست متأكداً أين تضغط؟</h2><p>ستفتح الجولة لوحة التحكم وتسلّط الضوء على الأزرار الحقيقية واحداً بعد الآخر، مع شرح ما يفعله كل زر.</p><button type="button" id="landing-start-tour-bottom">شغّل الجولة التفاعلية ←</button></section>
+      <section class="bb-landing-note"><strong>حالة ربط Kali:</strong> الربط الآلي غير مفعّل بعد. يمكنك استخدام BLACKBOX لتنظيم تدريبك وتوثيق نتائجه، لكن الموقع لا ينفذ أوامر Kali مباشرة.</section>
+    </main><footer class="bb-landing-footer">BLACKBOX Lab · تعلّم، طبّق، وثّق · <a href="https://cybertracelab.dev/">CyberTrace</a></footer>
+  </div>
+  <div id="bb-tour-overlay" class="bb-tour-overlay" hidden><div class="bb-tour-spotlight" id="bb-tour-spotlight"></div><div class="bb-tour-bubble" id="bb-tour-bubble" role="dialog" aria-modal="true" aria-labelledby="bb-tour-heading"><span id="bb-tour-count"></span><h2 id="bb-tour-heading"></h2><p id="bb-tour-description"></p><div class="bb-tour-actions"><button type="button" id="bb-tour-skip">إنهاء الجولة</button><button type="button" id="bb-tour-prev">السابق</button><button type="button" id="bb-tour-next">التالي ←</button></div></div></div>
   <div class="app">
     <aside class="sidebar" aria-label="التنقل الرئيسي">
       <a class="brand" href="./" aria-label="BLACKBOX — لوحة التحكم">
