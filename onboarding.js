@@ -21,3 +21,20 @@ document.querySelectorAll('[data-guide-nav]').forEach(button => button.addEventL
   const target = document.querySelector('[data-view="' + button.dataset.guideNav + '"]');
   target?.click();
 }));
+
+const kaliToggle = document.getElementById('kali-details-toggle');
+const kaliSteps = document.getElementById('kali-guide-steps');
+kaliToggle?.addEventListener('click', () => {
+  const expanded = kaliToggle.getAttribute('aria-expanded') === 'true';
+  kaliToggle.setAttribute('aria-expanded', String(!expanded));
+  kaliSteps.hidden = expanded;
+});
+function startWelcomeTour() {
+  show();
+  document.getElementById('welcome-tips')?.scrollIntoView({behavior:'smooth',block:'center'});
+  const first = tips[0]?.querySelector('button');
+  if (first && first.getAttribute('aria-expanded') !== 'true') first.click();
+  first?.focus({preventScroll:true});
+}
+document.getElementById('welcome-tour')?.addEventListener('click',startWelcomeTour);
+document.getElementById('welcome-tour-secondary')?.addEventListener('click',startWelcomeTour);
