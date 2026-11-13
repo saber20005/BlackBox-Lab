@@ -33,3 +33,6 @@ body.bb-landing-active #landing-page{display:block}
 .bb-tour-bubble h2{font-size:18px;margin:8px 0}.bb-tour-bubble p{font-size:13px;line-height:1.8;color:#b7cdbd}.bb-tour-bubble span{font:12px monospace;color:#b8f36b}
 .bb-tour-actions{display:flex;gap:7px;flex-wrap:wrap}.bb-tour-actions button{padding:8px 10px;border-radius:7px;background:#23382a;color:#e9f6e4;border:1px solid #54764e}.bb-tour-actions button:last-child{background:#b8f36b;color:#12200f}
 @media(max-width:800px){.bb-landing-hero{grid-template-columns:1fr;padding-block:40px;gap:20px}.bb-setup-grid{grid-template-columns:1fr}.bb-landing-nav{gap:12px}.bb-landing-nav button{font-size:11px;padding:9px}}
+
+/* Intro now lives on its own page; do not repeat it inside the dashboard. */
+body:not(.bb-landing-active) #welcome-guide,body:not(.bb-landing-active) #welcome-reopen{display:none!important}
