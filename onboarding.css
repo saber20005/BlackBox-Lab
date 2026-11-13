@@ -1,53 +1,56 @@
 
 /* Intro and interactive learning tips: intentionally independent of saved training state. */
-.welcome-guide{margin:0 0 24px;padding:clamp(18px,3vw,30px);border:1px solid #2c4262;border-radius:20px;background:radial-gradient(circle at 8% 0%,#202f46 0,transparent 42%),linear-gradient(130deg,#111721,#090c12);box-shadow:0 16px 45px #090b0e33}
+.welcome-guide{margin:0 0 24px;padding:clamp(18px,3vw,30px);border:1px solid #472026;border-radius:20px;background:radial-gradient(circle at 8% 0%,#32171c 0,transparent 42%),linear-gradient(130deg,#180c0e,#140a0c);box-shadow:0 16px 45px #090b0e33}
 .welcome-guide[hidden],.welcome-reopen[hidden],.guide-tip-body[hidden]{display:none!important}
 .welcome-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.welcome-kicker{font:600 11px 'IBM Plex Mono',monospace;color:#3988ff;letter-spacing:1px}
+.welcome-kicker{font:600 11px 'IBM Plex Mono',monospace;color:#ed233a;letter-spacing:1px}
 .welcome-guide h1{font-size:clamp(22px,3vw,34px);line-height:1.4;margin:9px 0}
-.welcome-guide p{color:#b6c0d1;max-width:850px;margin:0 0 16px}
+.welcome-guide p{color:#d2b5b9;max-width:850px;margin:0 0 16px}
 .welcome-actions{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}
-.welcome-actions button,.welcome-dismiss,.welcome-reopen{border:1px solid #426494;background:#1c2431;color:#cdddf7;border-radius:9px;padding:10px 14px}
-.welcome-actions button:first-child{background:#3988ff;color:#0b121c;font-weight:700}
+.welcome-actions button,.welcome-dismiss,.welcome-reopen{border:1px solid #94424d;background:#231417;color:#f7cdd3;border-radius:9px;padding:10px 14px}
+.welcome-actions button:first-child{background:#ed233a;color:#16090b;font-weight:700}
 .welcome-dismiss{white-space:nowrap}
 .welcome-reopen{margin-bottom:15px}
 .guide-tips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.guide-tip{border:1px solid #2a3f5c;background:#0a0e15;border-radius:12px;overflow:hidden}
-.guide-tip>button{width:100%;padding:13px;text-align:right;border:0;background:transparent;color:#d5dde9;font-weight:600}
-.guide-tip>button:after{content:'+';float:left;color:#3988ff}
+.guide-tip{border:1px solid #421e24;background:#150a0c;border-radius:12px;overflow:hidden}
+.guide-tip>button{width:100%;padding:13px;text-align:right;border:0;background:transparent;color:#e9d5d8;font-weight:600}
+.guide-tip>button:after{content:'+';float:left;color:#ed233a}
 .guide-tip>button[aria-expanded=true]:after{content:'−'}
-.guide-tip-body{padding:0 13px 13px;color:#99b0d1;font-size:12px}
-.kali-guide{margin-top:18px;border:1px solid #2c4363;border-radius:12px;padding:16px;background:#090c12}
+.guide-tip-body{padding:0 13px 13px;color:#d199a0;font-size:12px}
+.kali-guide{margin-top:18px;border:1px solid #632c33;border-radius:12px;padding:16px;background:#140a0c}
 .kali-guide h2{font-size:17px;margin:0 0 8px}
-.kali-guide ol{padding-inline-start:22px;color:#b6c0d1}
+.kali-guide ol{padding-inline-start:22px;color:#d2b5b9}
 .kali-guide li{margin:7px 0}
-.kali-guide strong{color:#c5d7f4}
+.kali-guide strong{color:#f4c5cb}
 .kali-guide .guide-caution{border-right:3px solid #e5aa64;padding:9px 12px;background:#241d12;color:#efd1a4;margin-top:12px}
 @media(max-width:850px){.guide-tips{grid-template-columns:1fr}.welcome-head{flex-direction:column}.welcome-guide{padding:17px}}
 
 /* BLACKBOX landing experience — no simulated connection or account data */
 .welcome-guide{padding:0;border:0;background:none;box-shadow:none}
-.welcome-hero{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(230px,.9fr);gap:24px;align-items:center;min-height:310px;padding:34px;border:1px solid #283446;border-radius:20px;background:radial-gradient(circle at 80% 20%,#152134,transparent 47%),linear-gradient(130deg,#0c121c,#080b11);overflow:hidden}
+.welcome-hero{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(230px,.9fr);gap:24px;align-items:center;min-height:310px;padding:34px;border:1px solid #321d20;border-radius:20px;background:radial-gradient(circle at 80% 20%,#250f13,transparent 47%),linear-gradient(130deg,#15090b,#150a0c);overflow:hidden}
 .welcome-copy{position:relative;z-index:1}
 .welcome-copy h1{font-size:clamp(28px,3.5vw,44px);max-width:650px}
 .welcome-copy h1 span{color:var(--green);display:inline-block}
 .welcome-copy p{font-size:14px;line-height:1.9;max-width:560px}
-.welcome-hero .welcome-dismiss{position:absolute;top:14px;left:14px;z-index:2;background:#11161f;color:#a2b7d5;border-color:#2b4261;font-size:11px}
-.welcome-facts{display:flex;gap:16px;flex-wrap:wrap;color:#a0b6d4;font-size:12px}
-.welcome-visual{border:1px solid #30486a;border-radius:16px;min-height:250px;max-width:430px;width:100%;justify-self:center;position:relative;background:linear-gradient(150deg,#080d14,#0b131f);box-shadow:0 15px 50px #090b0e77,0 0 55px #619ef40a;overflow:hidden;direction:ltr;text-align:left}
-.terminal-top{height:34px;border-bottom:1px solid #232f42;background:#121821;display:flex;align-items:center;gap:6px;padding:0 12px}
-.terminal-top span{width:8px;height:8px;border-radius:50%;background:#e8a663}.terminal-top span:nth-child(2){background:#e0cf72}.terminal-top span:nth-child(3){background:#6a97d7}.terminal-top b{margin-left:auto;font:10px monospace;color:#7998c3}
-.terminal-lines{padding:22px;font:12px/1.8 monospace;display:grid;gap:3px}.terminal-lines i{font-style:normal;color:#6ea5f2}.terminal-lines strong{font-weight:400;color:#b3c0d4;margin-bottom:8px}
-.visual-mark{position:absolute;bottom:13px;right:20px;color:#6ba4f324;font:700 92px monospace}
+.welcome-hero .welcome-dismiss{position:absolute;top:14px;left:14px;z-index:2;background:#160c0e;color:#d5a2a9;border-color:#461f25;font-size:11px}
+.welcome-facts{display:flex;gap:16px;flex-wrap:wrap;color:#d4a0a7;font-size:12px}
+.welcome-visual{border:1px solid #6a3038;border-radius:16px;min-height:250px;max-width:430px;width:100%;justify-self:center;position:relative;background:linear-gradient(150deg,#16090b,#17080a);box-shadow:0 15px 50px #090b0e77,0 0 55px #f461750a;overflow:hidden;direction:ltr;text-align:left}
+.terminal-top{height:34px;border-bottom:1px solid #30191d;background:#180d0f;display:flex;align-items:center;gap:6px;padding:0 12px}
+.terminal-top span{width:8px;height:8px;border-radius:50%;background:#e8a663}.terminal-top span:nth-child(2){background:#e0cf72}.terminal-top span:nth-child(3){background:#d76a79}.terminal-top b{margin-left:auto;font:10px monospace;color:#c37983}
+.terminal-lines{padding:22px;font:12px/1.8 monospace;display:grid;gap:3px}.terminal-lines i{font-style:normal;color:#f26e80}.terminal-lines strong{font-weight:400;color:#d4b3b7;margin-bottom:8px}
+.visual-mark{position:absolute;bottom:13px;right:20px;color:#f36b7d24;font:700 92px monospace}
 .welcome-feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:15px 0 20px}
-.welcome-feature-grid article{border:1px solid #262f3d;border-radius:14px;background:#0c1118;padding:19px}
-.welcome-feature-grid h2{font-size:15px;margin:8px 0 4px}.welcome-feature-grid p{font-size:12px;color:#8da7cc;margin:0}.feature-icon{font-size:25px;color:var(--green)}
-.kali-showcase{display:grid;grid-template-columns:minmax(170px,.55fr) minmax(0,1.45fr);gap:18px;padding:18px;border:1px solid #3e5e8a;border-radius:17px;background:linear-gradient(115deg,#0e1623,#080c13);margin:20px 0 28px}
-.kali-art{display:flex;min-height:180px;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:radial-gradient(circle,#1a2537,#080b11);border:1px solid #233045;color:#9ebff4;gap:4px}.kali-art-symbol{font-size:64px;line-height:1}.kali-art b{font:700 21px monospace}.kali-art small{font:10px monospace;color:#6e8fbe}
-.kali-details{align-self:center}.kali-details h2{font-size:23px;margin:7px 0}.kali-details p{font-size:13px}.kali-tags{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.kali-tags span{border:1px solid #2b415f;border-radius:99px;padding:5px 11px;font-size:11px;color:#b6c2d6}.kali-tags .offline-tag{color:#ffcb86;border-color:#876037;background:#35271b}
-.welcome-outline{border:1px solid #426494;border-radius:9px;background:transparent;color:#b2cbf2;padding:9px 13px}
+.welcome-feature-grid article{border:1px solid #2d1b1e;border-radius:14px;background:#140a0c;padding:19px}
+.welcome-feature-grid h2{font-size:15px;margin:8px 0 4px}.welcome-feature-grid p{font-size:12px;color:#cc8d95;margin:0}.feature-icon{font-size:25px;color:var(--green)}
+.kali-showcase{display:grid;grid-template-columns:minmax(170px,.55fr) minmax(0,1.45fr);gap:18px;padding:18px;border:1px solid #8a3e48;border-radius:17px;background:linear-gradient(115deg,#190a0d,#16090b);margin:20px 0 28px}
+.kali-art{display:flex;min-height:180px;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:radial-gradient(circle,#281316,#150a0c);border:1px solid #32191d;color:#f49ea9;gap:4px}.kali-art-symbol{font-size:64px;line-height:1}.kali-art b{font:700 21px monospace}.kali-art small{font:10px monospace;color:#be6e79}
+.kali-details{align-self:center}.kali-details h2{font-size:23px;margin:7px 0}.kali-details p{font-size:13px}.kali-tags{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.kali-tags span{border:1px solid #441f25;border-radius:99px;padding:5px 11px;font-size:11px;color:#d6b6ba}.kali-tags .offline-tag{color:#ffcb86;border-color:#876037;background:#35271b}
+.welcome-outline{border:1px solid #94424d;border-radius:9px;background:transparent;color:#f2b2bb;padding:9px 13px}
 .kali-showcase .kali-guide{grid-column:1/-1;margin:0}
 .welcome-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0}.welcome-section-title h2{margin:0;font-size:21px}
-.welcome-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}.welcome-steps>div{padding:17px 13px;border:1px solid #272f3d;background:#0c1118;border-radius:12px;display:grid;gap:5px}.welcome-steps span{color:var(--green);font:600 20px monospace}.welcome-steps b{font-size:13px}.welcome-steps small{color:#8da7cc;font-size:11px}
+.welcome-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}.welcome-steps>div{padding:17px 13px;border:1px solid #2d1b1e;background:#140a0c;border-radius:12px;display:grid;gap:5px}.welcome-steps span{color:var(--green);font:600 20px monospace}.welcome-steps b{font-size:13px}.welcome-steps small{color:#cc8d95;font-size:11px}
 @media(max-width:900px){.welcome-hero{grid-template-columns:1fr}.welcome-visual{max-width:none}.welcome-feature-grid{grid-template-columns:1fr}.welcome-steps{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.welcome-hero{padding:22px 16px}.welcome-hero .welcome-dismiss{position:static;justify-self:start;grid-row:3}.kali-showcase{grid-template-columns:1fr}.welcome-section-title{align-items:flex-start;flex-direction:column}.welcome-steps{grid-template-columns:1fr 1fr}.welcome-facts{gap:9px}}
+
+/* Red Team preview guide */
+.welcome-guide{background:radial-gradient(circle at 8% 0%,#39121d,transparent 45%),linear-gradient(130deg,#1d1116,#0d0b0e)}
