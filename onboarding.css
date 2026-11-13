@@ -58,3 +58,8 @@
 /* Dark Burgundy preview */
 .welcome-actions button:first-child{background:#60202e;border-color:#84283a;color:#fff}
 .welcome-guide{box-shadow:0 14px 35px #0005}
+
+/* Near-black Burgundy: instructional elements */
+.welcome-guide{background:linear-gradient(130deg,#171216,#0d0c0e);border-color:#392930;box-shadow:0 12px 35px #0007}
+.welcome-actions button:first-child{background:#572330;border-color:#773143;color:#fff}
+.welcome-actions button,.welcome-dismiss,.welcome-reopen{background:#1c161a;border-color:#49313b;color:#eee9eb}
