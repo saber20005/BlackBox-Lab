@@ -1,0 +1,26 @@
+
+/* Intro and interactive learning tips: intentionally independent of saved training state. */
+.welcome-guide{margin:0 0 24px;padding:clamp(18px,3vw,30px);border:1px solid #365841;border-radius:20px;background:radial-gradient(circle at 8% 0%,#245039 0,transparent 42%),linear-gradient(130deg,#13251b,#0a1511);box-shadow:0 16px 45px #0003}
+.welcome-guide[hidden],.welcome-reopen[hidden],.guide-tip-body[hidden]{display:none!important}
+.welcome-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.welcome-kicker{font:600 11px 'IBM Plex Mono',monospace;color:#b8f36b;letter-spacing:1px}
+.welcome-guide h1{font-size:clamp(22px,3vw,34px);line-height:1.4;margin:9px 0}
+.welcome-guide p{color:#b9cec1;max-width:850px;margin:0 0 16px}
+.welcome-actions{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}
+.welcome-actions button,.welcome-dismiss,.welcome-reopen{border:1px solid #5c8155;background:#203824;color:#d9f7cd;border-radius:9px;padding:10px 14px}
+.welcome-actions button:first-child{background:#b8f36b;color:#10200d;font-weight:700}
+.welcome-dismiss{white-space:nowrap}
+.welcome-reopen{margin-bottom:15px}
+.guide-tips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.guide-tip{border:1px solid #365040;background:#0b1813;border-radius:12px;overflow:hidden}
+.guide-tip>button{width:100%;padding:13px;text-align:right;border:0;background:transparent;color:#d5e9d9;font-weight:600}
+.guide-tip>button:after{content:'+';float:left;color:#b8f36b}
+.guide-tip>button[aria-expanded=true]:after{content:'−'}
+.guide-tip-body{padding:0 13px 13px;color:#a9c1b1;font-size:12px}
+.kali-guide{margin-top:18px;border:1px solid #3e5142;border-radius:12px;padding:16px;background:#0a1411}
+.kali-guide h2{font-size:17px;margin:0 0 8px}
+.kali-guide ol{padding-inline-start:22px;color:#b9cec1}
+.kali-guide li{margin:7px 0}
+.kali-guide strong{color:#d8f4c5}
+.kali-guide .guide-caution{border-right:3px solid #e5aa64;padding:9px 12px;background:#241d12;color:#efd1a4;margin-top:12px}
+@media(max-width:850px){.guide-tips{grid-template-columns:1fr}.welcome-head{flex-direction:column}.welcome-guide{padding:17px}}
