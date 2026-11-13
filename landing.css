@@ -6,49 +6,49 @@ body.bb-landing-active #landing-page{display:block}
 .bb-landing-nav{display:flex;align-items:center;justify-content:space-between;padding-block:24px;border-bottom:1px solid #242d3b}
 .bb-landing-brand{display:flex;gap:10px;align-items:center;color:white;text-decoration:none;font:700 20px monospace}
 .bb-landing-brand span{border:1px solid #3988ff;color:#3988ff;padding:4px 9px;border-radius:9px}.bb-landing-brand em{color:#3988ff;font-style:normal}
-.bb-landing button{border:1px solid #8b3f65;border-radius:10px;padding:11px 18px;background:#121925;color:#d6e1f3;font-weight:700}
+.bb-landing button{border:1px solid #3f5f8b;border-radius:10px;padding:11px 18px;background:#121925;color:#d6e1f3;font-weight:700}
 .bb-landing button:hover{border-color:#3988ff}
 .bb-landing-hero{display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:45px;padding-block:85px}
 .bb-kicker{font:600 12px monospace;color:#3988ff;letter-spacing:1.3px}
 .bb-landing-hero h1{font-size:clamp(36px,5vw,68px);line-height:1.25;margin:15px 0}.bb-landing-hero h1 span{color:#3988ff}
-.bb-landing-hero p,.bb-landing-section>p{font-size:16px;line-height:2;color:#d39eb9;max-width:700px}
+.bb-landing-hero p,.bb-landing-section>p{font-size:16px;line-height:2;color:#9eb4d3;max-width:700px}
 .bb-landing-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}
 .bb-landing-actions button:first-child,.bb-landing-how button{background:#3988ff;color:#0b121c;border-color:#3988ff}
-.bb-landing-meta{display:flex;gap:18px;margin-top:25px;color:#d5a0bb;flex-wrap:wrap}
-.bb-landing-terminal{position:relative;overflow:hidden;border:1px solid #7a3759;border-radius:18px;background:#0a0f18;box-shadow:0 20px 60px #090b0e88}
-.bb-terminal-bar{display:flex;gap:7px;align-items:center;padding:13px;background:#151c26;border-bottom:1px solid #622c47}
-.bb-terminal-bar i{height:9px;width:9px;background:#e2a76b;border-radius:50%}.bb-terminal-bar i:nth-child(2){background:#ebd073}.bb-terminal-bar i:nth-child(3){background:#e77ab1}.bb-terminal-bar span{margin-left:auto;font:11px monospace;color:#d095b3}
+.bb-landing-meta{display:flex;gap:18px;margin-top:25px;color:#a0b6d5;flex-wrap:wrap}
+.bb-landing-terminal{position:relative;overflow:hidden;border:1px solid #37537a;border-radius:18px;background:#0a0f18;box-shadow:0 20px 60px #090b0e88}
+.bb-terminal-bar{display:flex;gap:7px;align-items:center;padding:13px;background:#151c26;border-bottom:1px solid #2c4262}
+.bb-terminal-bar i{height:9px;width:9px;background:#e2a76b;border-radius:50%}.bb-terminal-bar i:nth-child(2){background:#ebd073}.bb-terminal-bar i:nth-child(3){background:#7aa7e7}.bb-terminal-bar span{margin-left:auto;font:11px monospace;color:#95aed0}
 .bb-landing-terminal pre{padding:30px 24px;color:#9abaed;font:13px/2 monospace;white-space:pre-wrap;direction:ltr;text-align:left}
-.bb-landing-terminal pre span{color:#aecaf6}.bb-terminal-logo{position:absolute;bottom:0;right:12px;font:700 90px monospace;color:#f36baf16}
+.bb-landing-terminal pre span{color:#aecaf6}.bb-terminal-logo{position:absolute;bottom:0;right:12px;font:700 90px monospace;color:#6ba4f316}
 .bb-landing-section{padding-block:42px 55px}.bb-landing-section h2{font-size:clamp(25px,3vw,37px);margin:10px 0}
 .bb-setup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:24px}
 .bb-setup-grid details{border:1px solid #283243;background:#0c1119;border-radius:14px;padding:18px}
-.bb-setup-grid details[open]{border-color:#b65d8a}.bb-setup-grid summary{display:flex;align-items:center;gap:14px;cursor:pointer;list-style:none;font-weight:700;font-size:15px}
-.bb-setup-grid summary::-webkit-details-marker{display:none}.bb-setup-grid summary b{font:700 20px monospace;color:#3988ff}.bb-setup-grid details p{color:#d6a3bd;font-size:13px;line-height:1.9;margin:13px 0 0}
-.bb-landing-how{border:1px solid #6a2f4d;border-radius:20px;padding:30px;background:#0e141e}.bb-landing-note{padding:18px;border-right:3px solid #e2ac6c;background:#241e13;color:#e7d2b0;border-radius:8px;margin:35px 0}
-.bb-landing-footer{padding-block:28px;color:#ba6791;border-top:1px solid #242d3b}.bb-landing-footer a{color:#3988ff}
+.bb-setup-grid details[open]{border-color:#5d82b6}.bb-setup-grid summary{display:flex;align-items:center;gap:14px;cursor:pointer;list-style:none;font-weight:700;font-size:15px}
+.bb-setup-grid summary::-webkit-details-marker{display:none}.bb-setup-grid summary b{font:700 20px monospace;color:#3988ff}.bb-setup-grid details p{color:#a3b8d6;font-size:13px;line-height:1.9;margin:13px 0 0}
+.bb-landing-how{border:1px solid #2f486a;border-radius:20px;padding:30px;background:#0e141e}.bb-landing-note{padding:18px;border-right:3px solid #e2ac6c;background:#241e13;color:#e7d2b0;border-radius:8px;margin:35px 0}
+.bb-landing-footer{padding-block:28px;color:#678aba;border-top:1px solid #242d3b}.bb-landing-footer a{color:#3988ff}
 .bb-tour-overlay[hidden]{display:none!important}.bb-tour-overlay{position:fixed;inset:0;z-index:9999;pointer-events:none}
-.bb-tour-spotlight{position:fixed;border:3px solid #3988ff;border-radius:12px;box-shadow:0 0 0 9999px #090b0ebb,0 0 26px #f36baf66;transition:all .2s}
-.bb-tour-bubble{position:fixed;width:min(340px,calc(100vw - 32px));background:#141d2b;border:1px solid #e36da8;color:#e8eef8;border-radius:15px;padding:20px;box-shadow:0 20px 50px #090b0ebb;pointer-events:auto;z-index:2}
+.bb-tour-spotlight{position:fixed;border:3px solid #3988ff;border-radius:12px;box-shadow:0 0 0 9999px #090b0ebb,0 0 26px #6ba4f366;transition:all .2s}
+.bb-tour-bubble{position:fixed;width:min(340px,calc(100vw - 32px));background:#141d2b;border:1px solid #6d9ee3;color:#e8eef8;border-radius:15px;padding:20px;box-shadow:0 20px 50px #090b0ebb;pointer-events:auto;z-index:2}
 .bb-tour-bubble h2{font-size:18px;margin:8px 0}.bb-tour-bubble p{font-size:13px;line-height:1.8;color:#b5bfcf}.bb-tour-bubble span{font:12px monospace;color:#3988ff}
-.bb-tour-actions{display:flex;gap:7px;flex-wrap:wrap}.bb-tour-actions button{padding:8px 10px;border-radius:7px;background:#1f2631;color:#e4ebf6;border:1px solid #873d62}.bb-tour-actions button:last-child{background:#3988ff;color:#0d131c}
+.bb-tour-actions{display:flex;gap:7px;flex-wrap:wrap}.bb-tour-actions button{padding:8px 10px;border-radius:7px;background:#1f2631;color:#e4ebf6;border:1px solid #3d5c87}.bb-tour-actions button:last-child{background:#3988ff;color:#0d131c}
 @media(max-width:800px){.bb-landing-hero{grid-template-columns:1fr;padding-block:40px;gap:20px}.bb-setup-grid{grid-template-columns:1fr}.bb-landing-nav{gap:12px}.bb-landing-nav button{font-size:11px;padding:9px}}
 
 /* Intro now lives on its own page; do not repeat it inside the dashboard. */
 body:not(.bb-landing-active) #welcome-guide,body:not(.bb-landing-active) #welcome-reopen{display:none!important}
 
 /* Guided setup and actionable tour */
-.bb-wizard{margin:15px 0 30px;padding:clamp(18px,3vw,30px);background:linear-gradient(135deg,#0f1621,#0a0e14);border:1px solid #6f3251;border-radius:20px}
+.bb-wizard{margin:15px 0 30px;padding:clamp(18px,3vw,30px);background:linear-gradient(135deg,#0f1621,#0a0e14);border:1px solid #324b6f;border-radius:20px}
 .bb-levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:24px 0}
 .bb-levels label{cursor:pointer}.bb-levels input{position:absolute;opacity:0;width:1px;height:1px}
 .bb-levels span{display:block;padding:16px 12px;background:#0b1017;border:1px solid #2b3546;border-radius:12px;font-weight:700}
-.bb-levels small{display:block;color:#cf93b1;font-size:11px;margin-top:5px}
+.bb-levels small{display:block;color:#93accf;font-size:11px;margin-top:5px}
 .bb-levels input:checked+span{border-color:#3988ff;background:#1c2431;color:#c5d9f9}
 .bb-levels input:focus-visible+span{outline:2px solid #3988ff;outline-offset:3px}
 .bb-wizard-panel,.bb-wizard-result{background:#080c13;border:1px solid #2b3647;border-radius:14px;padding:22px}
 .bb-wizard-top{display:flex;align-items:center;gap:15px;color:#3988ff;font-size:12px}
 .bb-wizard-top progress{flex:1;accent-color:#3988ff;height:8px}
-.bb-wizard-panel h3{font-size:20px;margin:18px 0 7px}.bb-wizard-panel p{color:#d39cb8;font-size:13px}
+.bb-wizard-panel h3{font-size:20px;margin:18px 0 7px}.bb-wizard-panel p{color:#9cb3d3;font-size:13px}
 .bb-wizard-answers{display:flex;gap:9px;flex-wrap:wrap;margin:17px 0}.bb-wizard-answers button.selected{background:#3988ff;color:#0b121c}
 .bb-wizard-check{margin:12px 0;color:#d6dde8}.bb-wizard-check input{accent-color:#3988ff}
 .bb-wizard-feedback{min-height:22px;color:#e5b86e!important}
