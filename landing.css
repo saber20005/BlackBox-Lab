@@ -57,3 +57,10 @@ body:not(.bb-landing-active) #welcome-guide,body:not(.bb-landing-active) #welcom
 .bb-tour-overlay{pointer-events:none}.bb-tour-target{position:relative!important;z-index:10001!important;pointer-events:auto!important;outline:3px solid #b8f36b!important;outline-offset:4px}
 .bb-tour-bubble{z-index:10002}
 @media(max-width:850px){.bb-levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Longer explanatory tour bubbles: readable, scrollable and mobile friendly */
+.bb-tour-bubble{max-height:min(76dvh,590px);overflow-y:auto;overscroll-behavior:contain;width:min(420px,calc(100vw - 32px));box-sizing:border-box}
+.bb-tour-bubble p{white-space:pre-line;font-size:14px;line-height:1.85;margin:12px 0 18px}
+.bb-tour-bubble h2{font-size:19px;line-height:1.5}
+.bb-tour-actions{position:sticky;bottom:-20px;padding:10px 0 2px;background:#102119}
+@media(max-width:700px){.bb-tour-bubble{max-height:62dvh;padding:15px}.bb-tour-bubble p{font-size:13px}}
