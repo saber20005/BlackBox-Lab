@@ -15,8 +15,11 @@ let ti=0,active=false,prior=null,target=null;
 const availableTour=()=>tour.filter(step=>{const el=document.querySelector(step.selector);return el&&!el.classList.contains('hidden')&&getComputedStyle(el).display!=='none';});
 let activeTour=[];
 function isHome(){const p=new URL(location.href).searchParams;return !['view','track','stage'].some(k=>p.has(k));}
-function enter(){document.body.classList.remove('bb-landing-active');landing.hidden=true;}
-function showLanding(){if(!isHome())return;landing.hidden=false;document.body.classList.add('bb-landing-active');}
+const introSeenKey='blackbox-lab-intro-seen-v1';
+function hasSeenIntro(){try{return localStorage.getItem(introSeenKey)==='1';}catch{return false;}}
+function markIntroSeen(){try{localStorage.setItem(introSeenKey,'1');}catch{}}
+function enter(){markIntroSeen();document.body.classList.remove('bb-landing-active');landing.hidden=true;}
+function showLanding(){if(!isHome())return;if(hasSeenIntro()&&!new URL(location.href).searchParams.has('intro')){landing.hidden=true;document.body.classList.remove('bb-landing-active');return;}landing.hidden=false;document.body.classList.add('bb-landing-active');}
 function place(){
 target=document.querySelector(activeTour[ti]?.selector);if(!target){finish();return;}
 target.scrollIntoView({block:'nearest',behavior:'auto'});
@@ -24,7 +27,7 @@ const r=target.getBoundingClientRect(),pad=5;
 Object.assign(spot.style,{top:Math.max(0,r.top-pad)+'px',left:Math.max(0,r.left-pad)+'px',width:r.width+pad*2+'px',height:r.height+pad*2+'px'});
 $('bb-tour-heading').textContent=activeTour[ti].title;$('bb-tour-description').textContent=activeTour[ti].text;
 $('bb-tour-count').textContent=(ti+1)+' / '+activeTour.length;
-$('bb-tour-prev').disabled=ti===0;$('bb-tour-next').textContent=ti===tour.length-1?'إنهاء الجولة':'تخطي هذه الخطوة ←';
+$('bb-tour-prev').disabled=ti===0;$('bb-tour-next').textContent=ti===activeTour.length-1?'إنهاء الجولة':'تخطي هذه الخطوة ←';
 const width=Math.min(340,innerWidth-32);let left=Math.max(16,Math.min(innerWidth-width-16,r.right+14));if(r.right+width+25>innerWidth)left=Math.max(16,r.left-width-14);
 let top=Math.max(12,Math.min(innerHeight-bubble.offsetHeight-12,r.top));if(innerWidth<700){left=16;top=Math.max(12,innerHeight-bubble.offsetHeight-12);}
 Object.assign(bubble.style,{left:left+'px',top:top+'px'});
