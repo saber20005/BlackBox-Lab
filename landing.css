@@ -76,3 +76,11 @@ body:not(.bb-landing-active) #welcome-guide,body:not(.bb-landing-active) #welcom
 .bb-landing button:hover{background:#84283a;border-color:#a94a5b}
 .bb-landing-terminal{box-shadow:0 15px 40px #0006}
 .bb-tour-bubble{border-color:#56303a;box-shadow:0 18px 40px #0008}
+
+/* Near-black Burgundy: intro and guided tour */
+.bb-landing{background:radial-gradient(circle at 80% 0%,#1b1015,transparent 34%),#09090b;color:#eee9eb}
+.bb-landing button,.bb-landing-actions button:first-child,.bb-landing-how button{background:#572330;border-color:#773143;color:#fff;box-shadow:none}
+.bb-landing button:hover{background:#773143;border-color:#925064}
+.bb-landing-terminal{background:#111014;border-color:#39252d;box-shadow:0 16px 45px #0008}
+.bb-tour-bubble{background:#141114;color:#eee9eb;border-color:#49313b;box-shadow:0 16px 40px #0009}
+.bb-tour-actions{background:#141114}
