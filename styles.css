@@ -611,3 +611,16 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #a94a
 button.primary,.btn.primary,.cta-primary{background:#60202e;color:#fff;border-color:#84283a;box-shadow:none}
 button.primary:hover,.btn.primary:hover,.cta-primary:hover{background:#84283a}
 .card:hover,.path:hover{border-color:#643341}
+
+/* Near-black Burgundy experimental palette — deliberately restrained */
+:root{--bg:#09090b;--panel:#111114;--panel2:#171518;--line:#30262a;--text:#eee9eb;--muted:#aea5aa;--green:#773143;--green2:#572330;--red:#aa5365;--blue:#9e6574}
+body{background:radial-gradient(ellipse at 80% -15%,#1b1015 0,transparent 36%),#09090b}
+.sidebar{background:#0c0b0d;border-left-color:#30262a}
+.brand-icon{background:#171014;border-color:#572330;color:#b47b88;box-shadow:none}
+.nav button.active{background:#1b1418;border-color:#492632;color:#eee9eb;box-shadow:none}
+.nav button:hover{background:#191418}
+.card,.path,.status-pill,.icon-btn{border-color:#30262a;box-shadow:none}
+.card:hover,.path:hover{border-color:#5a3440}
+button.primary,.btn.primary,.cta-primary{background:#572330;border-color:#773143;color:#fff;box-shadow:none}
+button.primary:hover,.btn.primary:hover,.cta-primary:hover{background:#773143}
+.dot.ok{background:#856473;box-shadow:none}
