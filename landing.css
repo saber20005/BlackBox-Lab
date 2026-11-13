@@ -36,3 +36,24 @@ body.bb-landing-active #landing-page{display:block}
 
 /* Intro now lives on its own page; do not repeat it inside the dashboard. */
 body:not(.bb-landing-active) #welcome-guide,body:not(.bb-landing-active) #welcome-reopen{display:none!important}
+
+/* Guided setup and actionable tour */
+.bb-wizard{margin:15px 0 30px;padding:clamp(18px,3vw,30px);background:linear-gradient(135deg,#11251a,#0b1710);border:1px solid #3c6547;border-radius:20px}
+.bb-levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:24px 0}
+.bb-levels label{cursor:pointer}.bb-levels input{position:absolute;opacity:0;width:1px;height:1px}
+.bb-levels span{display:block;padding:16px 12px;background:#0c1a12;border:1px solid #31503a;border-radius:12px;font-weight:700}
+.bb-levels small{display:block;color:#a6bca9;font-size:11px;margin-top:5px}
+.bb-levels input:checked+span{border-color:#b8f36b;background:#203821;color:#d7ffbf}
+.bb-levels input:focus-visible+span{outline:2px solid #b8f36b;outline-offset:3px}
+.bb-wizard-panel,.bb-wizard-result{background:#091610;border:1px solid #31513c;border-radius:14px;padding:22px}
+.bb-wizard-top{display:flex;align-items:center;gap:15px;color:#b8f36b;font-size:12px}
+.bb-wizard-top progress{flex:1;accent-color:#b8f36b;height:8px}
+.bb-wizard-panel h3{font-size:20px;margin:18px 0 7px}.bb-wizard-panel p{color:#a9c6af;font-size:13px}
+.bb-wizard-answers{display:flex;gap:9px;flex-wrap:wrap;margin:17px 0}.bb-wizard-answers button.selected{background:#b8f36b;color:#10200d}
+.bb-wizard-check{margin:12px 0;color:#d6e8d8}.bb-wizard-check input{accent-color:#b8f36b}
+.bb-wizard-feedback{min-height:22px;color:#e5b86e!important}
+.bb-wizard-buttons{display:flex;justify-content:space-between;gap:10px}
+.bb-wizard-result{margin-top:14px}.bb-wizard-result h3{color:#b8f36b}.bb-wizard-result li{margin:8px 0}
+.bb-tour-overlay{pointer-events:none}.bb-tour-target{position:relative!important;z-index:10001!important;pointer-events:auto!important;outline:3px solid #b8f36b!important;outline-offset:4px}
+.bb-tour-bubble{z-index:10002}
+@media(max-width:850px){.bb-levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
