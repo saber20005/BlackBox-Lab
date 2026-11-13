@@ -45,7 +45,7 @@ const prompts=[
 {title:'هل جهزت شبكة مختبر معزولة وSnapshot؟',help:'للربط مع Windows استخدم Host-only، وللعزل بين الآلات فقط استخدم Internal Network. لا تعرض الأنظمة الضعيفة على Bridged.',choices:[['yes','نعم، تحققت من الشبكة واللقطة'],['no','لم أجهزها بعد']]},
 {title:'هل أنت جاهز للبدء بمسار تدريبي؟',help:'تأكد أن لديك تصريحاً باختبار جميع الآلات، ثم اختر المسار المناسب من لوحة التحكم.',choices:[['yes','نعم، جاهز'],['no','أحتاج إلى مراجعة الإعداد']]}
 ];
-const storageKey='blackbox-lab-setup-guide-v2';
+const storageKey='blackbox-lab-setup-guide-v3';
 let wizard={level:'beginner',step:0,answers:{},confirmed:{}};
 try{const v=JSON.parse(localStorage.getItem(storageKey)||'null');if(v&&['beginner','hobbyist','intermediate','advanced'].includes(v.level)&&Number.isInteger(v.step)){wizard={level:v.level,step:Math.max(0,Math.min(4,v.step)),answers:v.answers||{},confirmed:v.confirmed||{}};}}catch{}
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(wizard));}catch{}}
@@ -54,8 +54,8 @@ const i=wizard.step,p=prompts[i];$('bb-wizard-count').textContent='الخطوة 
 $('bb-wizard-question').textContent=p.title;$('bb-wizard-help').textContent=p.help;
 const wrap=$('bb-wizard-answers');wrap.replaceChildren();
 p.choices.forEach(([value,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.className=wizard.answers[i]===value?'selected':'';b.setAttribute('aria-pressed',String(wizard.answers[i]===value));b.addEventListener('click',()=>{wizard.answers[i]=value;wizard.confirmed[i]=false;save();renderWizard();});wrap.append(b);});
-$('bb-wizard-check').hidden=wizard.answers[i]!=='yes';$('bb-wizard-confirm').checked=!!wizard.confirmed[i];
-$('bb-wizard-feedback').textContent=wizard.answers[i]==='no'?'يمكنك متابعة قراءة الخطوات، لكن لن نعتبر هذا الجزء من المختبر جاهزاً.':'';
+$('bb-wizard-check').hidden=!wizard.answers[i] || (i>0 && wizard.answers[i]!=='yes');$('bb-wizard-confirm').checked=!!wizard.confirmed[i];
+$('bb-wizard-feedback').textContent=wizard.answers[i]==='no'?'يجب إكمال التجهيز والتحقق منه قبل الانتقال. لا يمكن تجاوز هذه الخطوة.':(wizard.answers[i]&&!wizard.confirmed[i]?'ضع علامة التأكيد بعد التحقق الفعلي للمتابعة.':'');
 $('bb-wizard-back').disabled=i===0;$('bb-wizard-next').textContent=i===4?'عرض خطة التدريب ←':'التالي ←';
 document.querySelectorAll('input[name="bb-level"]').forEach(el=>el.checked=el.value===wizard.level);
 }
@@ -63,9 +63,11 @@ $('bb-wizard-confirm')?.addEventListener('change',e=>{wizard.confirmed[wizard.st
 $('bb-wizard-back')?.addEventListener('click',()=>{if(wizard.step>0){wizard.step--;save();renderWizard();}});
 $('bb-wizard-next')?.addEventListener('click',()=>{
 if(!wizard.answers[wizard.step]){$('bb-wizard-feedback').textContent='اختر إجابة قبل المتابعة.';return;}
+if(wizard.step>0 && wizard.answers[wizard.step]!=='yes'){$('bb-wizard-feedback').textContent='لا يمكن المتابعة: أكمل إعداد هذه الخطوة أولاً ثم اختر نعم.';return;}
+if(!wizard.confirmed[wizard.step]){$('bb-wizard-feedback').textContent='يجب أن تؤكد بنفسك أنك تحققت من هذه الخطوة قبل المتابعة.';return;}
 if(wizard.step<4){wizard.step++;save();renderWizard();return;}
 const labels={beginner:'مبتدئ',hobbyist:'هاوٍ',intermediate:'متوسط',advanced:'متقدم'};
-const incomplete=prompts.map((p,i)=>({p,i})).filter(({i})=>wizard.answers[i]!=='yes'||(i>0&&!wizard.confirmed[i]));
+const incomplete=prompts.map((p,i)=>({p,i})).filter(({i})=>(i>0&&wizard.answers[i]!=='yes')||!wizard.confirmed[i]);
 const result=$('bb-wizard-result');result.hidden=false;result.replaceChildren();
 const heading=document.createElement('h3');heading.textContent='خطتك الشخصية — '+labels[wizard.level];result.append(heading);
 const paragraph=document.createElement('p');paragraph.textContent=incomplete.length?'لا تزال هناك خطوات تحتاج إلى تجهيز أو تأكيد. يمكنك استكشاف الموقع الآن، لكن جاهزية المختبر غير مؤكدة.':'أكملت تأكيد خطوات التجهيز بنفسك. يمكنك الآن اختيار مسار التدريب.';result.append(paragraph);
