@@ -64,21 +64,34 @@
       <div id="accountSyncNotice" class="account-sync-notice hidden" role="status"><span id="accountSyncNoticeText"></span><button type="button" class="link-btn" id="reviewAccountSync">مراجعة الحساب</button></div>
   <button type="button" id="welcome-reopen" class="welcome-reopen" hidden>؟ عرض دليل البداية</button>
   <section class="welcome-guide" id="welcome-guide" aria-labelledby="welcome-title">
-    <div class="welcome-head"><div><span class="welcome-kicker">WELCOME TO BLACKBOX LAB</span><h1 id="welcome-title">تعلّم الأمن السيبراني بالتطبيق، لا بالحفظ فقط.</h1></div><button type="button" id="welcome-dismiss" class="welcome-dismiss" aria-label="إخفاء دليل البداية">إخفاء الدليل ×</button></div>
-    <p>BLACKBOX مساحة عربية لتنظيم تدريبك داخل مختبر آمن. اختر مساراً، نفّذ الخطوات على أجهزتك الافتراضية، سجّل الأدلة والملاحظات، وتابع تقدّمك. الموقع لا ينفذ الأوامر على جهازك تلقائياً.</p>
-    <div class="welcome-actions"><button type="button" data-guide-nav="tracks">استكشف مسارات التدريب ←</button><button type="button" data-guide-nav="plan">أنشئ خطة جلستك</button><button type="button" data-guide-nav="backups">كيف أحفظ تقدّمي؟</button></div>
-    <div class="guide-tips" aria-label="نصائح تعليمية تفاعلية">
+    <div class="welcome-hero">
+      <div class="welcome-copy">
+        <span class="welcome-kicker">BLACKBOX LAB / CYBERSECURITY TRAINING</span>
+        <h1 id="welcome-title">مرحباً بك في <span>BLACKBOX Lab</span></h1>
+        <p>مساحتك العربية للتدريب العملي على الأمن السيبراني. اختر مساراً، نفّذ التمارين داخل مختبر معزول، وثّق أدلتك وتابع تقدمك خطوة بخطوة.</p>
+        <div class="welcome-actions"><button type="button" data-guide-nav="tracks">ابدأ التدريب ←</button><button type="button" id="welcome-tour">جولة تعريفية ◉</button></div>
+        <div class="welcome-facts"><span>◈ 6 مسارات</span><span>▤ 18 مرحلة</span><span>✓ حفظ التقدم</span></div>
+      </div>
+      <div class="welcome-visual" aria-hidden="true"><div class="terminal-top"><span></span><span></span><span></span><b>BLACKBOX / TRAINING</b></div><div class="terminal-lines"><i>$ whoami</i><strong>security learner</strong><i>$ lab --status</i><strong>isolated training workspace</strong><i>$ progress --track</i><strong>learn · practice · document</strong></div><div class="visual-mark">B.</div></div>
+      <button type="button" id="welcome-dismiss" class="welcome-dismiss" aria-label="إخفاء المقدمة">إخفاء المقدمة ×</button>
+    </div>
+    <div class="welcome-feature-grid">
+      <article><span class="feature-icon">⬡</span><h2>تدريب داخل مختبر معزول</h2><p>طبّق المهارات على أنظمة تملكها أو لديك تصريح لاختبارها.</p></article>
+      <article><span class="feature-icon">▤</span><h2>مسارات تعليمية منظمة</h2><p>انتقل من المفاهيم الأساسية إلى مهام عملية واضحة.</p></article>
+      <article><span class="feature-icon">◎</span><h2>توثيق ومتابعة</h2><p>احفظ نتائجك وملاحظاتك وأنشئ تقارير قابلة للتنزيل.</p></article>
+    </div>
+    <section class="kali-showcase" aria-labelledby="kali-guide-title">
+      <div class="kali-art" aria-hidden="true"><span class="kali-art-symbol">⌘</span><b>KALI LINUX</b><small>VIRTUALBOX LAB</small></div>
+      <div class="kali-details"><span class="welcome-kicker">LOCAL LAB / INTEGRATION ROADMAP</span><h2 id="kali-guide-title">التكامل مع Kali Linux</h2><p>نعمل على تجهيز ربط آمن بين BLACKBOX وKali داخل VirtualBox لتنفيذ مهام تدريبية مصرح بها واستيراد نتائجها. الربط المباشر لم يُفعّل بعد.</p><div class="kali-tags"><span>Windows Host</span><span>Kali / VirtualBox</span><span class="offline-tag">● غير متصل</span></div><button type="button" id="kali-details-toggle" class="welcome-outline" aria-expanded="false" aria-controls="kali-guide-steps">كيف أجهز مختبري؟ ↓</button></div>
+      <div id="kali-guide-steps" class="kali-guide" hidden><h3>خطوات التجهيز الآمن</h3><ol><li>شغّل Kali داخل VirtualBox وتأكد من وجود Snapshot.</li><li>استخدم شبكة Host-only لاتصال Windows بالآلة الافتراضية دون تعريض المختبر للإنترنت.</li><li>حدد الآلات المسموح اختبارها. لا تفتح SSH أو API على الإنترنت.</li><li>الخطوة التالية هي تثبيت وكيل محلي موثوق والتحقق من الصلاحيات قبل أي تنفيذ.</li></ol><p class="guide-caution">هذه تعليمات تجهيز فقط. الموقع لا يتصل بـKali حالياً ولا ينفذ أوامر على جهازك.</p></div>
+    </section>
+    <div class="welcome-section-title"><h2>كيف تعمل المنصة؟</h2><button type="button" id="welcome-tour-secondary" class="welcome-outline">جولة تعليمية تفاعلية ◉</button></div>
+    <div class="welcome-steps"><div><span>01</span><b>اختر مسارك</b><small>حدد المهارة التي تريد تعلمها</small></div><div><span>02</span><b>نفّذ المختبر</b><small>طبّق الخطوات على بيئة مصرح بها</small></div><div><span>03</span><b>وثّق النتائج</b><small>سجّل الملاحظات والأدلة</small></div><div><span>04</span><b>تابع تقدمك</b><small>راجع إنجازاتك وتقاريرك</small></div></div>
+    <div class="guide-tips" id="welcome-tips" aria-label="فقاعات تعليمية تفاعلية">
       <div class="guide-tip" data-guide-tip><button type="button" aria-expanded="false" aria-controls="tip-1">💡 ما الفرق بين المسار والمرحلة؟</button><div id="tip-1" class="guide-tip-body" hidden>المسار يجمع مهارة مثل تحليل الشبكات، والمرحلة مهمة صغيرة ذات خطوات ونتائج. أكمل المراحل بالتتابع.</div></div>
       <div class="guide-tip" data-guide-tip><button type="button" aria-expanded="false" aria-controls="tip-2">📝 أين تُحفظ الملاحظات؟</button><div id="tip-2" class="guide-tip-body" hidden>تُحفظ بيانات الضيف في متصفحك. يمكنك تنزيل نسخة احتياطية أو تسجيل الدخول لمزامنة تقدم الحساب عندما تكون الخدمة متاحة.</div></div>
       <div class="guide-tip" data-guide-tip><button type="button" aria-expanded="false" aria-controls="tip-3">🛡️ لماذا نستخدم مختبراً معزولاً؟</button><div id="tip-3" class="guide-tip-body" hidden>لتجربة الأدوات على آلات تملكها أو لديك تصريح باختبارها، دون تعريض شبكتك الفعلية أو الآخرين للخطر.</div></div>
     </div>
-    <section class="kali-guide" aria-labelledby="kali-guide-title">
-      <span class="welcome-kicker">KALI LINUX / LOCAL LAB</span>
-      <h2 id="kali-guide-title">تجهيز الربط مع Kali Linux</h2>
-      <p>حالة الاتصال: <strong>غير متصل — الربط المباشر لم يُفعّل بعد.</strong> يمكنك الآن تجهيز المختبر بأمان؛ تشغيل الأوامر وقراءة حالة Kali من الموقع يتطلبان تطبيقاً محلياً منفصلاً.</p>
-      <ol><li>شغّل Kali Linux داخل VirtualBox على جهازك الشخصي.</li><li>استخدم شبكة <strong>Host-only</strong> أو <strong>Internal Network</strong> بحسب حاجة المختبر، ولا تعرض آلة ضعيفة على شبكة Bridged عامة.</li><li>أنشئ لقطة Snapshot قبل التجارب، وحدّد الآلات المسموح باختبارها.</li><li>بعد تطوير وكيل BLACKBOX المحلي والتحقق من هويته وصلاحياته، يمكن إضافة فحص حالة Kali وتبادل نتائج التدريب بموافقتك.</li></ol>
-      <p class="guide-caution">تنبيه: هذه تعليمات إعداد فقط، وليست اتصالاً حقيقياً. لا تفتح SSH أو API للعامة، ولا تُدخل كلمات مرور Kali داخل الموقع.</p>
-    </section>
   </section>
       <div id="content"></div>
       <footer class="footer">BLACKBOX · تعلّم، وثّق، وراجع تقدّمك · تدريب للضيف وحفظ اختياري في الحساب</footer>
