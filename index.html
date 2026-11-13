@@ -56,7 +56,23 @@
         <details><summary><b>05</b><span>اختر مسار التدريب</span></summary><p>افتح «مسارات التدريب» في لوحة BLACKBOX، واختر المجال ثم المرحلة المتاحة واتبع تعليماتها على الأنظمة المصرح بها.</p></details>
         <details><summary><b>06</b><span>وثّق واحفظ نتائجك</span></summary><p>سجّل الأدلة والملاحظات، وراجع سجل المختبر، ثم نزّل نسخة احتياطية من صفحة «النسخ والتقارير».</p></details>
       </div></section>
-      <section class="bb-landing-section bb-landing-how"><span class="bb-kicker">GUIDED EXPERIENCE</span><h2>لست متأكداً أين تضغط؟</h2><p>ستفتح الجولة لوحة التحكم وتسلّط الضوء على الأزرار الحقيقية واحداً بعد الآخر، مع شرح ما يفعله كل زر.</p><button type="button" id="landing-start-tour-bottom">شغّل الجولة التفاعلية ←</button></section>
+<section class="bb-landing-section bb-wizard" id="bb-wizard" aria-labelledby="bb-wizard-title">
+<span class="bb-kicker">PERSONALIZED LAB SETUP</span><h2 id="bb-wizard-title">أنشئ مختبرك خطوة بخطوة</h2><p>اختر مستواك وأجب عن أسئلة التجهيز. ستحصل على خطوات مناسبة لك، ولن نعتبر أي خطوة مكتملة إلا بتأكيدك.</p>
+<div class="bb-levels" role="group" aria-label="مستوى المستخدم">
+<label><input type="radio" name="bb-level" value="beginner" checked><span>🌱 مبتدئ<small>أبدأ من الصفر</small></span></label>
+<label><input type="radio" name="bb-level" value="hobbyist"><span>⚙️ هاوٍ<small>أعرف الأساسيات</small></span></label>
+<label><input type="radio" name="bb-level" value="intermediate"><span>🧩 متوسط<small>نفذت مختبرات سابقاً</small></span></label>
+<label><input type="radio" name="bb-level" value="advanced"><span>🛡️ متقدم<small>أعمل على مختبرات معقدة</small></span></label>
+</div>
+<div class="bb-wizard-panel"><div class="bb-wizard-top"><span id="bb-wizard-count">الخطوة 1 من 5</span><progress id="bb-wizard-progress" max="5" value="1">1/5</progress></div>
+<h3 id="bb-wizard-question"></h3><p id="bb-wizard-help"></p>
+<div id="bb-wizard-answers" class="bb-wizard-answers"></div>
+<div id="bb-wizard-check" class="bb-wizard-check" hidden><label><input type="checkbox" id="bb-wizard-confirm"> أؤكد أنني تحققت من هذه الخطوة بنفسي</label></div>
+<p id="bb-wizard-feedback" class="bb-wizard-feedback" role="status" aria-live="polite"></p>
+<div class="bb-wizard-buttons"><button type="button" id="bb-wizard-back">السابق</button><button type="button" id="bb-wizard-next">التالي ←</button></div></div>
+<div id="bb-wizard-result" class="bb-wizard-result" hidden></div>
+</section>
+      <section class="bb-landing-section bb-landing-how"><span class="bb-kicker">GUIDED EXPERIENCE</span><h2>لست متأكداً أين تضغط؟</h2><p>ستفتح الجولة لوحة التحكم وتسلّط الضوء على الأزرار الحقيقية. اضغط على الزر المضيء للانتقال إلى الخطوة التالية.</p><button type="button" id="landing-start-tour-bottom">شغّل الجولة التفاعلية ←</button></section>
       <section class="bb-landing-note"><strong>حالة ربط Kali:</strong> الربط الآلي غير مفعّل بعد. يمكنك استخدام BLACKBOX لتنظيم تدريبك وتوثيق نتائجه، لكن الموقع لا ينفذ أوامر Kali مباشرة.</section>
     </main><footer class="bb-landing-footer">BLACKBOX Lab · تعلّم، طبّق، وثّق · <a href="https://cybertracelab.dev/">CyberTrace</a></footer>
   </div>
