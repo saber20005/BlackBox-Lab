@@ -6,21 +6,24 @@ const tour=[
 {selector:'[data-view="home"]',title:'1. لوحة التحكم — نقطة البداية',text:'هذه صفحتك الرئيسية بعد الدخول. ستجد فيها ملخص تقدمك، وآخر نشاط تدريبي، واختصارات للعودة إلى التعلم.\n\nمتى تستخدمها؟ عند بداية كل جلسة لتعرف أين توقفت.\n\n👆 اضغط على زر «لوحة التحكم» المضاء لاستكشافه، أو استخدم «التالي».'},
 {selector:'[data-view="tracks"]',title:'2. مسارات التدريب — ماذا ستتعلم؟',text:'هنا توجد 6 مسارات تدريبية تضم 18 مرحلة، من إعداد البيئة والاستطلاع الآمن إلى استخدام أدوات مثل Nmap. افتح المسار واقرأ الهدف والتعليمات وقائمة التحقق قبل التنفيذ.\n\nمثال: اختر مسار Nmap لتتعلم فحص آلة افتراضية تملكها داخل شبكتك المعزولة.\n\n👆 اضغط على «مسارات التدريب».'},
 {selector:'[data-view="plan"]',title:'3. خطة جلستك — نظّم وقتك',text:'هذه الأداة تساعدك على اختيار مجال التركيز والوقت المتاح، ثم تعرض اقتراحاً لجلسة تدريب مناسبة. هي خطة للتنظيم وليست فحصاً آلياً لجهازك.\n\nمثال: إذا كان لديك 30 دقيقة، خصصها لهدف واحد واضح بدلاً من فتح عدة أدوات بلا خطة.\n\n👆 اضغط على «خطة جلستك».'},
-{selector:'[data-view="journal"]',title:'4. سجل المختبر — وثّق الأدلة',text:'بعد كل تمرين، اكتب ماذا فعلت، والأوامر التي استخدمتها، والنتيجة التي لاحظتها، والمشكلة التي واجهتك. التوثيق يحوّل التجربة إلى مهارة يمكنك مراجعتها.\n\nمثال: سجّل عنوان آلة المختبر ونتيجة فحص Nmap والمنافذ التي ظهرت، دون حفظ كلمات مرور أو أسرار.\n\n👆 اضغط على «سجل المختبر».'},
-{selector:'[data-view="backups"]',title:'5. النسخ والتقارير — لا تفقد عملك',text:'من هنا تستطيع تنزيل نسخة احتياطية من بيانات التدريب أو استعادتها ومراجعة التقارير المتاحة. احتفظ بنسخة خارج المتصفح؛ حذف بياناته قد يؤدي إلى فقدان التقدم المحلي.\n\nمثال: نزّل نسخة احتياطية بعد إنهاء مجموعة مراحل، واحتفظ بها في مكان آمن.\n\n👆 اضغط على «النسخ والتقارير».'},
-{selector:'[data-view="troubleshoot"]',title:'6. حلول الأعطال — عندما تتعطل التجربة',text:'إذا لم تعمل آلة Kali أو لم تتصل آلة الهدف، ابدأ بهذا القسم قبل تغيير الإعدادات عشوائياً. اقرأ وصف المشكلة والخطوات المقترحة، ثم دوّن ما نجح وما لم ينجح.\n\nتذكير: BLACKBOX يرشدك في إعداد المختبر، لكنه لا يتصل تلقائياً بنظام Kali ولا ينفذ أوامر عليه.\n\n👆 اضغط على «حلول الأعطال» لإنهاء الجولة.'}
+{selector:'[data-view="skills"]',title:'4. المهارات المترابطة — اربط التدريب بالتحقيقات',text:'هذا القسم يربط تقدمك في BLACKBOX بنتائج التحقيقات التي أنجزتها في CyberTrace، ليعرض المهارات التي تطورها عبر المشروعين.\n\nكيف تستخدمه؟ سجّل الدخول إلى حسابك المرتبط، وافتح المهارات المترابطة لمراجعة نتائج التحقيقات المحفوظة ومجالات القوة التي تظهر منها. قد تحتاج إلى إتمام تحقيقات في CyberTrace أولاً حتى تظهر بيانات مفيدة.\n\nمهم: هذه النتائج مرتبطة بالحساب ولا تعني أن BLACKBOX نفّذ اختبار اختراق أو تحقق آلياً من مهارتك.\n\n👆 اضغط على «المهارات المترابطة» لفتح القسم.'},
+{selector:'[data-view="journal"]',title:'5. سجل المختبر — وثّق الأدلة',text:'بعد كل تمرين، اكتب ماذا فعلت، والأوامر التي استخدمتها، والنتيجة التي لاحظتها، والمشكلة التي واجهتك. التوثيق يحوّل التجربة إلى مهارة يمكنك مراجعتها.\n\nمثال: سجّل عنوان آلة المختبر ونتيجة فحص Nmap والمنافذ التي ظهرت، دون حفظ كلمات مرور أو أسرار.\n\n👆 اضغط على «سجل المختبر».'},
+{selector:'[data-view="backups"]',title:'6. النسخ والتقارير — لا تفقد عملك',text:'من هنا تستطيع تنزيل نسخة احتياطية من بيانات التدريب أو استعادتها ومراجعة التقارير المتاحة. احتفظ بنسخة خارج المتصفح؛ حذف بياناته قد يؤدي إلى فقدان التقدم المحلي.\n\nمثال: نزّل نسخة احتياطية بعد إنهاء مجموعة مراحل، واحتفظ بها في مكان آمن.\n\n👆 اضغط على «النسخ والتقارير».'},
+{selector:'[data-view="troubleshoot"]',title:'7. حلول الأعطال — عندما تتعطل التجربة',text:'إذا لم تعمل آلة Kali أو لم تتصل آلة الهدف، ابدأ بهذا القسم قبل تغيير الإعدادات عشوائياً. اقرأ وصف المشكلة والخطوات المقترحة، ثم دوّن ما نجح وما لم ينجح.\n\nتذكير: BLACKBOX يرشدك في إعداد المختبر، لكنه لا يتصل تلقائياً بنظام Kali ولا ينفذ أوامر عليه.\n\n👆 اضغط على «حلول الأعطال» لإنهاء الجولة.'}
 ];
 let ti=0,active=false,prior=null,target=null;
+const availableTour=()=>tour.filter(step=>{const el=document.querySelector(step.selector);return el&&!el.classList.contains('hidden')&&getComputedStyle(el).display!=='none';});
+let activeTour=[];
 function isHome(){const p=new URL(location.href).searchParams;return !['view','track','stage'].some(k=>p.has(k));}
 function enter(){document.body.classList.remove('bb-landing-active');landing.hidden=true;}
 function showLanding(){if(!isHome())return;landing.hidden=false;document.body.classList.add('bb-landing-active');}
 function place(){
-target=document.querySelector(tour[ti].selector);if(!target){finish();return;}
+target=document.querySelector(activeTour[ti]?.selector);if(!target){finish();return;}
 target.scrollIntoView({block:'nearest',behavior:'auto'});
 const r=target.getBoundingClientRect(),pad=5;
 Object.assign(spot.style,{top:Math.max(0,r.top-pad)+'px',left:Math.max(0,r.left-pad)+'px',width:r.width+pad*2+'px',height:r.height+pad*2+'px'});
-$('bb-tour-heading').textContent=tour[ti].title;$('bb-tour-description').textContent=tour[ti].text;
-$('bb-tour-count').textContent=(ti+1)+' / '+tour.length;
+$('bb-tour-heading').textContent=activeTour[ti].title;$('bb-tour-description').textContent=activeTour[ti].text;
+$('bb-tour-count').textContent=(ti+1)+' / '+activeTour.length;
 $('bb-tour-prev').disabled=ti===0;$('bb-tour-next').textContent=ti===tour.length-1?'إنهاء الجولة':'تخطي هذه الخطوة ←';
 const width=Math.min(340,innerWidth-32);let left=Math.max(16,Math.min(innerWidth-width-16,r.right+14));if(r.right+width+25>innerWidth)left=Math.max(16,r.left-width-14);
 let top=Math.max(12,Math.min(innerHeight-bubble.offsetHeight-12,r.top));if(innerWidth<700){left=16;top=Math.max(12,innerHeight-bubble.offsetHeight-12);}
@@ -29,7 +32,7 @@ target.classList.add('bb-tour-target');
 }
 function advance(){target?.classList.remove('bb-tour-target');if(ti===tour.length-1){finish();return;}ti++;place();}
 function finish(){target?.classList.remove('bb-tour-target');active=false;overlay.hidden=true;window.removeEventListener('resize',place);prior?.focus?.();}
-function begin(){prior=document.activeElement;enter();ti=0;active=true;overlay.hidden=false;window.addEventListener('resize',place);place();$('bb-tour-next').focus();}
+function begin(){prior=document.activeElement;enter();activeTour=availableTour();if(!activeTour.length)return;ti=0;active=true;overlay.hidden=false;window.addEventListener('resize',place);place();$('bb-tour-next').focus();}
 document.addEventListener('click',e=>{if(!active||!target)return;const clicked=e.target.closest('button');if(clicked===target){advance();}});
 for(const id of ['landing-enter','landing-enter-top'])$(id)?.addEventListener('click',enter);
 for(const id of ['landing-start-tour','landing-start-tour-bottom'])$(id)?.addEventListener('click',begin);
