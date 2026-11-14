@@ -1,5 +1,4 @@
-import { randomUUID } from 'node:crypto';
-import { nextQuota } from './rate-limit.js';
+import { allocateGradingSession } from './session-store.js';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
@@ -22,25 +21,12 @@ export const startGradingSession = onCall({ region: REGION, enforceAppCheck: tru
   try { caseId = requireCaseId(request.data?.caseId); } catch { throw new HttpsError('invalid-argument', 'Invalid case ID.'); }
   const rubricSnap = await db.doc(`gradingRubrics/${caseId}`).get();
   if (!rubricSnap.exists || rubricSnap.data()?.enabled !== true) throw invalid();
-  const sessionId = randomUUID();
-  const now = Date.now();
-  const quotaRef = db.doc(`gradingQuotas/${uid}`);
-  const sessionRef = db.doc(`gradingSessions/${sessionId}`);
   try {
-    await db.runTransaction(async transaction => {
-      const quotaSnapshot = await transaction.get(quotaRef);
-      const quota = nextQuota(quotaSnapshot.exists ? quotaSnapshot.data() : null, Date.now());
-      transaction.set(quotaRef, quota);
-      transaction.create(sessionRef, {
-        uid, caseId, status: 'open', createdAt: FieldValue.serverTimestamp(),
-        expiresAtMs: Date.now() + SESSION_LIFETIME_MS, attempts: 0
-      });
-    });
+    return await allocateGradingSession(db, FieldValue, uid, caseId);
   } catch (error) {
     if (error?.message === 'quota-exceeded') throw new HttpsError('resource-exhausted', 'Hourly session limit reached.');
     throw new HttpsError('internal', 'Unable to start a grading session.');
   }
-  return { sessionId, caseId, expiresAtMs: now + SESSION_LIFETIME_MS };
 });
 export const submitGradingAnswer = onCall({ region: REGION, enforceAppCheck: true, maxInstances: 10 }, async request => {
   const uid = authUid(request);
