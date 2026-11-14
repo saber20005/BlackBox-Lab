@@ -134,6 +134,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Reserved for independently verified results written by trusted backend only.
+    // Admin SDK bypasses these client rules; NEVER grant client write access here.
+    // Existing /cybertrace receipts remain user-reported legacy progress.
+    match /blackboxUsers/{uid}/verifiedCybertrace/{caseId} {
+      allow get, list: if isOwner(uid);
+      allow create, update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
