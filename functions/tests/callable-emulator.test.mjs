@@ -27,7 +27,7 @@ if (!endpoint) {
     assert.ok([401, 403].includes(response.status), `forged token accepted or unexpected status: ${response.status}`);
   });
 
-  test('authenticated user cannot start a malformed or unprovisioned challenge', async () => {
+  test('authenticated user without App Check is rejected before challenge validation', async () => {
     const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
     assert.ok(authHost, 'Auth emulator host required');
     const signup = await fetch(`http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`, {
@@ -43,7 +43,7 @@ if (!endpoint) {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
         body: JSON.stringify({ data: { caseId } })
       });
-      assert.ok([400, 403, 404, 412].includes(response.status), `unexpected status ${response.status} for ${caseId}`);
+      assert.equal(response.status, 401, `missing App Check must be rejected for ${caseId}`);
       assert.notEqual(response.status, 200);
     }
   });
