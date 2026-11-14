@@ -14,7 +14,8 @@ export const accountConfig = Object.freeze({
     appId: '1:277258714756:web:47b77d87e1462ae3da0cd1',
   }),
   providers: Object.freeze({ email: true, google: true }),
-  // Public reCAPTCHA Enterprise site key registered in Firebase App Check.\n  // Release gate: keep grading disabled until Functions deployment and end-to-end production verification.
+  // Public reCAPTCHA Enterprise site key registered in Firebase App Check.
+  // Release gate: keep grading disabled until Functions deployment and end-to-end production verification.
   grading: Object.freeze({ enabled: false, appCheckSiteKey: '6Le83x8uAAAAACsU1HBgr_omCXIPcBubydOOBffI' }),
   emulators: null,
 });
