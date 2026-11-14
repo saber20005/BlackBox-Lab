@@ -37,6 +37,15 @@ if (!endpoint) {
     assert.equal(signup.status, 200);
     const { idToken } = await signup.json();
     assert.ok(idToken);
+    // Exercise both callable handlers with a real Auth-emulator identity but no App Check.
+    for (const fn of ['startGradingSession', 'submitGradingAnswer']) {
+      const response = await fetch(`${base}/${fn}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ data: { caseId: 'INC-0001', answer: 'correct' } })
+      });
+      assert.equal(response.status, 401, `missing App Check must block ${fn}`);
+    }
     for (const caseId of ['INC-1', 'INC-9999']) {
       const response = await fetch(`${base}/startGradingSession`, {
         method: 'POST',
