@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 
 const project = 'demo-blackbox-account-tests';
 const endpoint = process.env.FUNCTIONS_EMULATOR_HOST;
@@ -79,6 +80,13 @@ if (!endpoint) {
       'X-Firebase-AppCheck': appCheckToken
     };
     const caseId = 'INC-0458';
+    const require = createRequire(new URL('../package.json', import.meta.url));
+    const { initializeApp, deleteApp } = require('firebase-admin/app');
+    const { getFirestore } = require('firebase-admin/firestore');
+    const adminApp = initializeApp({ projectId: project }, `callable-positive-${Date.now()}`);
+    try {
+      await getFirestore(adminApp).doc(`gradingRubrics/${caseId}`).set({ enabled: true, version: 1, acceptedAnswers: ['correct'], maxScore: 70 });
+    } finally { await deleteApp(adminApp); }
     const start = await fetch(`${base}/startGradingSession`, {
       method: 'POST', headers, body: JSON.stringify({ data: { caseId } })
     });
