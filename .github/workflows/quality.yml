@@ -19,7 +19,9 @@ jobs:
         with:
           node-version: '24'
       - name: Run offline application tests
-        run: node --test --test-isolation=none tests/*.test.mjs
+        run: |
+          node --test --test-isolation=none tests/*.test.mjs
+          node --test functions/tests/*.test.mjs
   firestore-rules:
     runs-on: ubuntu-latest
     timeout-minutes: 15
