@@ -18,4 +18,34 @@ if (!endpoint) {
       assert.ok([401, 403].includes(response.status), `expected authentication rejection, got ${response.status}`);
     });
   }
+  test('forged bearer token cannot authenticate a callable', async () => {
+    const response = await fetch(`${base}/startGradingSession`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer forged.invalid.token' },
+      body: JSON.stringify({ data: { caseId: 'INC-0001' } })
+    });
+    assert.ok([401, 403].includes(response.status), `forged token accepted or unexpected status: ${response.status}`);
+  });
+
+  test('authenticated user cannot start a malformed or unprovisioned challenge', async () => {
+    const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+    assert.ok(authHost, 'Auth emulator host required');
+    const signup = await fetch(`http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ returnSecureToken: true })
+    });
+    assert.equal(signup.status, 200);
+    const { idToken } = await signup.json();
+    assert.ok(idToken);
+    for (const caseId of ['INC-1', 'INC-9999']) {
+      const response = await fetch(`${base}/startGradingSession`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ data: { caseId } })
+      });
+      assert.ok([400, 403, 404, 412].includes(response.status), `unexpected status ${response.status} for ${caseId}`);
+      assert.notEqual(response.status, 200);
+    }
+  });
+
 }
