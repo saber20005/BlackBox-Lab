@@ -17,7 +17,7 @@ test('onboarding has accessible dialog and replay control', () => {
   assert.match(css, /::backdrop/);
 });
 test('guide discloses manual labs and read-only inspector', () => {
-  assert.match(script, /القراءة فقط/);
+  assert.match(script, /للقراءة فقط/);
   assert.match(script, /لا يتصل/);
   assert.match(script, /localStorage\.getItem/);
   assert.match(script, /dialog\.showModal/);
