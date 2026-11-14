@@ -35,7 +35,7 @@ jobs:
       - name: Install emulator test dependencies
         run: |
           mkdir -p /tmp/blackbox-firebase-rules-test
-          npm install --prefix /tmp/blackbox-firebase-rules-test --no-audit --no-fund firebase@12 @firebase/rules-unit-testing@5 firebase-tools
+          npm install --prefix /tmp/blackbox-firebase-rules-test --no-audit --no-fund firebase@13 @firebase/rules-unit-testing@6 firebase-tools
       - name: Test Firestore rules against local emulator
         env:
           BLACKBOX_FIREBASE_TEST_DEPS: /tmp/blackbox-firebase-rules-test
