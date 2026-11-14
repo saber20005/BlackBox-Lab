@@ -202,4 +202,27 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     assert.equal((await getDoc(doc(alice, receiptPath('alice')))).data().bestScore, 70);
     await assertFails(setDoc(doc(alice, 'blackboxUsers/alice/integrations/cybertrace'), receipt()));
   });
+  test('verified results are readable only by their owner and never writable by client SDK', async () => {
+    const verifiedPath = uid => `blackboxUsers/${uid}/verifiedCybertrace/${CASE_IDS[0]}`;
+    const verified = { schemaVersion: 1, caseId: CASE_IDS[0], bestScore: 70, verification: 'server', evidenceDigest: 'example' };
+    await environment.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), verifiedPath('alice')), verified);
+    });
+    const alice = environment.authenticatedContext('alice').firestore();
+    const bob = environment.authenticatedContext('bob').firestore();
+    const guest = environment.unauthenticatedContext().firestore();
+    const ownerDoc = doc(alice, verifiedPath('alice'));
+    assert.deepEqual((await assertSucceeds(getDoc(ownerDoc))).data(), verified);
+    await assertSucceeds(getDocs(collection(alice, 'blackboxUsers/alice/verifiedCybertrace')));
+    for (const outsider of [bob, guest]) {
+      await assertFails(getDoc(doc(outsider, verifiedPath('alice'))));
+      await assertFails(getDocs(collection(outsider, 'blackboxUsers/alice/verifiedCybertrace')));
+    }
+    await assertFails(setDoc(ownerDoc, verified));
+    await assertFails(updateDoc(ownerDoc, { bestScore: 10 }));
+    await assertFails(deleteDoc(ownerDoc));
+    await assertFails(setDoc(doc(alice, `blackboxUsers/alice/verifiedCybertrace/${CASE_IDS[1]}`), verified));
+    await assertFails(setDoc(doc(bob, verifiedPath('bob')), verified));
+  });
+
 }
