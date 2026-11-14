@@ -14,5 +14,7 @@ export const accountConfig = Object.freeze({
     appId: '1:277258714756:web:47b77d87e1462ae3da0cd1',
   }),
   providers: Object.freeze({ email: true, google: true }),
+  // Release gate: keep disabled until Functions are deployed and a valid site key is configured.
+  grading: Object.freeze({ enabled: false, appCheckSiteKey: null }),
   emulators: null,
 });
