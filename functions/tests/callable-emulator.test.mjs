@@ -91,14 +91,14 @@ if (!endpoint) {
       method: 'POST', headers, body: JSON.stringify({ data: { caseId } })
     });
     // If the emulator rejects the synthetic token, fail visibly rather than silently skipping.
-    assert.equal(start.status, 200, `start callable rejected emulator token: ${start.status} ${await start.text()}`);
+    assert.equal(start.status, 200, `start callable rejected emulator token: ${start.status} ${start.status === 200 ? '' : await start.text()}`);
     const started = (await start.json()).result;
     assert.ok(started?.sessionId);
     const submit = async answer => fetch(`${base}/submitGradingAnswer`, {
       method: 'POST', headers, body: JSON.stringify({ data: { caseId, sessionId: started.sessionId, answer } })
     });
     const response = await submit('correct');
-    assert.equal(response.status, 200, `submit callable failed: ${response.status} ${await response.text()}`);
+    assert.equal(response.status, 200, `submit callable failed: ${response.status} ${response.status === 200 ? '' : await response.text()}`);
     assert.equal((await response.json()).result?.score, 70);
     const replay = await submit('correct');
     assert.notEqual(replay.status, 200, 'replayed session must fail');
