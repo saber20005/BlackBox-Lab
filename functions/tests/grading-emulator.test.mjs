@@ -2,6 +2,7 @@ import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { allocateGradingSession } from '../session-store.js';
+import { submitVerifiedGrading } from '../grading-submission.js';
 import { MAX_SESSIONS_PER_WINDOW } from '../rate-limit.js';
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
@@ -46,4 +47,30 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     const other = await allocateGradingSession(db, FieldValue, uid + '-other', 'INC-0417');
     assert.ok(other.sessionId);
   });
+  test('grading transaction rejects cross-user, replay, expiry, and preserves best score', async () => {
+    const uid = `grading-${Date.now()}`;
+    const caseId = 'INC-0456';
+    await db.doc(`gradingRubrics/${caseId}`).set({ enabled: true, version: 1, acceptedAnswers: ['correct'], maxScore: 70 });
+    const first = await allocateGradingSession(db, FieldValue, uid, caseId);
+    const payload = { uid, caseId, sessionId: first.sessionId, answer: 'correct' };
+    await assert.rejects(submitVerifiedGrading(db, FieldValue, { ...payload, uid: uid + '-attacker' }), /invalid-session/);
+    await assert.rejects(submitVerifiedGrading(db, FieldValue, { ...payload, caseId: 'INC-0457' }), /invalid-session/);
+    const results = await Promise.allSettled([
+      submitVerifiedGrading(db, FieldValue, payload),
+      submitVerifiedGrading(db, FieldValue, payload)
+    ]);
+    assert.equal(results.filter(x => x.status === 'fulfilled').length, 1, 'single-use transaction must have one winner');
+    assert.equal(results.find(x => x.status === 'fulfilled').value.score, 70);
+    await assert.rejects(submitVerifiedGrading(db, FieldValue, payload), /invalid-session/);
+    const second = await allocateGradingSession(db, FieldValue, uid, caseId);
+    const lower = await submitVerifiedGrading(db, FieldValue, { ...payload, sessionId: second.sessionId, answer: 'wrong' });
+    assert.equal(lower.score, 0);
+    assert.equal(lower.bestScore, 70);
+    const saved = (await db.doc(`blackboxUsers/${uid}/verifiedCybertrace/${caseId}`).get()).data();
+    assert.equal(saved.bestScore, 70);
+    assert.equal(saved.source, 'server-grading');
+    const expired = await allocateGradingSession(db, FieldValue, uid, caseId, () => 1);
+    await assert.rejects(submitVerifiedGrading(db, FieldValue, { ...payload, sessionId: expired.sessionId }), /invalid-session/);
+  });
+
 }
