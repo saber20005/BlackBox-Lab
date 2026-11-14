@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>BLACKBOX | فحص reCAPTCHA المستقل</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:720px;margin:3rem auto;padding:0 1rem;background:#0b1120;color:#e8edf8;line-height:1.8}
+button{padding:.8rem 1.3rem;border:0;border-radius:.6rem;background:#55a8ff;color:#07101e;font:inherit;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+output{display:block;margin-top:1rem;padding:1rem;border:1px solid #475569;border-radius:.6rem;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<main>
+<h1>فحص reCAPTCHA Enterprise دون Firebase</h1>
+<p>يختبر تحميل مكتبة Google وتنفيذها مباشرة بمفتاح الموقع. لا يعرض الرموز ولا يخزنها أو يرسلها إلى خادم تشخيص. نجاح الاختبار لا يثبت قبول Firebase App Check للرمز.</p>
+<button id="run" type="button">بدء الاختبار المستقل</button>
+<output id="result" role="status" aria-live="polite">لم يبدأ الاختبار.</output>
+</main>
+<script type="module">
+import { accountConfig } from './account-config.js';
+const button=document.getElementById('run');
+const result=document.getElementById('result');
+const siteKey=accountConfig.grading?.appCheckSiteKey;
+function loadScript(){
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://www.google.com/recaptcha/enterprise.js?render='+encodeURIComponent(siteKey);
+    script.async=true;
+    script.onload=resolve;
+    script.onerror=()=>reject(new Error('script-load'));
+    document.head.append(script);
+  });
+}
+button.addEventListener('click',async()=>{
+  button.disabled=true;
+  let stage='configuration';
+  try{
+    if(location.protocol!=='https:'||!siteKey)throw new Error('invalid-configuration');
+    stage='script-load';
+    result.textContent='تحميل reCAPTCHA Enterprise...';
+    await loadScript();
+    stage='ready';
+    result.textContent='انتظار جاهزية Google...';
+    await new Promise((resolve,reject)=>{
+      if(!globalThis.grecaptcha?.enterprise?.ready)return reject(new Error('api-missing'));
+      globalThis.grecaptcha.enterprise.ready(resolve);
+    });
+    stage='execute';
+    result.textContent='تنفيذ تقييم مستقل...';
+    const token=await globalThis.grecaptcha.enterprise.execute(siteKey,{action:'blackbox_diagnostic'});
+    if(typeof token!=='string'||!token.length)throw new Error('empty-token');
+    result.textContent='نجح إصدار رمز reCAPTCHA Enterprise مستقل عن Firebase. لم يُعرض الرمز أو يُحفظ. انتقل إلى تشخيص Firebase App Check.';
+  }catch(error){
+    const safeCode=['script-load','api-missing','invalid-configuration','empty-token'].includes(error?.message)?error.message:'execution-failed';
+    result.textContent='فشل الاختبار المستقل.\nالمرحلة: '+stage+'\nالنتيجة: '+safeCode+'\nإذا فشل هنا أيضًا فالمشكلة ليست حصرية بتكامل Firebase. لا تشارك الرموز أو محتوى الطلبات.';
+  }finally{button.disabled=false;}
+});
+</script>
+</body>
+</html>
