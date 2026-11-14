@@ -18,6 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Check browser module syntax
+        run: |
+          node --check app.js
+          node --check verified-grading-client.js
       - name: Run offline application tests
         run: |
           node --test --test-isolation=none tests/*.test.mjs
