@@ -20,7 +20,7 @@ async function gradingClient() {
     const app = appSDK.getApps().find(candidate => candidate.name === 'blackbox-accounts') ?? appSDK.initializeApp(accountConfig.firebase, 'blackbox-accounts');
     const auth = authSDK.getAuth(app);
     appCheckSDK.initializeAppCheck(app, {
-      provider: new appCheckSDK.ReCaptchaV3Provider(accountConfig.grading.appCheckSiteKey),
+      provider: new appCheckSDK.ReCaptchaEnterpriseProvider(accountConfig.grading.appCheckSiteKey),
       isTokenAutoRefreshEnabled: true
     });
     const functions = functionsSDK.getFunctions(app, 'us-central1');
