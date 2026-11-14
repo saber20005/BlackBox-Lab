@@ -4,6 +4,7 @@ import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';
 import { mountAccountUI } from './account-ui.js';
 import { accountConfig } from './account-config.js';
+import { gradingAvailable, startVerifiedGrading, submitVerifiedAnswer } from './verified-grading-client.js';
 import { linkedSkillsPage, linkedSkillsSummary } from './linked-skills-ui.js';
 import { trainingPlanPage, trainingPlanSummary } from './training-plan-ui.js';
 import { appendDocumentationTemplate, hasMeaningfulDocumentation } from './documentation-templates.js';
@@ -21,6 +22,9 @@ let accountStatus = { phase: 'guest', user: null, configured: false, pending: fa
 let accountController;
 let accountUI;
 let skillOwnerUid = null;
+let gradingSession = null;
+let gradingMessage = '';
+let gradingBusy = false;
 let skillState = { enabled: accountConfig.linkedSkillsEnabled === true, phase: 'guest', receipts: {}, fromCache: false, error: null, message: '' };
 const recoveryNotice = loaded.recovered ? loaded.message : '';
 let currentView = 'home';
@@ -56,6 +60,8 @@ const percentage = (value, total) => total ? Math.round(value / total * 100) : 0
 function resetSkillOwner(uid) {
   if (uid === skillOwnerUid) return false;
   skillOwnerUid = uid;
+  gradingSession = null;
+  gradingMessage = '';
   skillState = { enabled: accountConfig.linkedSkillsEnabled === true, phase: uid ? 'loading' : 'guest', receipts: {}, fromCache: false, error: null, message: '' };
   return true;
 }
@@ -70,7 +76,12 @@ function planPage() {
   return `${hero('جهّز جلسة تناسب وقتك', 'اختر المهارة والوقت التقريبي، ثم ابدأ بخطوة عملية متاحة من تقدّمك الحالي.')} ${trainingPlanPage(state, planOptions())}`;
 }
 function skillsPage() {
-  return `${hero('مهاراتك تتقدّم مع تحقيقاتك', 'اجمع أفضل نتائج CyberTrace في حساب BlackBox، وتابع نمو مهارات التحقيق بجانب تدريبك العملي.')}${linkedSkillsPage(skillState, accountStatus.user)}`;
+  const enabled = gradingAvailable();
+  const loggedIn = Boolean(accountStatus.user && accountStatus.phase !== 'loading');
+  const session = gradingSession?.uid === accountStatus.user?.uid ? gradingSession : null;
+  const details = !enabled ? 'التقييم الموثق قيد التجهيز: لم يتم تفعيل App Check ووظائف التقييم للإنتاج.' : !loggedIn ? 'سجّل الدخول لبدء تقييم موثق.' : 'أدخل معرّف تحدٍّ متاحاً لحسابك، ثم ابدأ جلسة وأرسل إجابتك.';
+  const panel = `<section class="card" aria-labelledby="verified-grading-title"><h2 id="verified-grading-title">التقييم الموثق بالخادم</h2><p>${esc(details)}</p><form id="verifiedGradingForm"><label for="verifiedCaseId">معرّف التحدي</label><input id="verifiedCaseId" name="caseId" placeholder="INC-0001" maxlength="8" pattern="INC-[0-9]{4}" autocomplete="off" value="${esc(session?.caseId ?? '')}" ${session ? 'readonly' : ''} ${!enabled || !loggedIn || gradingBusy ? 'disabled' : ''} required><label for="verifiedAnswer">الإجابة</label><input id="verifiedAnswer" name="answer" maxlength="256" autocomplete="off" ${!session || gradingBusy ? 'disabled' : ''}><div><button type="button" id="startVerifiedGrading" ${!enabled || !loggedIn || gradingBusy || session ? 'disabled' : ''}>بدء جلسة موثقة</button><button type="submit" ${!enabled || !loggedIn || gradingBusy || !session ? 'disabled' : ''}>إرسال الإجابة للخادم</button></div></form><p id="verifiedGradingStatus" role="status" aria-live="polite">${esc(gradingMessage || (session ? 'الجلسة جاهزة؛ أرسل الإجابة قبل انتهاء صلاحيتها.' : 'النتائج المحلية ليست درجات موثقة.'))}</p></section>`;
+  return `${hero('مهاراتك تتقدّم مع تحقيقاتك', 'اجمع أفضل نتائج CyberTrace في حساب BlackBox، وتابع نمو مهارات التحقيق بجانب تدريبك العملي.')}${linkedSkillsPage(skillState, accountStatus.user)}${panel}`;
 }
 
 function dateLabel(value) {
@@ -420,6 +431,42 @@ function refreshSearch(id, value, position) {
   if (typeof position === 'number' && input.type !== 'search') input.setSelectionRange(position, position);
 }
 function bind() {
+  const gradingForm = document.getElementById('verifiedGradingForm');
+  const startButton = document.getElementById('startVerifiedGrading');
+  if (gradingForm && startButton) {
+    startButton.onclick = async () => {
+      if (gradingBusy || !gradingAvailable()) return;
+      const uid = accountStatus.user?.uid;
+      const caseId = gradingForm.elements.caseId.value.trim();
+      gradingBusy = true;
+      gradingMessage = 'جارٍ بدء الجلسة الموثقة…';
+      render();
+      try {
+        const session = await startVerifiedGrading(caseId, uid);
+        if (accountStatus.user?.uid !== uid) return;
+        gradingSession = session;
+        gradingMessage = 'بدأت الجلسة. أرسل إجابتك خلال مدة الصلاحية.';
+      } catch (error) { gradingMessage = error?.message || 'تعذّر بدء الجلسة.'; }
+      finally { gradingBusy = false; if (currentView === 'skills') render(); }
+    };
+    gradingForm.onsubmit = async event => {
+      event.preventDefault();
+      if (gradingBusy || !gradingSession) return;
+      const uid = accountStatus.user?.uid;
+      const session = gradingSession;
+      const answer = gradingForm.elements.answer.value;
+      gradingBusy = true;
+      gradingMessage = 'جارٍ التحقق من الإجابة على الخادم…';
+      render();
+      try {
+        const result = await submitVerifiedAnswer(session, answer, uid);
+        if (accountStatus.user?.uid !== uid) return;
+        gradingSession = null;
+        gradingMessage = `نتيجة موثقة من الخادم: ${result.score} / 70 · أفضل نتيجة: ${result.bestScore} / 70`;
+      } catch (error) { gradingMessage = error?.message || 'تعذّر التحقق من الإجابة.'; }
+      finally { gradingBusy = false; if (currentView === 'skills') render(); }
+    };
+  }
   document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => navigate(button.dataset.view));
   document.querySelectorAll('[data-nav]').forEach(button => button.onclick = () => navigate(button.dataset.nav));
   document.querySelectorAll('[data-open-account]').forEach(button => button.onclick = () => accountUI.open());
