@@ -14,7 +14,7 @@
 <p class="note">نفّذ الأنشطة فقط على أجهزتك أو أنظمة التدريب المصرح بها. استخدم شبكة Host-Only وتحقق من العزل قبل بدء أي اختبار.</p>
 <fieldset><legend>تصفية المختبرات</legend><label>المجال <select id="category"><option value="">الكل</option><option value="web">تطبيقات الويب</option><option value="network">الشبكات</option></select></label><label>المستوى <select id="difficulty"><option value="">الكل</option><option value="beginner">مبتدئ</option><option value="intermediate">متوسط</option><option value="advanced">متقدم</option></select></label></fieldset>
 <p id="count" role="status" aria-live="polite"></p><section id="catalog" aria-label="المختبرات المتاحة"></section>
-<footer><a href="./">العودة إلى BLACKBOX</a></footer></main>
+<section aria-labelledby="vm-report-title"><h2 id="vm-report-title">افحص تقرير أجهزتك الافتراضية</h2><p>شغّل أداة الفحص على جهازك، واحفظ مخرجات JSON، ثم اختر الملف هنا. تتم القراءة داخل متصفحك فقط؛ لا يوجد اتصال مباشر بـVirtualBox. أسماء الأجهزة قد تكون خاصة.</p><p><a href="https://github.com/saber20005/BlackBox-Lab/blob/main/docs/local-vm-inspector.md" rel="noopener noreferrer">تعليمات إنشاء التقرير</a></p><label for="vm-report-file">ملف تقرير JSON</label> <input type="file" id="vm-report-file" accept=".json,application/json"><button type="button" id="vm-report-clear">مسح النتائج</button><p id="vm-report-status" role="status" aria-live="polite">لم يُحمّل أي تقرير بعد.</p><div id="vm-report-results" aria-label="نتائج الفحص"></div><p class="note">نتيجة العزل تقديرية بناءً على إعدادات المحولات فقط، وليست اختبارًا لاتصال الشبكة أو الجدار الناري.</p></section><footer><a href="./">العودة إلى BLACKBOX</a></footer></main>
 <script type="module">
 import {filterLabs} from './lab-catalog.js';
 const category=document.getElementById('category');
@@ -46,4 +46,4 @@ function render(){
 category.addEventListener('change',render);
 difficulty.addEventListener('change',render);
 render();
-</script></body></html>
+</script><script type="module" src="./vm-report-ui.js"></script></body></html>
