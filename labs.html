@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,follow"><title>مختبرات BLACKBOX | الفهرس العملي</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:#090f20;color:#edf2ff;line-height:1.7}main{max-width:1080px;margin:auto;padding:2rem 1rem 4rem}a{color:#8cc6ff}h1{font-size:clamp(2rem,5vw,3.2rem);margin:.4rem 0}p{color:#c0cbe0}.eyebrow{color:#65b4ff;font-weight:700}header{display:flex;align-items:center;justify-content:space-between;gap:1rem}header a{font-weight:700}fieldset{border:1px solid #35445f;border-radius:14px;margin:1.5rem 0;padding:1rem;display:flex;flex-wrap:wrap;gap:1rem}label{display:flex;gap:.5rem;align-items:center}select{background:#17243b;color:white;border:1px solid #657894;border-radius:8px;padding:.65rem}#catalog{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1rem}article{background:#111c31;border:1px solid #35445f;border-radius:16px;padding:1.3rem}article h2{margin:.5rem 0;font-size:1.25rem}.tag{display:inline-block;background:#1e3451;color:#b9ddff;border-radius:6px;padding:.15rem .55rem;font-size:.85rem}details{margin-top:1rem}summary{cursor:pointer;font-weight:600}li{margin:.3rem 0}.note{border-inline-start:3px solid #65b4ff;padding-inline-start:1rem}footer{margin-top:2rem}
+</style></head>
+<body><main><header><a href="./">BLACKBOX Lab</a><a href="./?view=tracks">مسارات التدريب</a></header>
+<p class="eyebrow">LOCAL CYBER RANGE / EARLY ACCESS</p>
+<h1>دليل المختبرات العملية</h1>
+<p>اختر مختبرًا مناسبًا لمستواك، وراجع متطلباته قبل التنفيذ. هذه المختبرات تُجهَّز وتُشغَّل يدويًا داخل بيئة معزولة؛ لا يتحكم الموقع حاليًا في Kali أو VirtualBox.</p>
+<p class="note">نفّذ الأنشطة فقط على أجهزتك أو أنظمة التدريب المصرح بها. استخدم شبكة Host-Only وتحقق من العزل قبل بدء أي اختبار.</p>
+<fieldset><legend>تصفية المختبرات</legend><label>المجال <select id="category"><option value="">الكل</option><option value="web">تطبيقات الويب</option><option value="network">الشبكات</option></select></label><label>المستوى <select id="difficulty"><option value="">الكل</option><option value="beginner">مبتدئ</option><option value="intermediate">متوسط</option><option value="advanced">متقدم</option></select></label></fieldset>
+<p id="count" role="status" aria-live="polite"></p><section id="catalog" aria-label="المختبرات المتاحة"></section>
+<footer><a href="./">العودة إلى BLACKBOX</a></footer></main>
+<script type="module">
+import {filterLabs} from './lab-catalog.js';
+const category=document.getElementById('category');
+const difficulty=document.getElementById('difficulty');
+const catalog=document.getElementById('catalog');
+const count=document.getElementById('count');
+const labels={beginner:'مبتدئ',intermediate:'متوسط',advanced:'متقدم',web:'تطبيقات الويب',network:'الشبكات'};
+function textElement(tag,value){const el=document.createElement(tag);el.textContent=value;return el;}
+function render(){
+  const list=filterLabs({category:category.value,difficulty:difficulty.value});
+  catalog.replaceChildren();
+  count.textContent=list.length+' مختبر متاح للتجهيز اليدوي';
+  if(!list.length){catalog.append(textElement('p','لا توجد مختبرات تطابق التصفية.'));return;}
+  for(const lab of list){
+    const card=document.createElement('article');
+    card.append(textElement('span',labels[lab.category]+' · '+labels[lab.difficulty]));
+    card.append(textElement('h2',lab.title));
+    card.append(textElement('p','المدة التقديرية: '+lab.estimatedMinutes+' دقيقة · شبكة Host-Only · تشغيل يدوي'));
+    for(const [heading,items] of [['المتطلبات',lab.prerequisites],['الأهداف',lab.objectives]]){
+      const details=document.createElement('details');
+      details.append(textElement('summary',heading));
+      const ul=document.createElement('ul');
+      for(const item of items)ul.append(textElement('li',item));
+      details.append(ul);card.append(details);
+    }
+    catalog.append(card);
+  }
+}
+category.addEventListener('change',render);
+difficulty.addEventListener('change',render);
+render();
+</script></body></html>
