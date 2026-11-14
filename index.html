@@ -28,7 +28,7 @@
   <script type="module" src="./app.js"></script>
   <script defer src="./onboarding.js"></script>
   <link rel="stylesheet" href="./onboarding.css">
-  <link rel="stylesheet" href="./landing.css">
+  <link rel="stylesheet" href="./landing.css"><link rel="stylesheet" href="./whats-new.css"><script defer src="./whats-new.js"></script>
   <script defer src="./landing.js"></script>
 </head>
 <body>
@@ -139,10 +139,10 @@
       <div class="guide-tip" data-guide-tip><button type="button" aria-expanded="false" aria-controls="tip-3">🛡️ لماذا نستخدم مختبراً معزولاً؟</button><div id="tip-3" class="guide-tip-body" hidden>لتجربة الأدوات على آلات تملكها أو لديك تصريح باختبارها، دون تعريض شبكتك الفعلية أو الآخرين للخطر.</div></div>
     </div>
   </section>
-      <div id="content"></div>
+      <section aria-label="آخر تحديثات BLACKBOX"><button type="button" id="bb-whats-new-open">✨ تعرّف على الميزات الجديدة</button> <a href="./labs.html">افتح المختبرات العملية ←</a></section><div id="content"></div>
       <footer class="footer">BLACKBOX · تعلّم، وثّق، وراجع تقدّمك · تدريب للضيف وحفظ اختياري في الحساب</footer>
     </main>
   </div>
-  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <dialog id="bb-whats-new" aria-labelledby="bb-whats-new-title" aria-describedby="bb-whats-new-description"><span id="bb-whats-new-step"></span><h2 id="bb-whats-new-title"></h2><p id="bb-whats-new-description"></p><p><a href="./labs.html">زيارة دليل المختبرات ←</a></p><div class="bb-new-actions"><button type="button" id="bb-whats-new-prev">السابق</button><button type="button" id="bb-whats-new-next">التالي ←</button><button type="button" id="bb-whats-new-close">إغلاق</button></div></dialog><div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 </body>
 </html>
