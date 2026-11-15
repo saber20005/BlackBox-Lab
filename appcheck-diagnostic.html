@@ -15,9 +15,10 @@ a{color:#8dc6ff}
 <body>
 <main>
 <h1>فحص Firebase App Check</h1>
-<p>اختبار يدوي لتوليد رمز App Check عبر reCAPTCHA Enterprise. لا يعرض الرمز ولا يخزّنه أو يرسله إلى خادم تشخيص. لا يفعّل نظام التقييم أو Enforce.</p>
+<p>اختبار يدوي لتوليد رمز App Check عبر reCAPTCHA Enterprise. لا يعرض الرمز أو يرسله إلى خادم تشخيص؛ تبقى إدارة الرموز القياسية داخل Firebase SDK. لا يفعّل نظام التقييم أو Enforce.</p>
 <button type="button" id="run">بدء الاختبار</button>
 <output id="result" role="status" aria-live="polite">لم يبدأ الاختبار بعد.</output>
+<p><a href="./recaptcha-independent-diagnostic.html">فحص تنفيذ reCAPTCHA دون Firebase</a></p>
 <p><a href="/">العودة إلى BLACKBOX</a></p>
 </main>
 <script type="module" src="./appcheck-diagnostic.js"></script>
