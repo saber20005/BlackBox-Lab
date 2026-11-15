@@ -1,0 +1,440 @@
+{
+  "schemaVersion": 1,
+  "status": "provider-rejection-unresolved",
+  "origin": "https://blackboxlab.dev",
+  "browserVersion": "156.0.8078.79",
+  "headless": true,
+  "mainCommitTested": "589b765",
+  "liveProbes": [
+    {
+      "scenario": "independent-original",
+      "started": "2026-11-15T19:59:41.062Z",
+      "finished": "2026-11-15T19:59:43.278Z",
+      "network": [
+        {
+          "at": 236,
+          "path": "https://blackboxlab.dev/recaptcha-independent-diagnostic.html",
+          "status": 200,
+          "method": "GET",
+          "type": "document"
+        },
+        {
+          "at": 665,
+          "path": "https://www.google.com/recaptcha/enterprise.js",
+          "status": 200,
+          "method": "GET",
+          "type": "script"
+        },
+        {
+          "at": 912,
+          "path": "https://www.gstatic.com/recaptcha/releases/4i3aN5wAweL7i3ADI7BSX4B-/recaptcha__en.js",
+          "status": 200,
+          "method": "GET",
+          "type": "script"
+        }
+      ],
+      "policyViolations": [],
+      "scriptCount": 1,
+      "uiResult": {
+        "outcome": "failure",
+        "stage": "execute",
+        "sdkCode": null
+      }
+    },
+    {
+      "scenario": "independent-direct",
+      "started": "2026-11-15T19:59:43.438Z",
+      "finished": "2026-11-15T19:59:45.733Z",
+      "network": [
+        {
+          "at": 519,
+          "path": "https://blackboxlab.dev/recaptcha-independent-diagnostic.html",
+          "status": 200,
+          "method": "GET",
+          "type": "document"
+        },
+        {
+          "at": 741,
+          "path": "https://www.google.com/recaptcha/enterprise.js",
+          "status": 200,
+          "method": "GET",
+          "type": "script"
+        },
+        {
+          "at": 970,
+          "path": "https://www.gstatic.com/recaptcha/releases/4i3aN5wAweL7i3ADI7BSX4B-/recaptcha__en.js",
+          "status": 200,
+          "method": "GET",
+          "type": "script"
+        }
+      ],
+      "policyViolations": [],
+      "scriptCount": 1,
+      "direct": {
+        "stage": "execute",
+        "rejectionType": "object",
+        "errorName": "Error",
+        "category": "client-key-or-loader-rejection",
+        "acquisitionResultCategory": "rejected"
+      }
+    },
+    {
+      "scenario": "firebase-original",
+      "started": "2026-11-15T19:59:45.929Z",
+      "finished": "2026-11-15T19:59:49.168Z",
+      "network": [
+        {
+          "at": 1160,
+          "path": "https://www.google.com/recaptcha/enterprise.js",
+          "status": 200,
+          "method": "GET",
+          "type": "script"
+        },
+        {
+          "at": 1366,
+          "path": "https://www.gstatic.com/recaptcha/releases/4i3aN5wAweL7i3ADI7BSX4B-/recaptcha__en.js",
+          "status": 200,
+          "method": "GET",
+          "type": "script"
+        },
+        {
+          "at": 1600,
+          "path": "https://www.google.com/recaptcha/enterprise/anchor",
+          "status": 200,
+          "method": "GET",
+          "type": "document"
+        },
+        {
+          "at": 1777,
+          "path": "https://www.gstatic.com/recaptcha/releases/4i3aN5wAweL7i3ADI7BSX4B-/styles__ltr.css",
+          "status": 200,
+          "method": "GET",
+          "type": "stylesheet"
+        },
+        {
+          "at": 1876,
+          "path": "https://www.gstatic.com/recaptcha/releases/4i3aN5wAweL7i3ADI7BSX4B-/recaptcha__en.js",
+          "status": 200,
+          "method": "GET",
+          "type": "script"
+        },
+        {
+          "at": 2141,
+          "path": "https://www.google.com/recaptcha/enterprise/clr",
+          "status": 400,
+          "method": "POST",
+          "type": "fetch",
+          "bodyReadable": false
+        },
+        {
+          "at": 2142,
+          "path": "https://www.google.com/recaptcha/enterprise/clr",
+          "event": "failed",
+          "reason": "net::ERR_ABORTED"
+        }
+      ],
+      "policyViolations": [],
+      "scriptCount": 1,
+      "uiResult": {
+        "outcome": "failure",
+        "stage": "token-request",
+        "sdkCode": "appCheck/recaptcha-error"
+      }
+    }
+  ],
+  "directComparison": [
+    {
+      "mode": "score-execute",
+      "ready": true,
+      "settlement": "rejected",
+      "failure": {
+        "type": "object",
+        "name": "Error",
+        "knownMessage": "Invalid site key or not loaded in api.js"
+      },
+      "callback": "not-called",
+      "network": [
+        {
+          "path": "https://www.google.com/recaptcha/enterprise.js",
+          "status": 200
+        }
+      ],
+      "frameErrors": []
+    },
+    {
+      "mode": "explicit-widget",
+      "ready": true,
+      "settlement": "fulfilled",
+      "callback": "error",
+      "network": [
+        {
+          "path": "https://www.google.com/recaptcha/enterprise.js",
+          "status": 200
+        },
+        {
+          "path": "https://www.google.com/recaptcha/enterprise/anchor",
+          "status": 200
+        }
+      ],
+      "frameErrors": [
+        {
+          "path": "https://www.google.com/recaptcha/enterprise/anchor",
+          "knownError": "Invalid site key"
+        }
+      ],
+      "acquisitionResultCategory": "nonempty-string",
+      "firebaseAcceptance": "not-tested"
+    }
+  ],
+  "httpLoaderControls": {
+    "configuredKeyRenderEqualsNoQuery": true,
+    "renderExplicitHonored": true,
+    "onloadCallbackHonored": true,
+    "configuredKeyPresentInLoaderResponse": false,
+    "defaultLoaderSHA256": "5e5b9d678f28bfc2e8446b9f80489633f861f06b14d80fe8e6c8c79cc42a9354",
+    "limitation": "Controls used HTTP requests with a Chrome156 user-agent; they do not establish a Google administrative configuration cause."
+  },
+  "reproductionRunner": {
+    "browserVersion": "156.0.8078.79",
+    "headless": true,
+    "origin": "https://blackboxlab.dev",
+    "reports": [
+      {
+        "scenario": "independent-original",
+        "started": "2026-11-15T20:24:15.781Z",
+        "network": [
+          {
+            "at": 702,
+            "service": "blackbox",
+            "endpoint": "recaptcha-independent-diagnostic.html",
+            "status": 200,
+            "method": "GET",
+            "type": "document"
+          },
+          {
+            "at": 1172,
+            "service": "google",
+            "endpoint": "enterprise.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          },
+          {
+            "at": 1385,
+            "service": "gstatic",
+            "endpoint": "recaptcha-runtime.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          }
+        ],
+        "policyViolations": [],
+        "consoleErrorCount": 1,
+        "result": {
+          "outcome": "failure",
+          "stage": "execute",
+          "sdkErrorCode": null,
+          "firebaseAcceptance": "not-tested"
+        },
+        "scriptCount": 1,
+        "finished": "2026-11-15T20:24:18.586Z"
+      },
+      {
+        "scenario": "independent-direct",
+        "started": "2026-11-15T20:24:18.639Z",
+        "network": [
+          {
+            "at": 433,
+            "service": "blackbox",
+            "endpoint": "recaptcha-independent-diagnostic.html",
+            "status": 200,
+            "method": "GET",
+            "type": "document"
+          },
+          {
+            "at": 713,
+            "service": "google",
+            "endpoint": "enterprise.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          },
+          {
+            "at": 876,
+            "service": "gstatic",
+            "endpoint": "recaptcha-runtime.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          }
+        ],
+        "policyViolations": [],
+        "consoleErrorCount": 0,
+        "direct": {
+          "stage": "execute",
+          "settledAt": 429,
+          "acquisitionResultCategory": "rejected",
+          "rejectionType": "object",
+          "errorName": "Error",
+          "category": "client-key-or-loader-rejection"
+        },
+        "scriptCount": 1,
+        "finished": "2026-11-15T20:24:20.863Z"
+      },
+      {
+        "scenario": "firebase-original",
+        "started": "2026-11-15T20:24:20.904Z",
+        "network": [
+          {
+            "at": 502,
+            "service": "blackbox",
+            "endpoint": "appcheck-diagnostic.html",
+            "status": 200,
+            "method": "GET",
+            "type": "document"
+          },
+          {
+            "at": 1170,
+            "service": "google",
+            "endpoint": "enterprise.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          },
+          {
+            "at": 1357,
+            "service": "gstatic",
+            "endpoint": "recaptcha-runtime.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          },
+          {
+            "at": 1597,
+            "service": "google",
+            "endpoint": "anchor",
+            "status": 200,
+            "method": "GET",
+            "type": "document"
+          },
+          {
+            "at": 1750,
+            "service": "gstatic",
+            "endpoint": "recaptcha-runtime.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          },
+          {
+            "at": 2027,
+            "service": "google",
+            "endpoint": "clr",
+            "status": 400,
+            "method": "POST",
+            "type": "fetch",
+            "bodyReadable": false
+          },
+          {
+            "at": 2029,
+            "service": "google",
+            "endpoint": "clr",
+            "event": "failed",
+            "reason": "net::ERR_ABORTED"
+          }
+        ],
+        "policyViolations": [],
+        "consoleErrorCount": 1,
+        "result": {
+          "outcome": "failure",
+          "stage": "token-request",
+          "sdkErrorCode": "appCheck/recaptcha-error"
+        },
+        "scriptCount": 1,
+        "finished": "2026-11-15T20:24:24.047Z"
+      },
+      {
+        "scenario": "independent-explicit-widget",
+        "started": "2026-11-15T20:24:24.092Z",
+        "network": [
+          {
+            "at": 441,
+            "service": "blackbox",
+            "endpoint": "recaptcha-independent-diagnostic.html",
+            "status": 200,
+            "method": "GET",
+            "type": "document"
+          },
+          {
+            "at": 1031,
+            "service": "google",
+            "endpoint": "enterprise.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          },
+          {
+            "at": 1190,
+            "service": "gstatic",
+            "endpoint": "recaptcha-runtime.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          },
+          {
+            "at": 1464,
+            "service": "google",
+            "endpoint": "anchor",
+            "status": 200,
+            "method": "GET",
+            "type": "document"
+          },
+          {
+            "at": 1721,
+            "service": "gstatic",
+            "endpoint": "recaptcha-runtime.js",
+            "status": 200,
+            "method": "GET",
+            "type": "script"
+          },
+          {
+            "at": 2007,
+            "service": "google",
+            "endpoint": "clr",
+            "status": 400,
+            "method": "POST",
+            "type": "fetch",
+            "bodyReadable": false
+          },
+          {
+            "at": 2009,
+            "service": "google",
+            "endpoint": "clr",
+            "event": "failed",
+            "reason": "net::ERR_ABORTED"
+          }
+        ],
+        "policyViolations": [],
+        "consoleErrorCount": 1,
+        "direct": {
+          "stage": "execute",
+          "settledAt": 996,
+          "acquisitionResultCategory": "nonempty-string",
+          "firebaseAcceptance": "not-tested"
+        },
+        "scriptCount": 1,
+        "iframeErrors": [],
+        "callbacks": {
+          "successCallbackCount": 0,
+          "errorCallbackCount": 1,
+          "events": [
+            {
+              "kind": "error",
+              "at": 991
+            }
+          ]
+        },
+        "finished": "2026-11-15T20:24:27.238Z"
+      }
+    ]
+  }
+}

@@ -3,6 +3,11 @@ import { accountConfig } from './account-config.js';
 const button = document.getElementById('run');
 const result = document.getElementById('result');
 const SDK = '12.18.0';
+const knownSDKCodes = new Set([
+  'already-initialized', 'use-before-activation', 'fetch-network-error',
+  'fetch-parse-error', 'fetch-status-error', 'storage-open', 'storage-get',
+  'storage-set', 'recaptcha-error', 'initial-throttle', 'throttled'
+].map(code => `appCheck/${code}`));
 
 // Report only a known failure stage and a short SDK error code. Never expose
 // tokens, request payloads, API responses, or raw exception messages.
@@ -11,7 +16,7 @@ const advice = Object.freeze({
   'sdk-load': 'تعذر تحميل Firebase SDK. تحقق من اتصال الإنترنت وحظر الإضافات أو الشبكة.',
   'app-init': 'تعذرت تهيئة Firebase. تحقق من تطابق إعدادات المشروع والتطبيق.',
   'app-check-init': 'تعذرت تهيئة App Check. تحقق من تسجيل تطبيق الويب والمفتاح.',
-  'token-request': 'فشل إصدار الرمز. افحص Network بحثًا عن طلبات reCAPTCHA وFirebase App Check. تأكد من نوع المفتاح والنطاق، ثم جرّب نافذة خاصة دون إضافات.',
+  'token-request': 'ميّز بين فشل تنفيذ reCAPTCHA وفشل تبادل الرمز مع Firebase باستخدام الفحص المستقل وطلبات Network. استجابة clr وحدها لا تحدد السبب.',
   'token-validation': 'لم تُرجع Firebase رمزًا صالحًا. افحص إعدادات App Check.'
 });
 
@@ -39,15 +44,19 @@ button.addEventListener('click', async () => {
     });
     stage = 'token-request';
     result.textContent = 'جارٍ طلب رمز App Check...';
-    const response = await checkSDK.getToken(check);
+    // A cached token must not be mistaken for a new attestation succeeding.
+    const response = await checkSDK.getToken(check, true);
     stage = 'token-validation';
     if (typeof response.token !== 'string' || response.token.length === 0) {
       throw new Error('empty-token');
     }
-    result.textContent = 'نجح إصدار رمز App Check. لم يتم عرضه أو حفظه. هذا لا يثبت نجاح وظائف التقييم على الخادم.';
+    result.textContent = 'نجح إصدار رمز App Check. لم يعرض التشخيص قيمته أو يسجّلها؛ تبقى إدارة الرمز داخل Firebase SDK. هذا لا يثبت نجاح وظائف التقييم على الخادم.';
   } catch (error) {
-    const rawCode = typeof error?.code === 'string' ? error.code : 'unknown';
-    const code = /^[a-zA-Z0-9/_-]{1,80}$/.test(rawCode) ? rawCode : 'unknown';
+    let code = 'unknown';
+    try {
+      const candidate = error?.code;
+      if (knownSDKCodes.has(candidate)) code = candidate;
+    } catch { /* Never serialize an unreadable provider rejection. */ }
     result.textContent = `فشل الاختبار.\nالمرحلة: ${stage}\nرمز SDK: ${code}\nالإجراء المقترح: ${advice[stage]}\n\nلا تشارك رموز App Check أو بيانات Authorization أو أجسام الطلبات.`;
   } finally {
     button.disabled = false;

@@ -9,7 +9,7 @@ test('diagnostic is opt-in, noindex and separate from grading', async () => {
   assert.match(page, /noindex,nofollow/);
   assert.match(script, /addEventListener\('click'/);
   assert.match(script, /ReCaptchaEnterpriseProvider/);
-  assert.match(script, /getToken\(check\)/);
+  assert.match(script, /getToken\(check, true\)/);
   assert.doesNotMatch(script, /startGradingSession|submitGradingAnswer|httpsCallable/);
   assert.doesNotMatch(script, /console\.log|localStorage|sessionStorage|fetch\(/);
   assert.doesNotMatch(script, /response\.token\s*[,)]|JSON\.stringify\(response\)/);
