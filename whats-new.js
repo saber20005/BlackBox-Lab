@@ -19,14 +19,21 @@ function render(){
   document.getElementById('bb-whats-new-prev').disabled=step===0;
   document.getElementById('bb-whats-new-next').textContent=step===steps.length-1?'إنهاء':'التالي ←';
 }
-function show(){if(!dialog||dialog.open)return;previousFocus=document.activeElement;step=0;render();dialog.showModal();}
+function show(){
+  if(!dialog||dialog.open)return;
+  previousFocus=document.activeElement;
+  step=0;
+  render();
+  // A competing onboarding dialog can be open; user-initiated access must still work.
+  const other=document.querySelector('dialog[open]:not(#bb-whats-new)');
+  if(other)other.close();
+  try{dialog.showModal();}catch{dialog.setAttribute('open','');}
+}
 function close(){markSeen();if(dialog.open)dialog.close();previousFocus?.focus?.();}
 openButton?.addEventListener('click',show);
 closeButton?.addEventListener('click',close);
 document.getElementById('bb-whats-new-prev')?.addEventListener('click',()=>{if(step){step--;render();}});
 document.getElementById('bb-whats-new-next')?.addEventListener('click',()=>{if(step<steps.length-1){step++;render();}else close();});
 dialog?.addEventListener('cancel',event=>{event.preventDefault();close();});
-if(!seen())window.addEventListener('DOMContentLoaded',()=>{if(!document.body.classList.contains('bb-landing-active'))show();else {
-  const observer=new MutationObserver(()=>{if(!document.body.classList.contains('bb-landing-active')){observer.disconnect();if(!seen())show();}});
-  observer.observe(document.body,{attributes:true,attributeFilter:['class']});
-}});
+// The guide is explicitly user-invoked. Avoid automatic modal collisions with onboarding.
+// This also keeps the button functional regardless of whether the user has seen the guide.
