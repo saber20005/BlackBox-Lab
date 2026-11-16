@@ -16,6 +16,6 @@ export const accountConfig = Object.freeze({
   providers: Object.freeze({ email: true, google: true }),
   // Public reCAPTCHA Enterprise site key registered in Firebase App Check.
   // Release gate: keep grading disabled until Functions deployment and end-to-end production verification.
-  grading: Object.freeze({ enabled: false, appCheckSiteKey: '6Le83x8uAAAAACsU1HBgr_omCXIPcBubydOOBffI' }),
+  grading: Object.freeze({ enabled: false, appCheckSiteKey: '6Le83x8uAAAAACsU1HBgr_omCXlPcBubyd0OBffI' }),
   emulators: null,
 });

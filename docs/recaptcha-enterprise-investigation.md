@@ -1,6 +1,8 @@
 # reCAPTCHA Enterprise: observed pre-exchange rejection
 
-**Status: production attestation remains unresolved.** The code changes in this PR improve diagnostic reliability and evidence. They do not make Google accept the configured key, and must not be announced as an App Check fix.
+**Historical investigation, 2026-11-15.** The later [registered-key correction](recaptcha-key-correction.md) identifies two copied identifier characters using the owner's complete ASCII output. With those corrected in a controlled local overlay, Google acquisition succeeds and Firebase exchange is reached, but that exchange returns HTTP 403. Overall production attestation remains unresolved.
+
+The diagnostic changes described below improve diagnostic reliability and evidence. The earlier conclusions retain the scope of the evidence available at that time.
 
 ## Scope and baseline
 
