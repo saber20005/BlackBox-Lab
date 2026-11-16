@@ -29,21 +29,25 @@ function readSnapshot(snapshot) {
 /** Real Firebase SDK adapter; no local-password or simulated account fallback. */
 export async function createFirebaseBackend(config = accountConfig) {
   if (!config.enabled || !config.firebase?.apiKey || !config.firebase?.projectId || !config.firebase?.authDomain) throw unavailable();
-  const [appSDK, authSDK, storeSDK] = await Promise.all([
+  const [appSDK, authSDK] = await Promise.all([
     import(`https://www.gstatic.com/firebasejs/${SDK_VERSION}/firebase-app.js`),
     import(`https://www.gstatic.com/firebasejs/${SDK_VERSION}/firebase-auth.js`),
-    import(`https://www.gstatic.com/firebasejs/${SDK_VERSION}/firebase-firestore.js`),
   ]);
   const app = appSDK.getApps().find(candidate => candidate.name === 'blackbox-accounts') ?? appSDK.initializeApp(config.firebase, 'blackbox-accounts');
   const auth = authSDK.getAuth(app);
-  const database = storeSDK.getFirestore(app);
+  // Auth is needed for session restoration; Firestore is loaded only for signed-in work.
+  let storePromise;
+  const getStore = () => storePromise ??= import(`https://www.gstatic.com/firebasejs/${SDK_VERSION}/firebase-firestore.js`).then(storeSDK => {
+    const database = storeSDK.getFirestore(app);
+    if (config.emulators && isLocal) storeSDK.connectFirestoreEmulator(database, config.emulators.firestoreHost, config.emulators.firestorePort);
+    return { storeSDK, database };
+  });
   const isLocal = typeof location !== 'undefined' && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
   if (config.emulators && isLocal) {
     authSDK.connectAuthEmulator(auth, config.emulators.authURL, { disableWarnings: true });
-    storeSDK.connectFirestoreEmulator(database, config.emulators.firestoreHost, config.emulators.firestorePort);
   }
   await authSDK.setPersistence(auth, authSDK.browserLocalPersistence);
-  const documentFor = uid => {
+  const documentFor = (uid, storeSDK, database) => {
     if (!auth.currentUser || auth.currentUser.uid !== uid) throw Object.assign(new Error('تغيّر الحساب. أعد تسجيل الدخول قبل المزامنة.'), { code: 'account/session-changed' });
     return storeSDK.doc(database, 'blackboxUsers', uid, 'state', 'progress');
   };
@@ -56,28 +60,35 @@ export async function createFirebaseBackend(config = accountConfig) {
     resetPassword: email => authSDK.sendPasswordResetEmail(auth, email),
     signOut: () => authSDK.signOut(auth),
     watchCybertrace(uid, onData, onError) {
-      // Keep the collection query beneath one authenticated UID; never use a
-      // collection-group query or derive ownership from an email address.
-      documentFor(uid);
-      const reference = storeSDK.collection(database, 'blackboxUsers', uid, 'cybertrace');
-      return storeSDK.onSnapshot(reference, { includeMetadataChanges: true }, snapshot => {
-        // A local pending write is not proof that a receipt reached the server.
-        if (snapshot.metadata.hasPendingWrites) return;
-        try {
-          const receipts = {};
-          for (const document of snapshot.docs) {
-            const receipt = normalizeReceipt(document.data(), document.id);
-            if (!receipt) throw Object.assign(new Error('تعذّر التحقق من إنجازات CyberTrace في الحساب.'), { code: 'skills/invalid-receipt' });
-            receipts[document.id] = receipt;
-          }
-          onData({ receipts, fromCache: snapshot.metadata.fromCache });
-        } catch (reason) { onError(reason); }
-      }, onError);
+      // Return a synchronous disposer even while the Firestore module is loading.
+      let cancelled = false;
+      let unsubscribe = null;
+      void getStore().then(({ storeSDK, database }) => {
+        if (cancelled) return;
+        // Ownership is checked after loading, before opening a listener.
+        const reference = storeSDK.collection(database, 'blackboxUsers', uid, 'cybertrace');
+        if (cancelled) return;
+        unsubscribe = storeSDK.onSnapshot(reference, { includeMetadataChanges: true }, snapshot => {
+          if (cancelled || snapshot.metadata.hasPendingWrites) return;
+          try {
+            const receipts = {};
+            for (const document of snapshot.docs) {
+              const receipt = normalizeReceipt(document.data(), document.id);
+              if (!receipt) throw Object.assign(new Error('تعذّر التحقق من إنجازات CyberTrace في الحساب.'), { code: 'skills/invalid-receipt' });
+              receipts[document.id] = receipt;
+            }
+            onData({ receipts, fromCache: snapshot.metadata.fromCache });
+          } catch (reason) { onError(reason); }
+        }, error => { if (!cancelled) onError(error); });
+        if (cancelled) { unsubscribe(); unsubscribe = null; }
+      }).catch(error => { if (!cancelled) onError(error); });
+      return () => { cancelled = true; unsubscribe?.(); };
     },
-    async read(uid) { return readSnapshot(await storeSDK.getDocFromServer(documentFor(uid))); },
+    async read(uid) { const { storeSDK, database } = await getStore(); return readSnapshot(await storeSDK.getDocFromServer(documentFor(uid, storeSDK, database))); },
     async write(uid, progress, expectedRevision) {
       const data = validateCloudProgress(progress);
-      const reference = documentFor(uid);
+      const { storeSDK, database } = await getStore();
+      const reference = documentFor(uid, storeSDK, database);
       return storeSDK.runTransaction(database, async transaction => {
         // The document reference remains bound to this UID if the UI switches accounts.
         const current = readSnapshot(await transaction.get(reference));
