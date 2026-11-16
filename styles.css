@@ -1,5 +1,4 @@
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
 :root{--bg:#090f20;--panel:#111a30;--panel2:#17233b;--line:#304361;--text:#eaf1ff;--muted:#9eb0cc;--green:#3988ff;--green2:#246bd9;--orange:#f2a65a;--red:#ef6c63;--blue:#6ba6ff;--shadow:0 18px 55px #0006}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(ellipse at 78% -20%,#151f30 0,transparent 40%),var(--bg);color:var(--text);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;font-size:14px;line-height:1.65}

@@ -24,7 +24,12 @@
   <meta name="twitter:image" content="https://blackboxlab.dev/social-preview.png">
   <meta name="twitter:image:alt" content="BLACKBOX Lab: مساحة التدريب السيبراني بالعربية">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./loading.css">
+  <script defer src="./loading.js"></script>
   <script type="module" src="./app.js"></script>
   <script defer src="./onboarding.js"></script>
   <link rel="stylesheet" href="./onboarding.css">
@@ -33,6 +38,7 @@
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
+  <div id="bb-load-indicator" role="presentation" aria-hidden="true"></div>
   <noscript><p>BLACKBOX مساحة تدريب عربية تضم 6 مسارات و18 مرحلة للمختبر المحلي. فعّل JavaScript لفتح المسارات وحفظ نتائجك وملاحظاتك وتنزيل تقاريرك.</p></noscript>
   <a class="skip-link" href="#main-content">تجاوز إلى المحتوى</a>
   <div id="landing-page" class="bb-landing" aria-labelledby="landing-title">
