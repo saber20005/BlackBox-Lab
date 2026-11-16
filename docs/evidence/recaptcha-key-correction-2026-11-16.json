@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "status": "initial-key-defect-corrected-firebase-attestation-still-rejected",
+  "sourceEvidence": {
+    "source": "owner-Cloud-Shell-keys-list-screenshot-ASCII",
+    "projectId": "black-box-lab",
+    "codepoints": [
+      54,
+      76,
+      101,
+      56,
+      51,
+      120,
+      56,
+      117,
+      65,
+      65,
+      65,
+      65,
+      65,
+      67,
+      115,
+      85,
+      49,
+      72,
+      66,
+      103,
+      114,
+      95,
+      111,
+      109,
+      67,
+      88,
+      108,
+      80,
+      99,
+      66,
+      117,
+      98,
+      121,
+      100,
+      48,
+      79,
+      66,
+      102,
+      102,
+      73
+    ],
+    "differences": [
+      {
+        "position": 27,
+        "configured": "I",
+        "registered": "l",
+        "configuredCode": 73,
+        "registeredCode": 108
+      },
+      {
+        "position": 35,
+        "configured": "O",
+        "registered": "0",
+        "configuredCode": 79,
+        "registeredCode": 48
+      }
+    ]
+  },
+  "controlledComparison": {
+    "started": "2026-11-16T17:47:50.591Z",
+    "origin": "https://blackboxlab.dev",
+    "mode": "original-production-versus-exact-owner-key-local-config-overlay",
+    "deployedFixVerified": false,
+    "securitySettingsChanged": false,
+    "results": [
+      {
+        "mode": "original-production",
+        "flow": "independent",
+        "started": "2026-11-16T17:47:54.340Z",
+        "exchanges": [],
+        "runtimeKeyMatchesExpected": true,
+        "outcome": "failure",
+        "safeCode": "client-or-key-rejected",
+        "stage": "execute",
+        "acceptance": "not-confirmed",
+        "scriptCount": 1,
+        "finished": "2026-11-16T17:47:57.001Z"
+      },
+      {
+        "mode": "original-production",
+        "flow": "firebase",
+        "started": "2026-11-16T17:47:57.069Z",
+        "exchanges": [],
+        "runtimeKeyMatchesExpected": true,
+        "outcome": "failure",
+        "safeCode": "appCheck/recaptcha-error",
+        "stage": "token-request",
+        "acceptance": "not-confirmed",
+        "scriptCount": 1,
+        "finished": "2026-11-16T17:48:01.163Z"
+      },
+      {
+        "mode": "exact-owner-key-config-overlay",
+        "flow": "independent",
+        "started": "2026-11-16T17:48:01.331Z",
+        "exchanges": [],
+        "runtimeKeyMatchesExpected": true,
+        "outcome": "success",
+        "safeCode": null,
+        "stage": null,
+        "acceptance": "not-confirmed",
+        "scriptCount": 1,
+        "finished": "2026-11-16T17:48:07.592Z"
+      },
+      {
+        "mode": "exact-owner-key-config-overlay",
+        "flow": "firebase",
+        "started": "2026-11-16T17:48:07.745Z",
+        "exchanges": [
+          {
+            "status": 403,
+            "method": "POST",
+            "serverStatus": "PERMISSION_DENIED",
+            "reasons": [],
+            "knownMessage": "app-attestation-failed"
+          }
+        ],
+        "runtimeKeyMatchesExpected": true,
+        "outcome": "failure",
+        "safeCode": "appCheck/initial-throttle",
+        "stage": "token-request",
+        "acceptance": "not-confirmed",
+        "scriptCount": 1,
+        "finished": "2026-11-16T17:48:14.966Z"
+      }
+    ],
+    "browserVersion": "156.0.8078.79",
+    "configurationResponse": {
+      "status": 200
+    },
+    "configurationParsed": true,
+    "identifierComparison": {
+      "configuredSHA256": "bca2d351f197dd1dad722d3c1236287e387c88473ccac6936aa3aa00b574a2f6",
+      "candidateSHA256": "40a6903afe9ef42925189802cfa800e50583fe95499e2fe4892d27a28d940fc2",
+      "differences": [
+        {
+          "position": 27,
+          "configuredCharacter": "I",
+          "candidateCharacter": "l"
+        },
+        {
+          "position": 35,
+          "configuredCharacter": "O",
+          "candidateCharacter": "0"
+        }
+      ],
+      "candidateSource": "complete-owner-keys-list-ASCII-codepoints"
+    },
+    "localConfigMatchesOwnerKey": true,
+    "finished": "2026-11-16T17:48:14.973Z"
+  }
+}
