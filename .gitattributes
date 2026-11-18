@@ -1,0 +1,4 @@
+training-kit/** text eol=lf
+scripts/build-defense-kit.py text eol=lf
+downloads/*.zip binary
+social-preview.png binary

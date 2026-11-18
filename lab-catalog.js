@@ -2,26 +2,28 @@
 export const labs = Object.freeze([
   Object.freeze({
     id: 'webgoat-local',
+    trackId: 'webgoat',
     title: 'WebGoat — مختبر تطبيقات الويب',
     difficulty: 'beginner',
     category: 'web',
     runtime: 'local',
     network: 'host-only',
     estimatedMinutes: 45,
-    prerequisites: Object.freeze(['VirtualBox', 'Kali Linux', 'WebGoat on an isolated VM']),
-    objectives: Object.freeze(['Identify an authorized training target', 'Document a finding', 'Record mitigation steps']),
+    prerequisites: Object.freeze(['VirtualBox يعمل على جهازك', 'Kali Linux داخل آلة افتراضية', 'WebGoat على آلة تدريب داخل شبكة معزولة']),
+    objectives: Object.freeze(['تحديد هدف تدريبي تملك صلاحية اختباره', 'توثيق ملاحظة مع دليلها وحدودها', 'تسجيل خطوات المعالجة وإعادة التحقق']),
     status: 'manual',
   }),
   Object.freeze({
     id: 'network-observation',
+    trackId: 'network',
     title: 'تحليل حركة الشبكة المعزولة',
     difficulty: 'beginner',
     category: 'network',
     runtime: 'local',
     network: 'host-only',
     estimatedMinutes: 30,
-    prerequisites: Object.freeze(['VirtualBox', 'Kali Linux', 'Wireshark']),
-    objectives: Object.freeze(['Capture lab traffic', 'Identify DNS and TCP exchanges', 'Document evidence']),
+    prerequisites: Object.freeze(['VirtualBox وشبكة مختبر معزولة', 'Kali Linux يعمل داخل المختبر', 'Wireshark لقراءة حركة الشبكة']),
+    objectives: Object.freeze(['التقاط حركة شبكة المختبر المصرّح بها', 'تمييز تبادلات DNS وTCP', 'توثيق الحزم التي تدعم الاستنتاج']),
     status: 'manual',
   }),
 ]);
@@ -29,6 +31,7 @@ const ids = new Set();
 export function validateLab(lab) {
   if (!lab || typeof lab !== 'object' || Array.isArray(lab)) throw new TypeError('Lab must be an object');
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(lab.id ?? '')) throw new TypeError('Invalid lab id');
+  if (!/^[a-z][a-z0-9-]{1,40}$/.test(lab.trackId ?? '')) throw new TypeError('Invalid training track');
   if (typeof lab.title !== 'string' || !lab.title.trim()) throw new TypeError('Missing title');
   if (!['beginner','intermediate','advanced'].includes(lab.difficulty)) throw new TypeError('Invalid difficulty');
   if (!['web','network','forensics','soc','linux','windows'].includes(lab.category)) throw new TypeError('Invalid category');
@@ -46,4 +49,8 @@ for (const lab of labs) {
 }
 export function filterLabs({category, difficulty}={}) {
   return labs.filter(lab => (!category || lab.category === category) && (!difficulty || lab.difficulty === difficulty));
+}
+export function labStartURL(lab) {
+  validateLab(lab);
+  return './?' + new URLSearchParams({ track: lab.trackId, stage: '0' }).toString();
 }

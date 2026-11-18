@@ -18,6 +18,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: Check browser module syntax
         run: |
           node --check app.js
@@ -26,6 +29,32 @@ jobs:
         run: |
           node --test --test-isolation=none tests/*.test.mjs
           node --test functions/tests/*.test.mjs
+
+  guest-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned browser test dependency
+        run: npm install --prefix /tmp/blackbox-playwright --no-audit --no-fund --no-package-lock playwright@1.62.1
+      - name: Install Chromium and system dependencies
+        run: node /tmp/blackbox-playwright/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify desktop and mobile guest journeys
+        env:
+          BLACKBOX_PLAYWRIGHT_MODULE: /tmp/blackbox-playwright/node_modules/playwright/index.mjs
+          BLACKBOX_BROWSER_ARTIFACTS: /tmp/blackbox-browser-artifacts
+        run: node scripts/test-guest-browser.mjs
+      - name: Upload guest browser failure details
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guest-browser-failure
+          path: /tmp/blackbox-browser-artifacts
+          if-no-files-found: ignore
+
   firestore-rules:
     runs-on: ubuntu-latest
     timeout-minutes: 15

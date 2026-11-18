@@ -2,6 +2,7 @@ import { tracks } from './data.js';
 
 export const SITE_ORIGIN = 'https://blackboxlab.dev';
 const HOME = `${SITE_ORIGIN}/`;
+const totalStages = tracks.reduce((sum, track) => sum + track.stages.length, 0);
 const VIEWS = new Set(['home', 'tracks', 'plan', 'skills', 'journal', 'backups', 'troubleshoot']);
 const CAMPAIGN_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 const trackById = id => tracks.find(track => track.id === id);
@@ -86,7 +87,7 @@ export function routeMetadata(route) {
   const stage = track?.stages[route?.stageIndex];
   const base = {
     title: 'BLACKBOX | مساحة التدريب السيبراني',
-    description: 'مساحة تدريب عربية تضم 6 مسارات و18 مرحلة للمختبر المحلي، مع حفظ الملاحظات والتقدم والنسخ الاحتياطية والتقارير.',
+    description: `مساحة تدريب عربية تضم ${tracks.length} مسارات و${totalStages} مرحلة للمختبر المحلي، مع حفظ الملاحظات والتقدم والنسخ الاحتياطية والتقارير.`,
     canonical: canonicalURL(route),
     shouldIndex: !['exercise', 'plan', 'skills', 'journal', 'backups'].includes(route?.view),
   };

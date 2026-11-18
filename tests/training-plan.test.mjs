@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tracks } from '../data.js';
 import { createInitialState } from '../progress.js';
-import { buildTrainingPlan, investigationURL } from '../training-plan.js';
+import { buildTrainingPlan, getRelatedCaseIds, investigationURL } from '../training-plan.js';
 import { trainingPlanPage } from '../training-plan-ui.js';
 
 const timestamp = '2026-11-12T10:00:00.000Z';
@@ -113,4 +113,73 @@ test('planner UI provides explicit available-stage actions and labels estimates'
   assert(html.includes('التخطيط وحده لا يضيف إنجازًا أو نقاطًا'));
   assert(!html.includes('data-check'));
   assert(!html.includes('current'));
+});
+
+test('defense focus offers only the four new practical tracks with known complementary investigations', () => {
+  const state = createInitialState();
+  const defenseIds = ['logs', 'integrity', 'headers', 'email'];
+  const before = JSON.stringify(state);
+  let plan = buildTrainingPlan(state, { focus: 'defense', budget: 60 });
+  assert.equal(plan.focus, 'defense');
+  assert.equal(plan.tasks.length, 3);
+  assert(plan.tasks.every(task => defenseIds.includes(task.trackId) && task.stageIndex === 0));
+  assert.equal(plan.tasks.find(task => task.trackId === 'logs').relatedCaseId, 'INC-1201');
+  assert.equal(JSON.stringify(state), before);
+  // Completing three whole tracks leaves the fourth available in the same focus.
+  for (const id of defenseIds.slice(0, 3)) for (let index = 0; index < 3; index += 1) state.completed[`${id}-${index}`] = timestamp;
+  plan = buildTrainingPlan(state, { focus: 'defense', budget: 60 });
+  assert.deepEqual(plan.tasks.map(task => task.trackId), ['email']);
+  assert.equal(plan.tasks[0].relatedCaseId, 'INC-1202');
+  assert(trainingPlanPage(createInitialState(), { focus: 'defense' }).includes('التحليل الدفاعي'));
+});
+
+test('ready current-owner receipts can prioritize new local practical follow-ups without awarding progress', () => {
+  const state = createInitialState();
+  const before = JSON.stringify(state);
+  const emailReceipt = { ...receipt, caseId: 'INC-1208' };
+  const emailLinked = { ...linked, state: { ...linked.state, receipts: { 'INC-1208': emailReceipt } } };
+  const plan = buildTrainingPlan(state, { focus: 'defense', budget: 30, linked: emailLinked });
+  assert.equal(plan.tasks[0].trackId, 'email');
+  assert.equal(plan.tasks[0].linkedCaseId, 'INC-1208');
+  assert(plan.tasks[0].reason.includes('المسجّل في حسابك'));
+  assert.equal(plan.linkedUsed, true);
+  assert.equal(JSON.stringify(state), before);
+  for (const invalid of [
+    { ...emailLinked, ownerUid: 'previous' },
+    { ...emailLinked, userUid: null },
+    { ...emailLinked, accountPhase: 'loading' },
+    { ...emailLinked, state: { ...emailLinked.state, phase: 'error' } },
+  ]) {
+    const unavailable = buildTrainingPlan(state, { focus: 'defense', linked: invalid });
+    assert.equal(unavailable.tasks[0].trackId, 'logs');
+    assert.equal(unavailable.linkedUsed, false);
+  }
+});
+
+test('completed legacy eighteen stages yield only new available work while preserving old notes and results', () => {
+  const state = createInitialState();
+  const oldIds = ['recon', 'nmap', 'network', 'webgoat', 'proxy', 'metasploit'];
+  for (const id of oldIds) for (let index = 0; index < 3; index += 1) state.completed[`${id}-${index}`] = timestamp;
+  state.notes['network-1'] = 'ملاحظة من التدريب القديم';
+  state.results['recon-2'] = 'نتيجة محفوظة قبل إضافة المسارات';
+  state.lastActivity = { trackId: 'network', stageIndex: 1, at: timestamp };
+  const before = JSON.stringify(state);
+  const plan = buildTrainingPlan(state, { budget: 60 });
+  assert.equal(plan.tasks.length, 3);
+  assert(plan.tasks.every(task => ['logs', 'integrity', 'headers', 'email'].includes(task.trackId) && task.stageIndex === 0));
+  assert.equal(plan.allComplete, false);
+  assert.equal(JSON.stringify(state), before);
+  assert.equal(state.notes['network-1'], 'ملاحظة من التدريب القديم');
+  assert.equal(state.results['recon-2'], 'نتيجة محفوظة قبل إضافة المسارات');
+});
+
+test('local related-case metadata rejects unknown and unsafe IDs and deduplicates known cases', () => {
+  const relatedCases = ['unknown', 'INC-1203', 'javascript:alert(1)', '__proto__', 'constructor', 1203, null, 'INC-1203'];
+  const before = [...relatedCases];
+  assert.deepEqual(getRelatedCaseIds({ id: 'headers', relatedCases }), ['INC-1203']);
+  assert.deepEqual(relatedCases, before);
+  assert.deepEqual(getRelatedCaseIds({ id: 'unmapped', relatedCases: ['unknown'] }), []);
+  assert.deepEqual(getRelatedCaseIds({ id: 'unmapped', relatedCases: 'INC-1203' }), []);
+  assert.deepEqual(getRelatedCaseIds(null), []);
+  assert.equal(investigationURL('unknown'), null);
 });

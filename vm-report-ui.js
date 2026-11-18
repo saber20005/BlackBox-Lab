@@ -3,16 +3,21 @@ const input=document.getElementById('vm-report-file');
 const output=document.getElementById('vm-report-results');
 const status=document.getElementById('vm-report-status');
 const clear=document.getElementById('vm-report-clear');
+let readGeneration=0;
 function element(tag,text){const node=document.createElement(tag);node.textContent=text;return node;}
-function reset(){output.replaceChildren();status.textContent='لم يُحمّل أي تقرير بعد.';input.value='';}
+function reset(){readGeneration++;output.replaceChildren();status.textContent='لم يُحمّل أي تقرير بعد.';input.value='';}
 clear.addEventListener('click',reset);
 input.addEventListener('change',async()=>{
+  const generation=++readGeneration;
   output.replaceChildren();
   const file=input.files?.[0];
   if(!file){reset();return;}
   if(file.size>256000){status.textContent='الملف كبير جدًا (الحد 256 كيلوبايت).';return;}
+  status.textContent='جارٍ قراءة التقرير محليًا...';
   try{
-    const machines=parseVMReport(await file.text());
+    const text=await file.text();
+    if(generation!==readGeneration)return;
+    const machines=parseVMReport(text);
     status.textContent='تمت قراءة '+machines.length+' أجهزة محليًا في المتصفح. لم تُرسل البيانات إلى خادم.';
     if(!machines.length)output.append(element('p','لا توجد أجهزة في التقرير.'));
     for(const vm of machines){
@@ -24,5 +29,5 @@ input.addEventListener('change',async()=>{
       for(const a of vm.adapters)list.append(element('li','المحول '+a.slot+': '+a.attachment));
       card.append(list);output.append(card);
     }
-  }catch(err){status.textContent=err instanceof Error?err.message:'تعذر قراءة التقرير';}
+  }catch(err){if(generation===readGeneration)status.textContent=err instanceof Error?err.message:'تعذر قراءة التقرير';}
 });

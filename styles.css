@@ -590,3 +590,13 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 8px; }
   .account-choice-buttons { flex-direction: column; }
   .account-choice-buttons button { flex: auto; }
 }
+
+.training-kit-card, .defense-intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.training-kit-card > div:first-child, .defense-intro > div { min-width: 0; }
+.training-kit-card h2, .defense-intro h2 { margin: 7px 0 10px; font-size: 20px; }
+.training-kit-card p, .defense-intro p { color: var(--muted); margin: 0; line-height: 1.9; }
+.training-kit-card small { display: block; color: var(--muted); margin-top: 12px; line-height: 1.9; }
+.training-kit-card code { display: inline-block; color: var(--green); }
+.training-kit-actions { display: grid; gap: 10px; flex: 0 0 220px; }
+.training-kit-actions a { display: block; text-align: center; text-decoration: none; }
+@media (max-width: 760px) { .training-kit-card, .defense-intro { align-items: stretch; flex-direction: column; gap: 18px; } .training-kit-actions { flex-basis: auto; } }

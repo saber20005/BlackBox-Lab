@@ -15,6 +15,11 @@ const contexts = [];
 async function newPage() {
   const context = await browser.newContext();
   contexts.push(context);
+  // Account flows start in the workspace; the guest suite covers first visits.
+  await context.addInitScript(expectedOrigin => {
+    if (window.top !== window || location.origin !== expectedOrigin) return;
+    try { localStorage.setItem('blackbox-lab-intro-seen-v1', '1'); } catch {}
+  }, testURL.origin);
   await context.route('**/account-config.js', route => route.fulfill({ contentType: 'text/javascript', body: `export const accountConfig = ${JSON.stringify(config)};` }));
   const page = await context.newPage();
   page.on('pageerror', e => errors.push(e.message));

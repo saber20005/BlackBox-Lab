@@ -109,6 +109,30 @@ test('page views deduplicate repeated renders and StrictMode calls while trackin
   assert.equal(events(fixture, 'page_view').length, 2);
 });
 
+test('session plans, linked skills and defensive stages retain distinct public routes without private fields', () => {
+  const fixture = browser({ url: 'https://test.example/' });
+  const api = analytics(fixture);
+  assert.equal(api.trackPageView(), true);
+  for (const view of ['plan', 'skills']) {
+    fixture.window.location = new URL(`https://test.example/?view=${view}&notes=PRIVATE_NOTE&uid=PRIVATE_UID`);
+    assert.equal(api.trackPageView(), true);
+    assert.equal(new URL(events(fixture, 'page_view').at(-1)[2].page_location).searchParams.get('view'), view);
+    assert.equal(api.trackPageView(), false);
+  }
+  for (const track of ['logs', 'integrity', 'headers', 'email']) {
+    fixture.window.location = new URL(`https://test.example/?track=${track}&stage=2&token=PRIVATE_TOKEN`);
+    assert.equal(api.trackPageView(), true);
+    const url = new URL(events(fixture, 'page_view').at(-1)[2].page_location);
+    assert.equal(url.searchParams.get('track'), track);
+    assert.equal(url.searchParams.get('stage'), '2');
+    assert.equal(api.trackEvent('stage_complete', { track_id: track, stage_index: 2, result: 'PRIVATE_RESULT' }), true);
+  }
+  assert.equal(api.trackEvent('stage_complete', { track_id: 'unknown', stage_index: 0 }), false);
+  assert.equal(api.trackEvent('backup_restore', { completed_count: 30 }), true);
+  assert.equal(events(fixture, 'backup_restore').at(-1)[2].completed_count, 30);
+  assert(!JSON.stringify(commands(fixture)).includes('PRIVATE_'));
+});
+
 test('preview hosts and browser privacy signals prevent all analytics initialization', () => {
   for (const privacy of [{ doNotTrack: '1' }, { globalPrivacyControl: true }]) {
     const fixture = browser({ privacy });

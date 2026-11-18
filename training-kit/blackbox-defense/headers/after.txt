@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Server: training-fixture
+Set-Cookie: demo_session=training-placeholder; Path=/; Secure; HttpOnly; SameSite=Lax
+Content-Security-Policy: default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+Cache-Control: no-store
+
+Synthetic response headers for https://portal.training.example/

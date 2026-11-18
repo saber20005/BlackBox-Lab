@@ -1,0 +1,18 @@
+From: "Training SOC" <soc@lab.example>
+Reply-To: soc@lab.example
+To: learner@lab.example
+Date: Thu, 15 Jan 2026 09:25:00 +0000
+Message-ID: <sample-legitimate-01@gateway.training.example>
+Subject: Training sample: planned lab session
+Authentication-Results: gateway.training.example;
+ spf=pass smtp.mailfrom=lab.example;
+ dkim=pass header.d=lab.example;
+ dmarc=pass header.from=lab.example
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+هذا ملف تدريب اصطناعي، وليس رسالة بريد حقيقية.
+يصف موعد جلسة تدريب مقررة، ولا يطلب كلمة مرور أو تحويل مبلغ.
+رابط بوابة التدريب معطّل للقراءة فقط: hxxps://portal.lab.example/training
+نجاح مصادقة البريد وحده لا يثبت التفويض التجاري أو سلامة طلب لاحق.

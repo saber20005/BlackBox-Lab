@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Server: training-fixture
+Set-Cookie: demo_session=training-placeholder; Path=/; SameSite=None
+Cache-Control: no-store
+
+Synthetic response headers for https://portal.training.example/

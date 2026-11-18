@@ -12,7 +12,11 @@ service cloud.firestore {
         'network-0', 'network-1', 'network-2',
         'webgoat-0', 'webgoat-1', 'webgoat-2',
         'proxy-0', 'proxy-1', 'proxy-2',
-        'metasploit-0', 'metasploit-1', 'metasploit-2'
+        'metasploit-0', 'metasploit-1', 'metasploit-2',
+        'logs-0', 'logs-1', 'logs-2',
+        'integrity-0', 'integrity-1', 'integrity-2',
+        'headers-0', 'headers-1', 'headers-2',
+        'email-0', 'email-1', 'email-2'
       ];
     }
 
@@ -39,7 +43,7 @@ service cloud.firestore {
         activity is map
         && activity.keys().hasAll(['trackId', 'stageIndex', 'at'])
         && activity.keys().hasOnly(['trackId', 'stageIndex', 'at'])
-        && activity.trackId in ['recon', 'nmap', 'network', 'webgoat', 'proxy', 'metasploit']
+        && activity.trackId in ['recon', 'nmap', 'network', 'webgoat', 'proxy', 'metasploit', 'logs', 'integrity', 'headers', 'email']
         && activity.stageIndex is int
         && activity.stageIndex >= 0 && activity.stageIndex <= 2
         && activity.at is string && activity.at.size() <= 40

@@ -9,6 +9,12 @@ const pendingPrefix = uid => `${accountKey(uid)}:pending:`;
 const uniqueId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 const codeError = (code, message) => Object.assign(new Error(message), { code });
 const latest = (...values) => values.filter(Boolean).sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null;
+// Unclassified errors, including SDK/module-load TypeErrors, stay manual:
+// only structured backend connectivity failures arm an automatic recovery.
+const connectionErrorCodes = new Set([
+  'unavailable', 'deadline-exceeded', 'network-request-failed',
+  'firestore/unavailable', 'firestore/deadline-exceeded', 'auth/network-request-failed',
+]);
 
 export function hasProgress(value) {
   const state = normalizeState(value);
@@ -66,6 +72,10 @@ export function createAccountSync(options = {}) {
   let configured = Boolean(options.backend || accountConfig.enabled);
   let providers = options.backend ? { email: true, google: true } : { ...accountConfig.providers };
   let phase = 'guest', error = null, message = 'تدرّب كضيف، أو سجّل لحفظ تقدمك في حسابك.';
+  const connectionEvents = options.eventTarget === undefined ? globalThis.window : options.eventTarget;
+  let connectionFailed = false, connectionEpoch = 0, onlineEpoch = -1, recoveryEpoch = -1;
+  let connectionRecovery, connectionRecoveryRequested = false;
+  const pendingReads = new Set();
   const delay = options.debounceMs ?? 700;
   const linkedSkillsEnabled = Boolean(options.linkedSkillsEnabled ?? accountConfig.linkedSkillsEnabled);
   let skillWatchStop, skillGeneration = 0;
@@ -75,7 +85,7 @@ export function createAccountSync(options = {}) {
     message: linkedSkillsEnabled ? 'سجّل الدخول لعرض تقدّم مهاراتك المرتبط بـCyberTrace.' : 'ربط مهارات CyberTrace قيد الإعداد.',
   };
 
-  const snapshot = () => ({ phase, user: user ? { uid: user.uid, email: user.email ?? '', displayName: user.displayName ?? '' } : null, configured, providers: { ...providers }, syncing, pending: dirty, conflict: remoteConflict !== undefined, recoveryCount: distinctRecoveries(recoveryEntries).length, recoveryConflict, guestAvailable: Boolean(user && hasProgress(guest)), localSaved, message, error });
+  const snapshot = () => ({ phase, user: user ? { uid: user.uid, email: user.email ?? '', displayName: user.displayName ?? '' } : null, configured, providers: { ...providers }, syncing: syncing || Boolean(connectionRecovery), pending: dirty, conflict: remoteConflict !== undefined, recoveryCount: distinctRecoveries(recoveryEntries).length, recoveryConflict, guestAvailable: Boolean(user && hasProgress(guest)), localSaved, message, error });
   const notify = () => { if (!disposed) options.onStatus?.(snapshot()); };
   const show = () => { if (!disposed) options.onState?.(clone(current)); };
   const notifySkills = () => { if (!disposed) options.onSkillState?.(clone(skillState)); };
@@ -216,9 +226,59 @@ export function createAccountSync(options = {}) {
     return copies[0] ?? shared;
   }
   const cancelTimer = () => { clearTimeout(timer); timer = undefined; };
+  const hasCurrentRead = () => [...pendingReads].some(read => read.scope === generation && read.uid === user?.uid);
   function queue() {
     cancelTimer();
-    if (user && dirty && cloudReady && remoteConflict === undefined && !syncing) timer = setTimeout(() => { timer = undefined; void writePending(); }, delay);
+    if (user && dirty && cloudReady && remoteConflict === undefined && !syncing && !connectionRecovery && !hasCurrentRead()) timer = setTimeout(() => { timer = undefined; void writePending(); }, delay);
+  }
+  function rememberConnectionFailure(reason) {
+    connectionFailed = connectionErrorCodes.has(reason?.code);
+  }
+  function recoverConnection() {
+    if (disposed || !user || phase !== 'signed-in' || !connectionFailed ||
+        remoteConflict !== undefined || syncing || connectionRecovery || hasCurrentRead() ||
+        onlineEpoch !== connectionEpoch || recoveryEpoch === connectionEpoch) return;
+    const attempt = { scope: generation, uid: user.uid, promise: null };
+    const isCurrent = () => !disposed && attempt.scope === generation && user?.uid === attempt.uid;
+    connectionRecovery = attempt;
+    connectionRecoveryRequested = false;
+    recoveryEpoch = connectionEpoch;
+    cancelTimer();
+    // Install the shared promise before starting the read, so a manual retry
+    // joins this operation instead of racing it with another read or write.
+    attempt.promise = Promise.resolve().then(async () => {
+      try {
+        if (!isCurrent() || !await loadRemote(attempt.scope, attempt.uid)) return false;
+        return dirty ? await writePending() : remoteConflict === undefined;
+      } catch (reason) {
+        if (isCurrent()) {
+          rememberConnectionFailure(reason);
+          fail(reason, 'تعذّرت إعادة المزامنة بعد عودة الاتصال؛ بقيت مسودتك محفوظة محليًا.');
+        }
+        return false;
+      } finally {
+        if (connectionRecovery === attempt) {
+          connectionRecovery = undefined;
+          if (isCurrent()) {
+            notify();
+            if (dirty && !error) queue();
+            // One attempt per offline/online cycle; duplicate online events
+            // cannot turn a failed request into an automatic retry loop.
+            if (onlineEpoch === connectionEpoch && recoveryEpoch !== connectionEpoch) recoverConnection();
+          }
+        }
+      }
+    });
+    error = null;
+    message = 'عاد الاتصال؛ جارٍ مراجعة نسخة الحساب قبل مزامنة مسودتك.';
+    notify();
+  }
+  function onOffline() { if (!disposed) connectionEpoch += 1; }
+  function onOnline() {
+    if (disposed) return;
+    onlineEpoch = connectionEpoch;
+    if (user && (syncing || hasCurrentRead())) connectionRecoveryRequested = true;
+    recoverConnection();
   }
   function fail(reason, fallback) {
     error = reason?.code || 'account/sync-failed';
@@ -226,30 +286,52 @@ export function createAccountSync(options = {}) {
     notify();
   }
   async function loadRemote(scope, uid) {
-    const remote = await backend.read(uid);
-    if (disposed || scope !== generation || user?.uid !== uid) return false;
-    cloudReady = true;
-    if (dirty) {
-      if (recoveryConflict || (remote?.revision ?? 0) !== (revision ?? 0)) {
-        remoteConflict = remote;
-        message = recoveryConflict ? 'توجد مسودات مختلفة محفوظة من تبويبات حسابك. نزّل النسخ قبل اختيار الدمج أو النسخة التي تريدها.' : 'توجد نسخة أحدث في الحساب. اختر دمجها أو النسخة التي تريد الاحتفاظ بها.';
-        error = 'account/conflict';
+    const read = { scope, uid };
+    pendingReads.add(read);
+    const isCurrent = () => !disposed && scope === generation && user?.uid === uid;
+    try {
+      const remote = await backend.read(uid);
+      if (!isCurrent()) return false;
+      try {
+        // Textarea updates may still be waiting for the UI's save debounce.
+        // Flush synchronously while this read still blocks queued writes.
+        const flushed = options.beforeRemoteApply?.();
+        if (flushed && typeof flushed.then === 'function') {
+          void Promise.resolve(flushed).catch(() => {});
+          throw new Error('A synchronous draft flush is required');
+        }
+      } catch {
+        if (!isCurrent()) return false;
+        throw codeError('account/draft-flush-failed', 'تعذّر حفظ مسودتك قبل تحميل نسخة الحساب. بقيت كتابتك في التبويب؛ احفظها أو نزّل نسخة قبل إعادة المحاولة.');
+      }
+      // A UI callback can synchronously switch accounts or dispose the controller.
+      if (!isCurrent()) return false;
+      connectionFailed = false; connectionRecoveryRequested = false;
+      cloudReady = true;
+      if (dirty) {
+        if (recoveryConflict || (remote?.revision ?? 0) !== (revision ?? 0)) {
+          remoteConflict = remote;
+          message = recoveryConflict ? 'توجد مسودات مختلفة محفوظة من تبويبات حسابك. نزّل النسخ قبل اختيار الدمج أو النسخة التي تريدها.' : 'توجد نسخة أحدث في الحساب. اختر دمجها أو النسخة التي تريد الاحتفاظ بها.';
+          error = 'account/conflict';
+        } else {
+          revision = remote?.revision ?? 0;
+          message = 'توجد تعديلات محلية تنتظر المزامنة.';
+          error = null;
+        }
       } else {
         revision = remote?.revision ?? 0;
-        message = 'توجد تعديلات محلية تنتظر المزامنة.';
+        current = clone(remote?.progress ?? createInitialState());
         error = null;
+        message = remote ? 'حُمّل تقدمك من الحساب.' : 'حسابك جاهز. يمكنك نقل تقدم الضيف أو البدء من هنا.';
+        cache();
+        show();
       }
-    } else {
-      revision = remote?.revision ?? 0;
-      current = clone(remote?.progress ?? createInitialState());
-      error = null;
-      message = remote ? 'حُمّل تقدمك من الحساب.' : 'حسابك جاهز. يمكنك نقل تقدم الضيف أو البدء من هنا.';
-      cache();
-      show();
+      phase = 'signed-in';
+      notify();
+      return true;
+    } finally {
+      pendingReads.delete(read);
     }
-    phase = 'signed-in';
-    notify();
-    return true;
   }
   async function scopeChanged(nextUser) {
     const nextUid = nextUser?.uid ?? null;
@@ -259,6 +341,8 @@ export function createAccountSync(options = {}) {
     cancelTimer();
     const scope = ++generation;
     user = nextUser;
+    connectionFailed = false; connectionRecovery = undefined; connectionRecoveryRequested = false;
+    connectionEpoch = 0; onlineEpoch = -1; recoveryEpoch = -1; pendingReads.clear();
     remoteConflict = undefined; conflictBackup = null; recoveryEntries = []; eligibleRecoveries = []; recoveryConflict = false; revision = null; dirty = false; syncing = false; cloudReady = false; error = null; editSequence = 0;
     // Clear the old owner's achievements before any practical state renders.
     resetSkills(!linkedSkillsEnabled ? 'disabled' : user ? 'loading' : 'guest');
@@ -274,11 +358,13 @@ export function createAccountSync(options = {}) {
     catch (reason) {
       if (scope !== generation || disposed) return;
       phase = 'signed-in';
+      rememberConnectionFailure(reason);
       fail(reason, 'تعذّر تحميل نسخة الحساب. يمكنك العمل محليًا ثم إعادة المزامنة.');
+      if (connectionRecoveryRequested) recoverConnection();
     }
   }
   async function writePending() {
-    if (disposed || !user || !dirty || !cloudReady || remoteConflict !== undefined || syncing) return false;
+    if (disposed || !user || !dirty || !cloudReady || remoteConflict !== undefined || syncing || hasCurrentRead()) return false;
     const scope = generation, uid = user.uid, sequence = editSequence;
     const progress = clone(current), expectedRevision = revision;
     const representedRecoveries = [...eligibleRecoveries];
@@ -287,6 +373,7 @@ export function createAccountSync(options = {}) {
       validateCloudProgress(progress);
       const result = await backend.write(uid, progress, expectedRevision);
       if (disposed || scope !== generation || user?.uid !== uid) return false;
+      connectionFailed = false; connectionRecoveryRequested = false;
       revision = result.revision;
       dirty = editSequence !== sequence;
       clearRecoveries(representedRecoveries);
@@ -302,10 +389,15 @@ export function createAccountSync(options = {}) {
     } catch (reason) {
       if (disposed || scope !== generation || user?.uid !== uid) return false;
       if (reason?.code === 'account/conflict') remoteConflict = reason.remote ?? null;
+      rememberConnectionFailure(reason);
       cache(); fail(reason, 'تعذّرت المزامنة؛ بقيت تعديلاتك في هذا التبويب.');
       return false;
     } finally {
-      if (!disposed && scope === generation) { syncing = false; notify(); if (dirty && !error) queue(); }
+      if (!disposed && scope === generation) {
+        syncing = false; notify();
+        if (dirty && !error) queue();
+        if (connectionRecoveryRequested) recoverConnection();
+      }
     }
   }
   async function ensureBackend() {
@@ -352,10 +444,17 @@ export function createAccountSync(options = {}) {
     async syncNow() {
       cancelTimer();
       if (!user || disposed) return false;
+      if (connectionRecovery) return connectionRecovery.promise;
       const scope = generation, uid = user.uid;
       if (!cloudReady || !dirty) {
         try { if (!await loadRemote(scope, uid)) return false; }
-        catch (reason) { if (scope === generation) fail(reason, 'تعذّر الاتصال بالحساب.'); return false; }
+        catch (reason) {
+          if (scope === generation && !disposed) {
+            rememberConnectionFailure(reason); fail(reason, 'تعذّر الاتصال بالحساب.');
+            if (connectionRecoveryRequested) recoverConnection();
+          }
+          return false;
+        }
       }
       return dirty ? writePending() : remoteConflict === undefined;
     },
@@ -420,9 +519,14 @@ export function createAccountSync(options = {}) {
     },
     dispose() {
       disposed = true; generation += 1; skillGeneration += 1;
+      connectionFailed = false; connectionRecovery = undefined; connectionRecoveryRequested = false; pendingReads.clear();
+      connectionEvents?.removeEventListener?.('online', onOnline);
+      connectionEvents?.removeEventListener?.('offline', onOffline);
       cancelTimer(); unsubscribe?.(); stopSkillWatch();
       skillState = { ...skillState, phase: linkedSkillsEnabled ? 'guest' : 'disabled', receipts: {}, fromCache: false, error: null, message: '' };
     },
   };
+  connectionEvents?.addEventListener?.('online', onOnline);
+  connectionEvents?.addEventListener?.('offline', onOffline);
   return controller;
 }
