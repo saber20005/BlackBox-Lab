@@ -2,8 +2,9 @@ import test, { before, beforeEach, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { createInitialState } from '../progress.js';
+import { createInitialState, parseBackup } from '../progress.js';
 import { CASE_IDS } from '../cybertrace-catalog.js';
+import { tracks } from '../data.js';
 
 // No production requests or accounts are used by this suite. Without an
 // explicit emulator address it skips instead of falling back to live Firebase.
@@ -26,6 +27,28 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     schemaVersion: 1, source: 'cybertrace', caseId, bestScore,
     firstSyncedAt: serverTimestamp(), updatedAt: serverTimestamp(),
   });
+  const originalTracks = ['recon', 'nmap', 'network', 'webgoat', 'proxy', 'metasploit'];
+  const defensiveTracks = ['logs', 'integrity', 'headers', 'email'];
+  const keysFor = trackIds => trackIds.flatMap(trackId => [0, 1, 2].map(index => `${trackId}-${index}`));
+  const originalStageKeys = keysFor(originalTracks);
+  const defensiveStageKeys = keysFor(defensiveTracks);
+  const allStageKeys = [...originalStageKeys, ...defensiveStageKeys];
+  const at = '2026-11-18T12:00:00.000Z';
+  const progressFor = stageKeys => {
+    const progress = createInitialState();
+    progress.checks = {};
+    for (const key of stageKeys) {
+      progress.checks[key] = [0, 1, 2];
+      progress.notes[key] = `ملاحظة أصلية محفوظة: ${key}`;
+      progress.results[key] = `دليل تدريب محلي: ${key}`;
+      progress.completed[key] = at;
+      progress.stageUpdatedAt[key] = at;
+    }
+    const last = stageKeys.at(-1);
+    progress.lastActivity = { trackId: last.slice(0, -2), stageIndex: Number(last.at(-1)), at };
+    progress.updatedAt = at;
+    return progress;
+  };
 
   before(async () => {
     const [host, port] = process.env.FIRESTORE_EMULATOR_HOST.split(':');
@@ -68,6 +91,86 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     await assertFails(updateDoc(aliceFromBob, { revision: 2, updatedAt: serverTimestamp() }));
     await assertFails(deleteDoc(aliceFromBob));
     await assertSucceeds(setDoc(doc(bob, path('bob')), snapshot()));
+  });
+
+  test('all thirty published stages are owner-writable and each defensive stage can be resumed', async () => {
+    const clientStageKeys = tracks.flatMap(track => track.stages.map((_, index) => `${track.id}-${index}`));
+    assert.deepEqual([...clientStageKeys].sort(), [...allStageKeys].sort(), 'the client catalogue must match the reviewed thirty-stage contract');
+    const alice = environment.authenticatedContext('alice').firestore();
+    const bob = environment.authenticatedContext('bob').firestore();
+    const reference = doc(alice, path('alice'));
+    const progress = progressFor(allStageKeys);
+    await assertSucceeds(setDoc(reference, snapshot(1, progress)));
+    const stored = (await assertSucceeds(getDoc(reference))).data();
+    for (const field of ['checks', 'notes', 'results', 'completed', 'stageUpdatedAt']) {
+      assert.deepEqual(Object.keys(stored.progress[field]).sort(), [...allStageKeys].sort());
+    }
+    let revision = 2;
+    for (const trackId of defensiveTracks) {
+      for (const stageIndex of [0, 1, 2]) {
+        progress.lastActivity = { trackId, stageIndex, at };
+        await assertSucceeds(setDoc(reference, snapshot(revision++, progress)));
+        assert.deepEqual((await getDoc(reference)).data().progress.lastActivity, progress.lastActivity);
+      }
+    }
+    await assertFails(getDoc(doc(bob, path('alice'))));
+    await assertFails(setDoc(doc(bob, path('alice')), snapshot(revision, progress)));
+    await assertFails(setDoc(doc(alice, `blackboxUsers/alice/verifiedCybertrace/${CASE_IDS[0]}`), {
+      caseId: CASE_IDS[0], bestScore: 70, verification: 'server',
+    }));
+  });
+
+  test('an eighteen-stage cloud snapshot and backup migrate without replacing earned work', async () => {
+    const alice = environment.authenticatedContext('alice').firestore();
+    const reference = doc(alice, path('alice'));
+    const legacy = progressFor(originalStageKeys);
+    assert.equal(Object.keys(legacy.checks).length, 18);
+    await assertSucceeds(setDoc(reference, snapshot(1, legacy)));
+
+    // An old unversioned export gains empty checklists for new stages, but keeps
+    // every existing completion, note, result and date exactly as exported.
+    const expanded = parseBackup(JSON.stringify(legacy));
+    assert.equal(Object.keys(expanded.checks).length, 30);
+    for (const key of defensiveStageKeys) assert.deepEqual(expanded.checks[key], []);
+    expanded.checks['headers-2'] = [0, 1, 2];
+    expanded.notes['headers-2'] = 'ملاحظة مرحلة جديدة بجوار العمل السابق';
+    expanded.results['headers-2'] = 'دليل جديد بعد استعادة النسخة القديمة';
+    expanded.completed['headers-2'] = at;
+    expanded.stageUpdatedAt['headers-2'] = at;
+    expanded.lastActivity = { trackId: 'headers', stageIndex: 2, at };
+    await assertSucceeds(setDoc(reference, snapshot(2, expanded)));
+    const saved = (await assertSucceeds(getDoc(reference))).data();
+    assert.equal(saved.revision, 2);
+    for (const field of ['checks', 'notes', 'results', 'completed', 'stageUpdatedAt']) {
+      for (const key of originalStageKeys) assert.deepEqual(saved.progress[field][key], legacy[field][key]);
+    }
+    assert.equal(Object.keys(saved.progress.completed).length, 19);
+    assert.equal(saved.progress.results['headers-2'], expanded.results['headers-2']);
+    for (const outsider of [environment.unauthenticatedContext().firestore(), environment.authenticatedContext('bob').firestore()]) {
+      await assertFails(setDoc(doc(outsider, path('alice')), snapshot(3, expanded)));
+    }
+  });
+
+  test('the expansion does not admit unknown stage IDs or invalid defensive resume positions', async () => {
+    const alice = environment.authenticatedContext('alice').firestore();
+    const reference = doc(alice, path('alice'));
+    const progress = progressFor(allStageKeys);
+    await assertSucceeds(setDoc(reference, snapshot(1, progress)));
+    for (const trackId of defensiveTracks) {
+      for (const field of ['checks', 'notes', 'results', 'completed', 'stageUpdatedAt']) {
+        const invalid = structuredClone(progress);
+        invalid[field][`${trackId}-3`] = field === 'checks' ? [] : at;
+        await assertFails(setDoc(reference, snapshot(2, invalid)));
+      }
+      for (const stageIndex of [-1, 3, 0.5, '0']) {
+        const invalid = { ...progress, lastActivity: { trackId, stageIndex, at } };
+        await assertFails(setDoc(reference, snapshot(2, invalid)));
+      }
+    }
+    for (const trackId of ['unknown', 'logs-shadow']) {
+      await assertFails(setDoc(reference, snapshot(2, { ...progress, lastActivity: { trackId, stageIndex: 0, at } })));
+    }
+    await assertFails(setDoc(reference, snapshot(2, { ...progress, lastActivity: { trackId: 'logs', stageIndex: 0, at, extra: true } })));
   });
 
   test('collection listing and unrelated paths remain denied even for an owner', async () => {

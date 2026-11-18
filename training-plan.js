@@ -6,9 +6,10 @@ export const PLAN_FOCUSES = Object.freeze([
   { id: 'foundation', label: 'الأساسيات والاستطلاع' },
   { id: 'network', label: 'الشبكات' },
   { id: 'web', label: 'تطبيقات الويب' },
+  { id: 'defense', label: 'التحليل الدفاعي' },
 ]);
 export const PLAN_BUDGETS = Object.freeze([15, 30, 60]);
-const focusTracks = { foundation: ['recon', 'nmap'], network: ['network', 'nmap'], web: ['webgoat', 'proxy'] };
+const focusTracks = { foundation: ['recon', 'nmap'], network: ['network', 'nmap'], web: ['webgoat', 'proxy'], defense: ['logs', 'integrity', 'headers', 'email'] };
 const object = value => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 const own = (value, key) => Object.hasOwn(object(value), key) ? value[key] : undefined;
 const text = value => typeof value === 'string' && value.trim().length > 0;
@@ -24,6 +25,16 @@ function linkedCases(linked) {
       return receipt ? [{ id, ...receipt, meta: CASE_META[id] }] : [];
     }).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   } catch { return []; }
+}
+
+// Local practice content can complement an existing case without changing its
+// shared skill or score. Only catalogue-verified case IDs may become links.
+export function getRelatedCaseIds(track) {
+  const catalogued = Object.keys(CASE_META).filter(id => CASE_META[id].trackIds.includes(track?.id));
+  const additional = Array.isArray(track?.relatedCases)
+    ? track.relatedCases.filter(id => typeof id === 'string' && Object.hasOwn(CASE_META, id))
+    : [];
+  return [...new Set([...catalogued, ...additional])];
 }
 
 /** Derive a plan from existing progress; this function never awards or saves work. */
@@ -43,14 +54,15 @@ export function buildTrainingPlan(rawProgress, options = {}) {
     const draft = text(own(progress.notes, key)) || text(own(progress.results, key)) || (Array.isArray(checks) && checks.some(item => Number.isInteger(item) && item >= 0 && item < stage.check.length));
     const last = progress.lastActivity;
     const current = last?.trackId === track.id && last.stageIndex === index;
-    const related = receipts.find(receipt => receipt.meta.trackIds.includes(track.id));
+    const relatedCaseIds = getRelatedCaseIds(track);
+    const related = receipts.find(receipt => relatedCaseIds.includes(receipt.id));
     const priority = draft ? 0 : current ? 1 : related ? 2 : index > 0 ? 3 : 4;
     const reason = draft ? 'لديك خطوات أو ملاحظات بدأت بها في هذه المرحلة.'
       : current ? 'هذه آخر مرحلة بدأت بها ولم تؤكّد إكمالها.'
       : related ? `تطبيق عملي مكمّل لتحقيق «${related.meta.title}» المسجّل في حسابك.`
       : index > 0 ? 'أكملت المرحلة السابقة؛ هذه الخطوة التالية المتاحة.'
       : track.id === 'recon' ? 'ابدأ بتجهيز حدود المختبر قبل التوسّع في الأدوات.' : 'خطوة متاحة لاستكشاف هذه المهارة.';
-    const suggestedCaseId = related?.id || Object.keys(CASE_META).find(id => CASE_META[id].trackIds.includes(track.id)) || null;
+    const suggestedCaseId = related?.id || relatedCaseIds[0] || null;
     candidates.push({ trackId: track.id, trackName: track.name, stageIndex: index, stageName: stage.name, goal: stage.goal, priority, order, reason, minutes: index === 0 ? 15 : 20, relatedCaseId: suggestedCaseId, linkedCaseId: related?.id || null });
   }
   candidates.sort((a, b) => a.priority - b.priority || a.order - b.order);
