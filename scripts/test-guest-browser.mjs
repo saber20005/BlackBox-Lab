@@ -190,6 +190,33 @@ async function runViewport(viewport) {
     assert.equal(await page.locator('#sideProgress').innerText(), `1 / ${stageCount}`, 'old completion survives the expanded catalogue');
     result.defensiveKitDownload = true;
 
+    const openedGuide = page.waitForEvent('popup');
+    await page.locator('[data-training-guide]').click();
+    const guide = await openedGuide;
+    guide.on('pageerror', error => errors.push(error.message));
+    await guide.waitForLoadState('domcontentloaded');
+    assert.equal(new URL(guide.url()).pathname, '/training-guide.html', 'the learner link opens a rendered guide instead of raw Markdown');
+    await guide.locator('main h1').waitFor({ state: 'visible' });
+    assert.equal(await guide.locator('html').getAttribute('dir'), 'rtl');
+    assert.equal(await guide.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'the readable guide must fit the viewport');
+    assert(await guide.locator('body').evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16), 'guide body text must remain legible on mobile');
+    assert.equal(await guide.locator('a[href$=".md"]').count(), 0, 'the guide does not send readers to another raw Markdown page');
+    for (const id of ['logs', 'integrity', 'headers', 'email']) {
+      const href = await guide.locator(`[data-guide-track="${id}"]`).getAttribute('href');
+      const target = new URL(href, guide.url());
+      assert.equal(target.origin, origin);
+      assert.equal(target.searchParams.get('track'), id);
+      assert.equal(target.searchParams.get('stage'), '0');
+    }
+    const guideArchive = await downloadBytes(guide, '[data-training-kit]');
+    assert(archive.equals(guideArchive), 'the readable guide downloads the existing evidence kit');
+    await guide.locator('[data-guide-track="email"]').click();
+    await guide.locator('#stageNotes').waitFor({ state: 'visible' });
+    assert.equal(new URL(guide.url()).searchParams.get('track'), 'email', 'guide start link opens the real exercise');
+    await guide.close();
+    assert.equal(await page.locator('#sideProgress').innerText(), `1 / ${stageCount}`, 'opening the guide preserves the original training tab');
+    result.readableTrainingGuide = true;
+
     await navigate(page, '/labs.html');
     await page.locator('#catalog article').first().waitFor({ state: 'visible' });
     if (await page.locator('#lab-intro').evaluate(el => el.open)) await page.locator('#lab-intro-close').click();
@@ -233,7 +260,7 @@ async function runViewport(viewport) {
     assert.deepEqual([...blockedHosts], [], 'the disabled-account fixture must not attempt external network calls');
     report.viewports.push(result);
     delete report.activeViewport;
-    console.log(`PASS guest browser journey at ${viewport.width}px: guides, navigation, drafts, locks, backup, defensive kit, catalogue and VM read cancellation`);
+    console.log(`PASS guest browser journey at ${viewport.width}px: guides, navigation, drafts, locks, backup, defensive kit, readable learner guide, catalogue and VM read cancellation`);
   } catch (error) {
     await mkdir(artifactDirectory, { recursive: true });
     try { await page.screenshot({ path: resolve(artifactDirectory, 'failure.png'), fullPage: true }); } catch {}
@@ -249,6 +276,27 @@ try {
     (async () => { for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) await runViewport(viewport); })(),
     new Promise((_, no) => { deadline = setTimeout(() => no(new Error('Guest browser regression exceeded its three-minute deadline')), 180000); }),
   ]);
+  const staticGuideContext = await browser.newContext({ viewport: { width: 320, height: 740 }, javaScriptEnabled: false });
+  const staticExternalHosts = new Set();
+  await staticGuideContext.route('**/*', route => {
+    const url = new URL(route.request().url());
+    if (url.origin === origin) return route.continue();
+    staticExternalHosts.add(url.hostname);
+    return route.abort('blockedbyclient');
+  });
+  try {
+    const guide = await staticGuideContext.newPage();
+    activePage = guide;
+    await navigate(guide, '/training-guide.html');
+    await guide.locator('main h1').waitFor({ state: 'visible' });
+    assert.equal(await guide.locator('[data-guide-track]').count(), 4, 'all track links remain available without JavaScript');
+    assert.equal(await guide.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'guide fits a narrow 320px screen without JavaScript');
+    await guide.locator('[data-guide-track="logs"]').focus();
+    assert.equal(await guide.evaluate(() => document.activeElement.dataset.guideTrack), 'logs');
+    assert.deepEqual([...staticExternalHosts], [], 'the static guide loads without external dependencies');
+    report.staticGuideWithoutJavaScript = true;
+    console.log('PASS readable training guide at 320px with JavaScript disabled');
+  } finally { await staticGuideContext.close(); }
   const lifecycle = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-training-plan-lifecycle.mjs')], {
     env: { ...process.env, BLACKBOX_TEST_URL: origin + '/?view=plan' }, timeout: 60000,
   });

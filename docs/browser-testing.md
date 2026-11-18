@@ -14,9 +14,14 @@ Firebase app, App Check token, sign-in, or cloud progress write is exercised.
 The journey covers the manual new-feature guide and navigation tour, all seven
 workspace sections, autosave across reload, completion/prerequisite locks,
 backup download and import preview/cancel, template-only documentation counts,
-the defensive training ZIP and catalogue start links, and stale VM-file reads
+the defensive training ZIP, the readable learner guide opened from a real training
+stage (including its download and return-to-training links), catalogue start links, and stale VM-file reads
 after replacement or clearing. Progress is synthetic data in a temporary guest
 browser context, which is closed after each viewport.
+
+The learner guide is also checked at 320px with JavaScript disabled. Its Arabic
+content and four exercise links remain available, and no raw Markdown link or
+external dependency is needed to read the instructions.
 
 With Playwright and Chromium available:
 

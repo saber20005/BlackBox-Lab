@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="دليل عربي لملفات BLACKBOX الدفاعية: نزّل الحزمة، حلّل الأدلة الاصطناعية على جهازك، ثم وثّق نتائجك في مسار التدريب.">
+  <meta name="robots" content="noindex,follow">
+  <title>دليل ملفات التدريب والتحليل | BLACKBOX Lab</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./training-guide.css">
+</head>
+<body>
+  <a class="skip-link" href="#guide-main">تجاوز إلى الدليل</a>
+  <header class="guide-header">
+    <a class="guide-brand" href="./" aria-label="BLACKBOX Lab — الصفحة الرئيسية"><span aria-hidden="true">B.</span><b dir="ltr">BLACKBOX Lab</b></a>
+    <a class="back-link" href="./?view=tracks&amp;track=logs">العودة إلى مسارات التدريب ←</a>
+  </header>
+
+  <main id="guide-main" tabindex="-1">
+    <section class="guide-hero" aria-labelledby="guide-title">
+      <p class="eyebrow">BLACKBOX / دليل المتعلم</p>
+      <h1 id="guide-title">دليل ملفات التدريب والتحليل</h1>
+      <p class="lead">تدرّب على قراءة الأدلة، ثم اكتب ما توصلت إليه. تجمع الحزمة ملفات اصطناعية للسجلات والإعدادات والويب والبريد، مع قارئ يعمل على جهازك باستخدام <bdi>Python 3</bdi>.</p>
+      <div class="guide-actions">
+        <a class="button primary" href="./downloads/blackbox-defense-kit.zip" download="blackbox-defense-kit.zip" data-training-kit>تنزيل ملفات التدريب (ZIP)</a>
+        <a class="button secondary" href="#start">كيف أبدأ؟ ↓</a>
+      </div>
+      <p class="device-note"><strong>تقرأ الدليل من الهاتف، وتنفّذ التحليل على الكمبيوتر.</strong> استخدم حاسوبًا يعمل بنظام Windows أو Linux أو macOS مع Python 3. لا تحتاج هذه المسارات إلى آلة افتراضية أو مكتبات Python إضافية؛ بعد تنزيل الملفات يمكنك تحليلها دون اتصال بالشبكة.</p>
+    </section>
+
+    <nav class="guide-nav" aria-label="أقسام دليل التدريب">
+      <a href="#start">البدء</a>
+      <a href="#tracks">اختر تمرينك</a>
+      <a href="#review">توثيق العمل ومراجعته</a>
+      <a href="#reader">عن القارئ والملفات</a>
+    </nav>
+
+    <section class="guide-section" id="start" aria-labelledby="start-title">
+      <p class="eyebrow">خطوات التجهيز</p>
+      <h2 id="start-title">ابدأ بثلاث خطوات</h2>
+      <ol class="setup-steps">
+        <li><h3>نزّل الحزمة</h3><p>استخدم زر «تنزيل ملفات التدريب» للحصول على ملف <bdi><code>blackbox-defense-kit.zip</code></bdi>. الحزمة نفسها تخدم التمارين الأربعة.</p></li>
+        <li><h3>استخرج الملفات كاملةً</h3><p>فكّ ضغط ZIP، ثم افتح مجلد <bdi><code>blackbox-defense</code></bdi>. ستجد داخله <bdi><code>analyze.py</code></bdi> وملفات الأدلة ودليلًا نصيًا يمكنك الاحتفاظ به للقراءة دون اتصال.</p></li>
+        <li><h3>افتح الطرفية داخل المجلد</h3><p>تحقّق من وجود Python 3 على جهازك، ثم اعرض مساعدة القارئ بالأمر المناسب لنظامك:</p>
+          <div class="command-grid">
+            <div class="command-panel"><h4>Linux وmacOS</h4><pre dir="ltr"><code>python3 analyze.py --help</code></pre></div>
+            <div class="command-panel"><h4>Windows</h4><pre dir="ltr"><code>py -3 analyze.py --help</code></pre></div>
+          </div>
+          <p>تعتمد بقية الأمثلة على <bdi><code>python3</code></bdi>. في Windows يمكنك استبداله بـ <bdi><code>py -3</code></bdi> أو <bdi><code>python</code></bdi> إذا كان تثبيتك يشغّل Python 3 بهذا الاسم.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="guide-section" id="tracks" aria-labelledby="tracks-title">
+      <p class="eyebrow">من الملف إلى الاستنتاج</p>
+      <h2 id="tracks-title">اختر تمرينك</h2>
+      <p class="section-intro">ابدأ بقراءة الملف الأصلي وتحديد سؤال التحقيق. استخدم القارئ للتحقق من ملاحظاتك، ثم دوّن الدليل والاستنتاج داخل مرحلة التدريب المناسبة.</p>
+      <div class="track-grid">
+        <article class="track-card" id="logs" aria-labelledby="logs-title">
+          <span class="track-number" aria-hidden="true">01</span>
+          <h3 id="logs-title">تحليل سجلات المصادقة</h3>
+          <p class="track-summary">اربط الوقت بالجلسة والمصدر والجهاز.</p>
+          <h4>ملف الدليل</h4>
+          <p><bdi><code>auth-events.csv</code></bdi></p>
+          <h4>أمر التحليل</h4>
+          <pre dir="ltr"><code>python3 analyze.py logs</code></pre>
+          <h4>ما الذي توثّقه؟</h4>
+          <p>خطًا زمنيًا ومذكرة فرز تفصل الوقائع عن الاستنتاجات. احسب عدد الأحداث والجلسات من الملف بنفسك، ثم قارنه بمخرجات القارئ.</p>
+          <a class="track-link" href="./?track=logs&amp;stage=0" data-guide-track="logs">افتح أول مرحلة في المسار ←</a>
+        </article>
+
+        <article class="track-card" id="integrity" aria-labelledby="integrity-title">
+          <span class="track-number" aria-hidden="true">02</span>
+          <h3 id="integrity-title">سلامة الملفات والتحقق</h3>
+          <p class="track-summary">قارن المرجع بالنسخة الحالية وفسّر التغيير.</p>
+          <h4>ملفات الأدلة</h4>
+          <p><bdi><code>integrity/baseline/</code></bdi> و<bdi><code>integrity/current/</code></bdi>، مع مرجع البصمة وسجل التغيير داخل مجلد <bdi><code>integrity</code></bdi>.</p>
+          <h4>أمر التحليل</h4>
+          <pre dir="ltr"><code>python3 analyze.py integrity</code></pre>
+          <h4>ما الذي توثّقه؟</h4>
+          <p>جدول فروق الإعداد وأثرها، ثم نتيجة إعادة التحقق من نسخة عمل. احتفظ بملفات الدليل الأصلية كما هي عند تجربة التعديل.</p>
+          <a class="track-link" href="./?track=integrity&amp;stage=0" data-guide-track="integrity">افتح أول مرحلة في المسار ←</a>
+        </article>
+
+        <article class="track-card" id="headers" aria-labelledby="headers-title">
+          <span class="track-number" aria-hidden="true">03</span>
+          <h3 id="headers-title">ترويسات الويب والجلسات</h3>
+          <p class="track-summary">راجع استجابتين محفوظتين وقارن الضوابط.</p>
+          <h4>ملفات الأدلة</h4>
+          <p><bdi><code>headers/before.txt</code></bdi> و<bdi><code>headers/after.txt</code></bdi></p>
+          <h4>أمر التحليل</h4>
+          <pre dir="ltr"><code>python3 analyze.py headers</code></pre>
+          <h4>ما الذي توثّقه؟</h4>
+          <p>جردًا للترويسات وخصائص الجلسة، ومقارنة للضوابط، ومصفوفة تحقق تربط كل استنتاج بدليله وحدوده.</p>
+          <p class="context-note">يمثل الملفان أصل HTTPS اصطناعيًا هو <bdi><code>https://portal.training.example/</code></bdi>. يقرأ القارئ الملفات محليًا؛ التحقق من سلوك المتصفح والاتصال الفعلي خطوة منفصلة.</p>
+          <a class="track-link" href="./?track=headers&amp;stage=0" data-guide-track="headers">افتح أول مرحلة في المسار ←</a>
+        </article>
+
+        <article class="track-card" id="email" aria-labelledby="email-title">
+          <span class="track-number" aria-hidden="true">04</span>
+          <h3 id="email-title">فرز البريد المشبوه</h3>
+          <p class="track-summary">وازن هوية المرسل والرد مع نتائج المصادقة.</p>
+          <h4>ملفات الأدلة</h4>
+          <p><bdi><code>email/suspicious.eml</code></bdi> و<bdi><code>email/legitimate.eml</code></bdi></p>
+          <h4>أمر التحليل</h4>
+          <pre dir="ltr"><code>python3 analyze.py email</code></pre>
+          <h4>ما الذي توثّقه؟</h4>
+          <p>مقارنة هويات المرسل والرد ونتائج المصادقة، ثم بلاغًا تدريبيًا محدد النطاق يذكر درجة الثقة والتحقق المطلوب.</p>
+          <p class="context-note">نطاق الجهة التدريبية المتوقع هو <bdi><code>lab.example</code></bdi>، والبوابة الموثوقة داخل السيناريو هي <bdi><code>gateway.training.example</code></bdi>. فسّر <bdi><code>Authentication-Results</code></bdi> وفق مصدرها؛ وجود الترويسة في رسالة حقيقية وحده لا يثبت موثوقيتها.</p>
+          <a class="track-link" href="./?track=email&amp;stage=0" data-guide-track="email">افتح أول مرحلة في المسار ←</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="guide-section review-panel" id="review" aria-labelledby="review-title">
+      <p class="eyebrow">دوّن ما لاحظته فعليًا</p>
+      <h2 id="review-title">وثّق عملك ثم راجعه</h2>
+      <p>نفّذ مراحل المسار بالتتابع: اقرأ الدليل، استخرج ملاحظاتك، ثم سجّل الاستنتاج والقرينة والحدود والخطوة التالية داخل BLACKBOX. تشغيل القارئ يعرض الوقائع؛ تؤكّد إنجاز المرحلة يدويًا بعد تنفيذ بنودها.</p>
+      <p>للمساعدة بعد المحاولة، افتح ملف <bdi><code>REVIEW-ar.md</code></bdi> داخل الحزمة المستخرجة. يبدأ بتلميحات عامة، ثم يعرض مؤشرات العينات التي يمكنك مقارنتها بملاحظاتك. يبقى دليل المتعلم النصي في <bdi><code>README-ar.md</code></bdi> متاحًا داخل الحزمة أيضًا.</p>
+    </section>
+
+    <section class="guide-section" id="reader" aria-labelledby="reader-title">
+      <h2 id="reader-title">عن القارئ والملفات</h2>
+      <div class="reader-notes">
+        <div><h3>قراءة محلية للأدلة</h3><p>يستخدم القارئ مكتبات Python القياسية لقراءة ملفات الحزمة دون تعديلها أو تنفيذ محتواها. يعيد رمز خروج غير صفري عند ملف مفقود أو صيغة غير صالحة. يبحث عن الأدلة بجوار السكربت، ويمكن تشغيله من مجلد آخر بتحديد مسار <bdi><code>analyze.py</code></bdi>.</p></div>
+        <div><h3>عينات للتعلّم</h3><p>البيانات اصطناعية، وتخلو العينات من كلمات مرور حقيقية أو مرفقات تنفيذية. روابط البريد مكتوبة بصيغة <bdi><code>hxxps</code></bdi> ويمكن إتمام التمرين بقراءتها كنص. نتائج القارئ تخص الملفات المعطاة؛ فهي لا تمثل فحصًا لجهازك أو شبكتك، أو قرار احتواء، أو درجة موثقة.</p></div>
+        <div><h3>بصمات الملفات</h3><p>يسرد ملف <bdi><code>SHA256SUMS</code></bdi> بصمات الملفات الموزعة. تطابق <bdi>SHA-256</bdi> يثبت تطابق البايتات مع مرجع الحزمة؛ توثيق أصالة المصدر أو سلامة الملف يحتاج تحققًا إضافيًا.</p></div>
+      </div>
+      <details class="json-example">
+        <summary>اختياري: حفظ المخرجات بصيغة JSON</summary>
+        <p>أضف <bdi><code>--json</code></bdi> للحصول على مخرجات منظمة. المثال التالي ينشئ ملفًا جديدًا باسم <bdi><code>observations.json</code></bdi> في المجلد الحالي بواسطة إعادة توجيه المخرجات:</p>
+        <pre dir="ltr"><code>python3 analyze.py logs --json &gt; observations.json</code></pre>
+        <p>قارئ الأدلة نفسه يبقى للقراءة فقط؛ الملف الجديد هو المخرج الذي اخترت حفظه.</p>
+      </details>
+    </section>
+
+    <footer class="guide-footer">
+      <p><bdi>BLACKBOX Lab</bdi> · تعلّم، طبّق، وثّق</p>
+      <a href="./?view=tracks&amp;track=logs">العودة إلى مسارات التدريب ←</a>
+    </footer>
+  </main>
+</body>
+</html>
