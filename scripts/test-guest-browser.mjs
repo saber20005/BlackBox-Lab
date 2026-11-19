@@ -190,6 +190,34 @@ async function runViewport(viewport) {
     assert.equal(await page.locator('#sideProgress').innerText(), `1 / ${stageCount}`, 'old completion survives the expanded catalogue');
     result.defensiveKitDownload = true;
 
+    await page.locator('[data-evidence-search]').waitFor({ state: 'visible' });
+    await page.waitForFunction(() => document.querySelectorAll('[data-evidence-line]').length === 12);
+    await page.locator('[data-evidence-search]').fill('session-lab-02');
+    await page.waitForFunction(() => document.querySelectorAll('[data-evidence-line]').length === 4);
+    await page.locator('[data-evidence-search]').fill('');
+    await page.locator('[data-evidence-filter-event]').selectOption('file_read');
+    await page.waitForFunction(() => document.querySelectorAll('[data-evidence-line]').length === 2);
+    await page.locator('[data-evidence-filter-event]').selectOption('');
+    const draftResult = 'Synthetic existing result before selecting a source row.';
+    const draftNote = 'Synthetic note must survive adding a citation.';
+    await page.locator('#stageResult').fill(draftResult);
+    await page.locator('#stageNotes').fill(draftNote);
+    await page.locator('[data-evidence-select="6"]').check();
+    await page.locator('[data-evidence-append]').click();
+    const cited = await page.locator('#stageResult').inputValue();
+    assert(cited.startsWith(draftResult));
+    assert.match(cited, /auth-events\.csv/);
+    assert.match(cited, /السطر 6/);
+    assert.match(cited, /198\.51\.100\.20/);
+    assert.equal(await page.locator('#stageNotes').inputValue(), draftNote);
+    assert.equal(await page.locator('#confirmStage').isDisabled(), true, 'selecting evidence does not award stage completion');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    assert.equal(await page.locator('#stageResult').inputValue(), cited);
+    assert.equal(await page.locator('#stageNotes').inputValue(), draftNote);
+    assert.equal(await page.locator('#sideProgress').innerText(), `1 / ${stageCount}`);
+    result.evidenceFilteringCitationAndDrafts = true;
+
     const openedGuide = page.waitForEvent('popup');
     await page.locator('[data-training-guide]').click();
     const guide = await openedGuide;
