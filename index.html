@@ -26,7 +26,7 @@
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+  <link id="bb-fonts" rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./loading.css">
   <script defer src="./loading.js"></script>
@@ -35,10 +35,10 @@
   <link rel="stylesheet" href="./onboarding.css">
   <link rel="stylesheet" href="./landing.css"><link rel="stylesheet" href="./whats-new.css"><script defer src="./whats-new.js"></script>
   <script defer src="./landing.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
+  <script async src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <div id="bb-load-indicator" role="presentation" aria-hidden="true"></div>
+  <div id="bb-load-indicator" role="status" aria-live="polite" aria-atomic="true" data-loading-until="workspace" hidden></div>
   <noscript><p>BLACKBOX مساحة تدريب عربية تضم 10 مسارات و30 مرحلة، مع ملفات للتحليل الدفاعي المحلي. فعّل JavaScript لفتح المسارات وحفظ نتائجك وملاحظاتك وتنزيل تقاريرك.</p></noscript>
   <a class="skip-link" href="#main-content">تجاوز إلى المحتوى</a>
   <div id="landing-page" class="bb-landing" aria-labelledby="landing-title">

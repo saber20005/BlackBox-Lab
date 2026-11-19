@@ -42,11 +42,13 @@ jobs:
         run: npm install --prefix /tmp/blackbox-playwright --no-audit --no-fund --no-package-lock playwright@1.62.1
       - name: Install Chromium and system dependencies
         run: node /tmp/blackbox-playwright/node_modules/playwright/cli.js install --with-deps chromium
-      - name: Verify desktop and mobile guest journeys
+      - name: Verify desktop/mobile journeys and startup loading
         env:
           BLACKBOX_PLAYWRIGHT_MODULE: /tmp/blackbox-playwright/node_modules/playwright/index.mjs
           BLACKBOX_BROWSER_ARTIFACTS: /tmp/blackbox-browser-artifacts
-        run: node scripts/test-guest-browser.mjs
+        run: |
+          node scripts/test-guest-browser.mjs
+          node scripts/test-loading-browser.mjs
       - name: Upload guest browser failure details
         if: failure()
         uses: actions/upload-artifact@v4

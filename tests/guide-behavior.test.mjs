@@ -47,6 +47,7 @@ function fixture({ skillsVisible = true, storageFails = false } = {}) {
   const document = new Events();
   const nodes = new Map(); const observers = []; const storage = new Map();
   document.body = new Element(document, 'body'); document.activeElement = document.body;
+  document.documentElement = new Element(document, 'html');
   const add = (id, tag = 'div', parent = document.body) => { const node = new Element(document, id, tag); nodes.set(id, node); parent.append(node); return node; };
   const app = add('app'); const landing = add('landing-page');
   for (const id of ['landing-enter', 'landing-enter-top', 'landing-start-tour', 'landing-start-tour-bottom']) add(id, 'button', landing);
