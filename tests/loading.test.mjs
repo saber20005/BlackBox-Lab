@@ -13,7 +13,7 @@ test('all loading-cue pages retain their shared non-blocking assets', () => {
   for (const { name, html } of pages) {
     assert.match(html, /id="bb-load-indicator"/, name);
     assert.match(html, /src="\.\/loading\.js"/, name);
-    assert.match(html, /href="\.\/loading\.css"/, name);
+    assert.match(html, /href="\.\/assets\/styles\/loading\.css"/, name);
   }
   assert.match(css, /pointer-events\s*:\s*none/);
 });
