@@ -9,6 +9,11 @@ test('Suite Pro is informational only and preserves the free training entry', ()
   assert(page.includes('قيد التطوير'));
   assert(page.includes('لا يوجد دفع أو شراء أو اشتراك فعّال الآن'));
   assert(page.includes('https://cybertracelab.dev/?view=pro'));
+  assert(page.includes('https://cybertracelab.dev/?view=soc'));
+  assert(page.includes('مناوبة SOC تجريبية مجانية'));
+  assert(page.includes('تقييم محلي غير موثق'));
+  assert(!page.includes('مناوبة SOC مدفوعة الآن'));
+
   assert(home.includes('href="./pro.html"'));
   assert(home.includes('id="landing-enter"'));
   assert(home.includes('id="landing-enter-top"'));
