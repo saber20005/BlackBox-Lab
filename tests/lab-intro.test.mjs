@@ -13,7 +13,7 @@ test('onboarding has accessible dialog and replay control', () => {
   assert.match(html, /aria-labelledby="lab-intro-title"/);
   assert.match(html, /aria-describedby="lab-intro-body"/);
   assert.match(html, /src="\.\/lab-intro\.js"/);
-  assert.match(html, /href="\.\/lab-intro\.css"/);
+  assert.match(html, /href="\.\/assets\/styles\/lab-intro\.css"/);
   assert.match(css, /::backdrop/);
 });
 test('guide discloses manual labs and read-only inspector', () => {
