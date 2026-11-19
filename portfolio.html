@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>BLACKBOX | ملف التدريب المختار</title>
+  <link rel="stylesheet" href="./portfolio.css">
+</head>
+<body>
+  <header class="page-header screen-only">
+    <a href="./mission-mode.html">← المهام وبصمة المهارات</a>
+    <strong lang="en" dir="ltr">BLACKBOX / PORTFOLIO</strong>
+  </header>
+  <main>
+    <section class="portfolio-intro screen-only" aria-labelledby="page-title">
+      <h1 id="page-title">اختر ما يروي رحلتك التدريبية</h1>
+      <p>اختر مراحل أكّدتها يدويًا، وراجع ملفك قبل مشاركته. تبدأ المعاينة بلا مراحل، ولا تُضاف ملاحظاتك أو نتائجك إلا باختيارك.</p>
+      <p class="manual-notice">هذا ملف تدريب بتأكيد المتعلم، وليس شهادة أو تحققًا آليًا من تنفيذ التمارين. إنشاء الملف لا يغيّر تقدمك ولا يمنح نقاطًا.</p>
+    </section>
+
+    <section class="source-panel screen-only" aria-label="مصدر تقدم التدريب">
+      <p id="progress-session-status" role="status" aria-live="polite">جارٍ استعادة جلسة الحساب قبل اختيار مصدر التقدم…</p>
+      <div class="action-row">
+        <button type="button" data-progress-refresh>تحديث عرض التقدم</button>
+        <a href="./?view=home">تسجيل الدخول أو مراجعة الحساب في BLACKBOX ←</a>
+      </div>
+      <p class="muted">يعرض الحساب آخر تقدم محفوظ على الخادم. إذا عدّلت تدريبك مؤخرًا، انتظر اكتمال المزامنة في BLACKBOX ثم عد وحدّث العرض.</p>
+    </section>
+
+    <div class="portfolio-layout">
+      <aside class="portfolio-controls screen-only" aria-labelledby="selection-title">
+        <h2 id="selection-title">ماذا تريد أن تشارك؟</h2>
+        <p class="muted">تظهر هنا المراحل المكتملة بتأكيدك اليدوي فقط.</p>
+        <div class="action-row">
+          <button type="button" data-portfolio-select-completed>اختيار كل المراحل المكتملة</button>
+          <button type="button" data-portfolio-clear>مسح الاختيار</button>
+        </div>
+        <fieldset class="stage-options">
+          <legend>المراحل المختارة</legend>
+          <div id="portfolio-stage-options"></div>
+        </fieldset>
+        <fieldset class="disclosure-options">
+          <legend>نصوص إضافية باختيارك</legend>
+          <label class="check-option"><input type="checkbox" data-portfolio-include-notes><span>تضمين ملاحظاتي للمراحل المختارة</span></label>
+          <label class="check-option"><input type="checkbox" data-portfolio-include-results><span>تضمين نتائجي للمراحل المختارة</span></label>
+          <p class="muted">راجع النصوص في المعاينة قبل المشاركة. تظل نصوص المراحل غير المختارة خارج الملف.</p>
+        </fieldset>
+        <p id="portfolio-selection-summary" role="status" aria-live="polite"></p>
+        <button type="button" class="primary print-button" data-portfolio-print disabled>طباعة / حفظ PDF</button>
+        <p class="print-help muted">يفتح الزر نافذة الطباعة في المتصفح. اختر «حفظ بتنسيق PDF» أو «Save as PDF» ضمن خيارات الوجهة لحفظ الملف، إذا كان متصفحك يدعمها.</p>
+      </aside>
+
+      <section class="portfolio-preview" aria-labelledby="preview-title">
+        <h2 id="preview-title" class="screen-only">معاينة الملف</h2>
+        <p id="portfolio-empty-preview" class="empty-preview screen-only">اختر مرحلة مكتملة لبدء المعاينة.</p>
+        <article id="portfolio-report" aria-labelledby="portfolio-report-title" hidden></article>
+      </section>
+    </div>
+    <noscript><p>يتطلب اختيار المراحل ومعاينة الملف تفعيل JavaScript. يمكنك العودة إلى BLACKBOX لقراءة التدريب.</p></noscript>
+  </main>
+  <script type="module" src="./portfolio-page.js"></script>
+</body>
+</html>

@@ -6,15 +6,18 @@
 body{background:#090f20;color:#edf2ff;font-family:system-ui,sans-serif;margin:0}main{max-width:1050px;margin:auto;padding:24px}
 a{color:#93c5fd}header{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
 .panel{background:#121e35;border:1px solid #30415e;border-radius:16px;padding:20px;margin:16px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px}
 small,.muted{color:#c2cde0}progress{width:100%;height:14px;accent-color:#60a5fa}
 li{margin:12px 0}h1,h2,h3{line-height:1.5}.notice{border-inline-start:4px solid #fbbf24;padding:12px;background:#243049}
+.progress-actions{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.panel{min-width:0;overflow-wrap:anywhere}button{font:inherit}#progress-session-status{line-height:1.9}
 </style></head><body><main>
-<header><a href="./">← العودة إلى BLACKBOX</a><strong>BLACKBOX / MISSION LAB</strong></header>
-<h1>Mission Mode + Skill DNA</h1>
-<p class="notice">نسخة تجريبية للعرض فقط: تعرض التقدم المحفوظ محليًا في هذا المتصفح، ولا تقرأ تقدم الحساب المتزامن. إكمال المراحل تأكيد من المتعلم، وليس شهادة أو تحققًا آليًا من تنفيذ الأوامر. لا تُمنح نقاط جديدة هنا.</p>
-<p id="storage-status" role="status"></p>
+<header><a href="./">← العودة إلى BLACKBOX</a><a href="./portfolio.html">جهّز ملف أعمالك PDF ←</a><strong>BLACKBOX / MISSION LAB</strong></header>
+<h1>مهامك وبصمة مهاراتك</h1>
+<p class="notice">عرض للتقدم: تُقرأ نسخة الحساب المتزامن عند تسجيل الدخول، أو تقدم الضيف المحلي عند استخدامه. يظهر مصدر البيانات وحالة تحديثها أدناه. إكمال المراحل تأكيد من المتعلم، وليس شهادة أو تحققًا آليًا من تنفيذ الأوامر. لا تُمنح نقاط جديدة هنا.</p>
+<div class="progress-actions"><button type="button" class="secondary" data-progress-refresh>تحديث عرض التقدم</button><a href="./?view=home">تسجيل الدخول أو مراجعة الحساب في BLACKBOX ←</a></div>
+<p class="muted">يستخدم عرض الحساب آخر تقدم محفوظ على الخادم. إذا عدّلت تدريبك مؤخرًا، انتظر اكتمال المزامنة في BLACKBOX ثم عد وحدّث العرض. عرض المهام للقراءة فقط.</p>
+<p id="progress-session-status" role="status" aria-live="polite">جارٍ استعادة جلسة الحساب قبل اختيار مصدر التقدم…</p>
 <h2>مهام تدريبية مترابطة</h2><div id="missions" class="grid"></div>
-<h2>بصمة المهارات</h2><p class="muted">نسبة الإنجاز تعكس المراحل المؤكدة يدويًا، والتوثيق يعكس وجود ملاحظات أو نتائج؛ لا تمثل تقييمًا أمنيًا معتمدًا.</p>
+<h2>بصمة المهارات</h2><p class="muted">نسبة الإنجاز تعكس المراحل المؤكدة يدويًا، والتوثيق يعكس وجود ملاحظات أو نتائج تتجاوز القوالب الفارغة؛ لا تمثل تقييمًا أمنيًا معتمدًا.</p>
 <div id="skills" class="grid"></div>
 </main><script type="module" src="./mission-page.js"></script></body></html>

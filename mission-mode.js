@@ -1,4 +1,5 @@
 import { tracks } from './data.js';
+import { hasMeaningfulDocumentation } from './documentation-templates.js';
 
 export const MISSIONS = Object.freeze([
   { id: 'network-investigator', title: 'محقق الشبكات', description: 'اعزل البيئة، حلّل الشبكة، ثم وثّق استنتاجًا دفاعيًا.', steps: [{ trackId: 'recon', stageIndex: 0 }, { trackId: 'network', stageIndex: 1 }, { trackId: 'network', stageIndex: 2 }] },
@@ -13,11 +14,13 @@ export function missionStatus(mission, progress) {
     const stage = track?.stages[stageIndex];
     if (!stage) throw new Error('Unknown mission stage');
     const key = trackId + '-' + stageIndex;
+    const available = stageIndex === 0 || Boolean(progress?.completed?.[trackId + '-' + (stageIndex - 1)]);
     return {
       trackId, stageIndex, title: stage.name, trackName: track.name,
       completed: Boolean(progress?.completed?.[key]),
-      documented: Boolean(progress?.results?.[key]?.trim() || progress?.notes?.[key]?.trim()),
-      href: './?track=' + encodeURIComponent(trackId) + '&stage=' + stageIndex,
+      documented: hasMeaningfulDocumentation(progress?.results?.[key]) || hasMeaningfulDocumentation(progress?.notes?.[key]),
+      available,
+      href: './?track=' + encodeURIComponent(trackId) + (available ? '&stage=' + stageIndex : ''),
     };
   });
   return { ...mission, steps, completed: steps.filter(step => step.completed).length,
@@ -30,7 +33,7 @@ export function skillDNA(progress) {
       const key = track.id + '-' + index;
       return {
         completed: Boolean(progress?.completed?.[key]),
-        documented: Boolean(progress?.notes?.[key]?.trim() || progress?.results?.[key]?.trim()),
+        documented: hasMeaningfulDocumentation(progress?.notes?.[key]) || hasMeaningfulDocumentation(progress?.results?.[key]),
       };
     });
     const completed = stages.filter(stage => stage.completed).length;
