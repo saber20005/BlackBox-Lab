@@ -344,6 +344,11 @@ try {
   });
   process.stdout.write(lifecycle.stdout);
   report.controlledAccountLifecycle = true;
+  const sessionPages = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-session-pages-browser.mjs')], {
+    env: { ...process.env, BLACKBOX_TEST_URL: origin + '/' }, timeout: 120000,
+  });
+  process.stdout.write(sessionPages.stdout);
+  report.readonlySessionPages = true;
   assert(localRequests.every(request => ['GET', 'HEAD'].includes(request.method)));
   console.log('PASS local-only fixture: accounts/grading disabled, analytics stubbed, no external requests or cloud writes');
 } catch (error) {
