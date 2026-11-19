@@ -4,6 +4,7 @@ import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { requireCaseId } from './grading-core.js';
+import { membershipForClient } from './suite-membership.js';
 
 initializeApp();
 const db = getFirestore();
@@ -43,5 +44,18 @@ export const submitGradingAnswer = onCall({ region: REGION, enforceAppCheck: tru
   } catch (error) {
     if (error instanceof HttpsError) throw error;
     throw invalid();
+  }
+});
+
+// Read-only membership endpoint. This cannot grant Pro access or process payments.
+// Requires BLACKBOX Firebase Auth and App Check; the UID is taken exclusively
+// from the verified caller, never from submitted data or CyberTrace email.
+export const getSuiteMembership = onCall({ region: REGION, enforceAppCheck: true, maxInstances: 10 }, async request => {
+  const uid = authUid(request);
+  try {
+    const snap = await db.doc(`suiteMemberships/${uid}`).get();
+    return membershipForClient(snap.exists ? snap.data() : null);
+  } catch {
+    throw new HttpsError('unavailable', 'Membership status is temporarily unavailable.');
   }
 });
