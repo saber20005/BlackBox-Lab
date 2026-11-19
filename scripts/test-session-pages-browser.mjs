@@ -42,6 +42,9 @@ async function pdfText(page, filename) {
   await mkdir(artifacts, { recursive: true });
   await page.emulateMedia({ media: 'print' });
   assert.equal(await page.locator('[data-portfolio-print]').isVisible(), false, 'export controls are excluded from the printed document');
+  for (const selector of ['.sidebar', '.topbar', '.footer']) assert.equal(await page.locator(selector).isVisible(), false, 'workspace navigation stays outside the printed document');
+  const titleSize = await page.locator('#portfolio-report .report-title').evaluate(node => parseFloat(getComputedStyle(node).fontSize));
+  assert(Math.abs(titleSize - 22 * 96 / 72) < 0.5, 'shared workspace heading styles must not shrink the PDF report title');
   const pdf = await page.pdf({ format: 'A4', printBackground: true, displayHeaderFooter: false });
   assert(pdf.length > 1000 && pdf.subarray(0, 4).toString() === '%PDF', 'the print layout generates a real nonempty PDF');
   const path = resolve(artifacts, filename);
@@ -88,6 +91,8 @@ try {
       await page.waitForFunction(() => typeof window.sessionFixture?.emitUser === 'function');
       await page.waitForFunction(() => document.querySelectorAll('[data-skill-id]').length === 10);
       assert.equal(await page.locator('[data-mission-id]').count(), 3);
+      assert.deepEqual(await page.locator('#nav [data-view]').evaluateAll(nodes => nodes.map(node => node.dataset.view)), ['home', 'tracks', 'progress', 'account']);
+      assert.equal(await page.locator('#nav [aria-current="page"]').getAttribute('data-view'), 'progress');
       assert.equal(await page.locator('[data-skill-id="recon"] progress').getAttribute('value'), '33');
 
       await emit(page, 'fixture-account-a');
@@ -134,6 +139,8 @@ try {
 
       await page.goto(new URL('portfolio.html', base).href, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-portfolio-stage="recon-0"]').waitFor({ state: 'visible' });
+      assert.deepEqual(await page.locator('#nav [data-view]').evaluateAll(nodes => nodes.map(node => node.dataset.view)), ['home', 'tracks', 'progress', 'account']);
+      assert.equal(await page.locator('#nav [aria-current="page"]').getAttribute('data-view'), 'progress');
       assert.equal(await page.locator('[data-portfolio-print]').isDisabled(), true, 'nothing is selected for sharing by default');
       assert.equal(await page.locator('[data-portfolio-include-notes]').isChecked(), false);
       assert.equal(await page.locator('[data-portfolio-include-results]').isChecked(), false);

@@ -143,8 +143,8 @@ try {
         });
         assert.equal(await f.page.locator('#content').innerText(), '');
         assert.equal(await f.page.locator('#bb-load-indicator').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
-        await f.page.locator('#quickBackup').focus();
-        assert.equal(await f.page.evaluate(() => document.activeElement.id), 'quickBackup', 'startup cue does not capture focus');
+        await f.page.locator('#workspace-tools > summary').focus();
+        assert.equal(await f.page.evaluate(() => document.activeElement.parentElement?.id), 'workspace-tools', 'startup cue does not capture focus');
         f.gates.app.release();
         await navigation;
         await assertWorkspace(f.page);

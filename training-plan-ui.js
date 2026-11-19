@@ -5,7 +5,7 @@ const esc = (value = '') => String(value).replace(/[&<>"']/g, character => ({ '&
 export function trainingPlanSummary(progress, options) {
   const plan = buildTrainingPlan(progress, options);
   const first = plan.tasks[0];
-  return `<section class="card section plan-teaser" aria-labelledby="planSummaryTitle"><div><span class="eyebrow">YOUR NEXT SESSION</span><h2 id="planSummaryTitle">جلسة واضحة، خطوة تليها خطوة</h2><p>${first ? `مقترحك التالي: ${esc(first.trackName)} — ${esc(first.stageName)}.` : 'أكملت المراحل المتاحة. اجمع نتائجك وراجع ما تعلّمته.'}</p><small>اقتراحات من تقدّمك الحالي ونتائج التحقيقات المرتبطة عند توفرها.</small></div><button type="button" class="secondary" data-nav="plan">جهّز خطة جلستك ←</button></section>`;
+  return `<section class="card section plan-teaser" aria-labelledby="planSummaryTitle"><div><span class="eyebrow">YOUR NEXT SESSION</span><h2 id="planSummaryTitle">اقتراح لجلسَتك التالية</h2><p>${first ? `مقترحك التالي: ${esc(first.trackName)} — ${esc(first.stageName)}.` : 'أكملت المراحل المتاحة. اجمع نتائجك وراجع ما تعلّمته.'}</p><small>اقتراحات من تقدّمك الحالي ونتائج التحقيقات المرتبطة عند توفرها.</small></div><button type="button" class="secondary" data-nav="plan">جهّز خطة جلستك ←</button></section>`;
 }
 
 export function trainingPlanPage(progress, options) {

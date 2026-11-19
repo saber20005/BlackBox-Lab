@@ -64,3 +64,33 @@ body:not(.bb-landing-active) #welcome-guide,body:not(.bb-landing-active) #welcom
 .bb-tour-bubble h2{font-size:19px;line-height:1.5}
 .bb-tour-actions{position:sticky;bottom:-20px;padding:10px 0 2px;background:#141d2b}
 @media(max-width:700px){.bb-tour-bubble{max-height:62dvh;padding:15px}.bb-tour-bubble p{font-size:13px}}
+
+/* A short browser-first introduction; local setup is optional and folded. */
+.bb-landing-hero{gap:clamp(28px,6vw,90px);padding-block:70px 55px;align-items:center}
+.bb-landing-hero h1{font-size:clamp(36px,4.6vw,62px);line-height:1.4}
+.bb-landing-hero .bb-start-note{font-size:13px;color:#829bbd;margin:18px 0 0}
+.bb-landing-actions .bb-start-training{display:inline-flex;align-items:center;justify-content:center;background:#3988ff;color:#07101c;border:1px solid #3988ff;border-radius:10px;padding:12px 20px;text-decoration:none;font-weight:700;font-size:15px;line-height:1.7}
+.bb-landing-actions .bb-start-training:hover{background:#6ba6ff}
+.bb-landing-actions button#landing-start-tour{background:transparent;color:#b9cae4;border-color:#334760;font-size:14px}
+.bb-learning-steps{list-style:none;padding:0;margin:0;display:grid;gap:16px}
+.bb-learning-steps li{display:flex;gap:18px;align-items:flex-start;padding:18px 20px;border:1px solid #2b3b54;border-radius:14px;background:#0b121f}
+.bb-learning-steps li>span{font:500 16px 'IBM Plex Mono',monospace;color:#6ba6ff;padding-top:4px}
+.bb-learning-steps strong{font-size:18px;color:#e9edf4}
+.bb-learning-steps p{font-size:14px;line-height:1.8;margin:4px 0 0;color:#9eb4d3}
+.bb-local-setup{margin:0 0 26px;border:1px solid #2b3b54;border-radius:14px;background:#0b121f}
+.bb-local-setup>summary{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 24px;cursor:pointer;list-style:none}
+.bb-local-setup>summary::-webkit-details-marker{display:none}
+.bb-local-setup>summary strong{display:block;font-size:16px;font-weight:600}
+.bb-local-setup>summary small{display:block;color:#9eb4d3;font-size:13px;margin-top:5px}
+.bb-local-setup>summary>span:last-child{color:#6ba6ff;font-size:22px}
+.bb-local-setup[open]>summary{border-bottom:1px solid #2b3b54}
+.bb-local-setup-body{padding:0 clamp(16px,3vw,30px) 8px}
+.bb-local-setup .bb-landing-section{padding-block:25px}
+.bb-local-setup .bb-landing-section h2{font-size:25px}
+.bb-local-setup .bb-wizard{margin:0 0 20px}
+.bb-local-setup .bb-landing-note{font-size:13px;line-height:1.9;margin:10px 0 22px}
+.bb-landing-help{margin:0 0 34px;color:#9eb4d3;font-size:14px;text-align:center}
+.bb-landing-help button{padding:3px 5px;background:none;border:0;color:#6ba6ff;font-size:14px;text-decoration:underline;text-underline-offset:4px}
+.bb-landing :is(a,button,summary):focus-visible{outline:3px solid #6ba6ff;outline-offset:4px}
+@media(max-width:800px){.bb-landing-hero{padding-block:35px 30px;gap:30px}.bb-learning-steps{gap:10px}.bb-learning-steps li{padding:15px 16px;gap:14px}.bb-learning-steps strong{font-size:16px}.bb-learning-steps p{font-size:13px}.bb-local-setup>summary{padding:17px 18px}.bb-local-setup>summary small{font-size:12px}.bb-local-setup .bb-landing-section h2{font-size:22px}}
+.bb-landing-copy>.bb-kicker{font-family:inherit;letter-spacing:0;font-size:13px}

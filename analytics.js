@@ -36,7 +36,7 @@ function safeLocation(value, site) {
   const source = new URL(value);
   const target = new URL(source.origin + source.pathname);
   const view = source.searchParams.get("view");
-  const views = site === "CyberTrace" ? ["home", "library", "auth"] : ["home", "tracks", "plan", "skills", "journal", "backups", "troubleshoot"];
+  const views = site === "CyberTrace" ? ["home", "library", "auth"] : ["home", "tracks", "progress", "account", "plan", "skills", "journal", "backups", "troubleshoot"];
   if (views.includes(view)) target.searchParams.set("view", view);
   if (site === "CyberTrace") {
     const caseId = source.searchParams.get("case");

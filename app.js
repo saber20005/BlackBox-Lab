@@ -1,11 +1,11 @@
 import { tracks, errors } from './data.js';
-import { parseRoute, routeURL, routeMetadata } from './routes.js';
+import { parseRoute, routeURL, routeMetadata, primaryView } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';
 import { mountAccountUI } from './account-ui.js';
 import { accountConfig } from './account-config.js';
 import { gradingAvailable, startVerifiedGrading, submitVerifiedAnswer } from './verified-grading-client.js';
-import { linkedSkillsPage, linkedSkillsSummary } from './linked-skills-ui.js';
+import { linkedSkillsPage } from './linked-skills-ui.js';
 import { trainingPlanPage, trainingPlanSummary } from './training-plan-ui.js';
 import { getRelatedCaseIds } from './training-plan.js';
 import { CASE_META } from './cybertrace-catalog.js';
@@ -47,12 +47,14 @@ const optionalStylePromises = new Map();
 let hintController;
 let hintScope = null;
 let hintViewState;
+let renderedContentScope;
+const nativePanels = ['[data-training-hints-disclosure]', '[data-training-resources]', '[data-environment-settings]'];
 let pendingImport = null;
 let importRequest = 0;
 let importMessage = '';
 let importError = false;
 let routeNotice = '';
-const titles = { home: 'لوحة التحكم', tracks: 'مسارات التدريب', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
+const titles = { home: 'تدريبي', tracks: 'المسارات', progress: 'تقدّمي', account: 'حسابي', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
 const content = document.getElementById('content');
 const stageKey = (trackId, index) => `${trackId}-${index}`;
 const trackById = id => tracks.find(track => track.id === id);
@@ -77,7 +79,7 @@ function resetSkillOwner(uid) {
 }
 function repaintLinkedSkills() {
   // Receipt updates must never replace a textarea while a draft is being edited.
-  if (['home', 'skills', 'plan'].includes(currentView)) render();
+  if (['home', 'progress', 'skills', 'plan'].includes(currentView)) render();
 }
 function planOptions() {
   return { focus: planFocus, budget: planBudget, linked: { userUid: accountStatus.user?.uid, ownerUid: skillOwnerUid, accountPhase: accountStatus.phase, state: skillState } };
@@ -158,7 +160,12 @@ function updateMetadata() {
     if (twitter) twitter.content = value;
   }
 }
+function closeWorkspaceTools() {
+  const tools = document.getElementById('workspace-tools');
+  if (tools) tools.open = false;
+}
 function applyLocation() {
+  closeWorkspaceTools();
   flushDraft();
   const route = parseRoute(window.location.href, currentTrack);
   currentView = route.view;
@@ -178,6 +185,7 @@ function applyLocation() {
   render(true);
 }
 function navigate(view, focus = true) {
+  closeWorkspaceTools();
   flushDraft();
   routeNotice = '';
   currentView = titles[view] ? view : 'home';
@@ -187,6 +195,7 @@ function navigate(view, focus = true) {
 }
 function openTrack(trackId) {
   if (!trackById(trackId)) return;
+  closeWorkspaceTools();
   flushDraft();
   currentTrack = trackId;
   currentView = 'tracks';
@@ -197,6 +206,7 @@ function openTrack(trackId) {
   document.getElementById('selectedTrack')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function openStage(trackId, index) {
+  closeWorkspaceTools();
   flushDraft();
   const track = trackById(trackId);
   if (!track || !Number.isInteger(index) || !track.stages[index] || !stageOpen(trackId, index)) return;
@@ -247,23 +257,30 @@ function trainingKitResources(track) {
   const requirements = track.id === 'logs' ? 'قارئ السجلات داخل الموقع يعمل على الهاتف والحاسوب دون Python. يتطلب تشغيل أدوات الحزمة محليًا Python 3؛ هذه المسارات لا تحتاج إلى آلة افتراضية.' : 'يتطلب التحليل المحلي Python 3. على Windows يمكنك استخدام py -3 بدل python3. هذه المسارات لا تحتاج إلى آلة افتراضية أو خدمة خارجية.';
   return `<section class="card section training-kit-card" aria-labelledby="trainingKitTitle"><div><span class="eyebrow">OFFLINE EVIDENCE KIT</span><h2 id="trainingKitTitle">ملفات هذا التدريب</h2><p>${esc(description)}</p><small>${esc(requirements)}</small></div><div class="training-kit-actions"><a class="primary" href="./downloads/blackbox-defense-kit.zip" download="blackbox-defense-kit.zip" data-training-kit>تنزيل ملفات التدريب (ZIP)</a><a class="secondary" href="./training-guide.html" target="_blank" rel="noopener" data-training-guide>كيف أستخدم ملفات التدريب؟ ↗</a></div></section>`;
 }
-function defenseTrainingIntroduction() {
-  const added = tracks.filter(track => track.trainingKit === 'defense-v1');
-  if (!added.length) return '';
-  const count = added.reduce((sum, track) => sum + track.stages.length, 0);
-  return `<section class="card section defense-intro" aria-labelledby="defenseIntroTitle"><div><span class="eyebrow">NEW PRACTICAL TRAINING</span><h2 id="defenseIntroTitle">مسارات جديدة للتحليل الدفاعي</h2><p>${added.length} مسارات و${count} مرحلة: حلّل السجلات والبريد، وقارن الملفات وترويسات الويب، ووثّق استنتاجك من ملفات التدريب المرفقة.</p></div><div class="training-kit-actions"><button type="button" class="primary" data-track="${esc(added[0].id)}">استكشف التدريب الجديد ←</button><a class="secondary" href="./downloads/blackbox-defense-kit.zip" download="blackbox-defense-kit.zip" data-training-kit>تنزيل ملفات التدريب (ZIP)</a></div></section>`;
-}
-function partnerIntroduction() {
-  return `<section class="partner-panel section" aria-labelledby="partnerTitle"><div><span class="eyebrow">CYBERTRACE / تحليل الحوادث</span><h2 id="partnerTitle">من المهارة إلى قرار الاستجابة</h2><p>تدرّب على تحقيقات أمنية تفاعلية بالعربية: اقرأ السجلات، واختر الدليل، وراجع قرارك. تبدأ التجربة من المتصفح.</p></div><a class="secondary partner-link" href="${esc(partnerURL())}" data-partner="home">استكشف CyberTrace ←</a></section>`;
+function compactProgress() {
+  return `<section class="card compact-progress" aria-labelledby="progressSummaryTitle"><div class="section-head"><h2 id="progressSummaryTitle">تقدّمك حتى الآن</h2><small>بتأكيدك اليدوي</small></div><dl class="compact-stats"><div><dt>مراحل مكتملة</dt><dd data-stat="completed">${completedCount()} <small>/ ${allStages}</small></dd></div><div><dt>بنود تحقّقت منها</dt><dd data-stat="checks">${checkedCount()} <small>/ ${allChecks}</small></dd></div><div><dt>مراحل موثّقة</dt><dd data-stat="notes">${documentedCount()}</dd></div></dl>${progressBar(completedCount(), allStages, 'المراحل المكتملة')}</section>`;
 }
 function home() {
-  const done = completedCount();
   const next = resumeActivity();
   const track = trackById(next.trackId);
   const stage = track.stages[next.index];
-  const allDone = done === allStages;
-  const hasProgress = Boolean(state.lastActivity || done || checkedCount() || documentedCount());
-  return `${hero('مساحة تتقدّم معك', 'مسارات عملية واضحة، ملاحظات لا تضيع، وتقرير يجمع ما تعلمته. أكمل من حيث توقفت أو اختر مهارة جديدة.')}<section class="resume-card" aria-labelledby="resumeTitle"><div><span class="eyebrow">${allDone ? 'ALL STAGES COMPLETED' : hasProgress ? 'CONTINUE YOUR PROGRESS' : 'START YOUR FIRST SESSION'}</span><h2 id="resumeTitle">${allDone ? 'أكملت جميع المراحل. حان وقت المراجعة.' : hasProgress ? 'واصل من حيث توقفت' : 'خطوتك الأولى تبدأ هنا'}</h2><p><span>${esc(track.name)}</span><span aria-hidden="true"> / </span>${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : `${allStages} مرحلة تدريبية · يمكنك اختيار أي مسار`}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} <span aria-hidden="true">←</span></button></section><section class="grid stats" aria-label="تقدمك بالأرقام"><article class="card stat"><span class="stat-label">مراحل أنجزتها</span><strong class="stat-value" data-stat="completed">${done}<span> / ${allStages}</span></strong>${progressBar(done, allStages, 'المراحل المكتملة')}<span class="stat-foot">${percentage(done, allStages)}% من رحلتك</span></article><article class="card stat"><span class="stat-label">بنود تحقّقت منها</span><strong class="stat-value" data-stat="checks">${checkedCount()}<span> / ${allChecks}</span></strong><span class="stat-foot">خطوات نفّذتها وأشّرت عليها</span></article><article class="card stat"><span class="stat-label">مراحل موثّقة</span><strong class="stat-value" data-stat="notes">${documentedCount()}</strong><span class="stat-foot">نتائج أو ملاحظات كتبتها</span></article><article class="card stat"><span class="stat-label">مسارات متاحة</span><strong class="stat-value">${tracks.length}</strong><span class="stat-foot">اختر المهارة المناسبة لك</span></article></section>${defenseTrainingIntroduction()}${trainingPlanSummary(state, planOptions())}<div class="grid dashboard-columns"><section class="card"><div class="section-head"><div><h2>مساراتك، بنظرة واحدة</h2><small>ثلاث مراحل لكل مهارة، وخطوة واضحة تليها</small></div><button type="button" class="link-btn" data-nav="tracks">استعرض المسارات ←</button></div>${pathCards(tracks)}</section><aside class="card quick-card"><div class="section-head"><h2>عملك يستحق أن تحتفظ به</h2></div><p>اجمع ملاحظاتك ونتائجك في تقرير، أو انقل تقدّمك إلى متصفح آخر بنسخة احتياطية.</p><button type="button" class="secondary full-width" data-nav="backups">النسخ الاحتياطي والتقارير</button><div class="quick-divider"></div><h3>أحدث نشاط</h3>${recentActivity()}<button type="button" class="link-btn" data-nav="journal">افتح سجل المختبر ←</button></aside></div><section class="card section"><div class="section-head"><div><h2>حالة بيئة التدريب</h2><small>سجّل ما تحقّقت منه في بيئتك المحلية</small></div><span class="badge">تأكيد يدوي</span></div>${statusControls()}</section>${linkedSkillsSummary(skillState, accountStatus.user)}${partnerIntroduction()}`;
+  const allDone = completedCount() === allStages;
+  const hasProgress = Boolean(state.lastActivity || completedCount() || checkedCount() || documentedCount());
+  return `<div class="training-home" data-training-home>${hero('تدريبي', 'خطوة واحدة واضحة، ثم تابع من حيث توقفت.')}<section class="resume-card" aria-labelledby="resumeTitle"><div><h2 id="resumeTitle">${allDone ? 'حان وقت مراجعة ما أنجزته' : hasProgress ? 'واصل تدريبك' : 'ابدأ أول تدريب'}</h2><p>${esc(track.name)} · ${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : 'افتح المرحلة واقرأ المطلوب، ثم دوّن ما تتوصل إليه.'}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} ←</button></section>${compactProgress()}${trainingPlanSummary(state, planOptions())}</div>`;
+}
+function sectionNavigation() {
+  const group = primaryView(currentView);
+  const items = group === 'progress' ? [['progress', 'نظرة عامة'], ['plan', 'خطة جلسة'], ['journal', 'سجلي'], ...(skillState.enabled ? [['skills', 'تحقيقات CyberTrace']] : [])] : group === 'account' ? [['account', 'الحساب'], ['backups', 'النسخ والتقارير'], ['troubleshoot', 'مساعدة المختبر']] : [];
+  return items.length ? `<nav class="context-nav" aria-label="${group === 'progress' ? 'أقسام تقدّمي' : 'أقسام حسابي'}">${items.map(([view, label]) => `<button type="button" class="${view === currentView ? 'active' : ''}" data-nav="${view}" ${view === currentView ? 'aria-current="page"' : ''}>${label}</button>`).join('')}</nav>` : '';
+}
+function progressPage() {
+  return `${hero('تقدّمي', 'راجع تدريبك العملي، ثم اختر ما تريد توثيقه أو مشاركته.')} ${compactProgress()}<section class="section progress-tools" aria-label="أدوات متابعة التدريب"><a class="card destination-card" href="./mission-mode.html"><h2>المهام والمهارات</h2><p>اعرض المراحل التي أكّدتها ضمن مهام مترابطة وبصمة مهارات التدريب.</p><span>افتح مهامي ←</span></a><a class="card destination-card" href="./portfolio.html"><h2>ملف أعمالي</h2><p>اختر المراحل التي تريد عرضها، وراجع محتواها قبل الطباعة أو حفظ PDF.</p><span>جهّز ملف الأعمال ←</span></a></section><section class="card section"><div class="section-head"><h2>آخر نشاط</h2><button type="button" class="link-btn" data-nav="journal">افتح سجلي ←</button></div>${recentActivity()}</section>`;
+}
+function accountSummary() {
+  return accountStatus.message || (accountStatus.user ? 'راجع حالة الحفظ والمزامنة، وأدر تسجيل الدخول من نافذة الحساب.' : 'يمكنك التدريب كضيف، أو تسجيل الدخول لحفظ تقدمك في حسابك.');
+}
+function accountPage() {
+  return `${hero('حسابي', 'الحساب والحفظ ومساعدة التدريب في مكان واحد.')}<section class="card account-overview"><h2>${accountStatus.user ? 'حساب التدريب' : 'مساحتك متاحة كضيف'}</h2><p data-workspace-account-state role="status">${esc(accountSummary())}</p><button type="button" class="primary" data-open-account>${accountStatus.user ? 'إدارة حسابي' : 'تسجيل الدخول أو إنشاء حساب'}</button></section><details class="card section optional-panel" data-environment-settings><summary>إعداد بيئة التدريب المحلية</summary><p class="context-note">سجّل ما تحققت منه في مختبرك. التدريب على السجلات داخل المتصفح متاح دون آلة افتراضية.</p>${statusControls()}<a class="link-btn" id="localSetupGuideLink" href="./?intro=1#local-lab-setup">دليل تجهيز VirtualBox ←</a></details><section class="card section resource-links"><h2>أدلة التدريب</h2><a href="./training-guide.html">استخدام ملفات التدريب ←</a><a href="./labs.html">دليل المختبرات المحلية ←</a><a href="${esc(partnerURL())}" data-partner="account">CyberTrace للتحقيقات التفاعلية ←</a></section>`;
 }
 function recentActivity() {
   const recent = [...state.logs].reverse().slice(0, 3);
@@ -299,7 +316,16 @@ function exercisePage() {
   const key = stageKey(track.id, currentStage);
   const checks = state.checks[key] || [];
   const done = isDone(track.id, currentStage);
-  return `<div class="exercise-breadcrumb"><button type="button" class="link-btn" data-nav="tracks">المسارات</button><span aria-hidden="true">/</span><span>${esc(track.name)}</span><span aria-hidden="true">/</span><span>المرحلة ${currentStage + 1} من ${track.stages.length}</span></div><section class="track-head exercise-heading"><div><div class="eyebrow">${done ? 'COMPLETED / REVIEW MODE' : 'FOCUS SESSION'}</div><h1 tabindex="-1">${esc(stage.name)}</h1><p>${esc(stage.goal)}</p></div><div class="track-actions"><span class="badge ${done ? 'done' : 'current'}">${done ? 'مكتملة' : 'قيد التدريب'}</span><button type="button" class="secondary compact" data-share-stage="${track.id}" data-stage-index="${currentStage}">نسخ رابط المرحلة</button></div></section>${trainingKitResources(track)}${track.id === 'logs' ? '<section class="card section" data-evidence-workbench aria-label="قارئ سجلات التدريب"><p role="status">جارٍ تحميل قارئ السجلات…</p></section>' : ''}<div class="exercise"><section class="card exercise-main"><div class="box-title first-title">ابدأ بفهم المهمة</div><p class="stage-guide">${esc(stage.guide)}</p><div data-training-hints><p role="status">جارٍ تحميل التلميحات…</p></div><h2 class="box-title">${track.id === 'logs' ? 'أوامر التحليل المحلي الاختياري' : 'أوامر وعناوين التمرين'}</h2>${stage.commands.map(([label, command]) => `<div class="field command-field"><span class="command-label">${esc(label)}</span><div class="cmd"><button type="button" class="copy" data-copy="${esc(command)}" aria-label="نسخ: ${esc(label)}">نسخ</button><code>${esc(command)}</code></div></div>`).join('')}<p class="context-note">الموقع يقدّم التعليمات والتوثيق؛ تنفيذ الأوامر والتحقق من النتائج يتمّان في بيئتك المحلية.</p><div class="section-head notes-heading"><h2>دوّن ما توصلت إليه</h2><span class="badge">حفظ تلقائي</span></div><div class="field"><div class="documentation-label"><label for="stageResult">النتائج والأدلة</label><button type="button" class="link-btn" data-template="result">إضافة قالب النتائج</button></div><textarea id="stageResult" class="notearea" data-result="${key}" maxlength="${MAX_TEXT_LENGTH}" placeholder="المخرجات المهمة، ما الذي لاحظته، وكيف تحقّقت منه…">${esc(state.results[key] || '')}</textarea></div><div class="field"><div class="documentation-label"><label for="stageNotes">ملاحظات وخطوات المتابعة</label><button type="button" class="link-btn" data-template="notes">إضافة قالب المراجعة</button></div><textarea id="stageNotes" class="notearea" data-notes="${key}" maxlength="${MAX_TEXT_LENGTH}" placeholder="ما الذي تعلّمته؟ وما الذي ستراجعه في المرة القادمة؟">${esc(state.notes[key] || '')}</textarea></div><div class="save-line"><span id="draftStatus" class="draft-status" role="status" aria-live="polite"></span><button type="button" class="secondary" id="saveDraft">حفظ الآن</button></div></section><aside class="card check-card"><div class="section-head"><div><h2>خطوات إنجازك</h2><small>أشّر على البنود بعد تنفيذها</small></div><span class="badge" id="checkCount">${checks.length}/${stage.check.length}</span></div><div class="steps">${stage.check.map((label, index) => `<label class="step ${checks.includes(index) ? 'done' : ''}"><input type="checkbox" data-check="${key}" data-index="${index}" ${checks.includes(index) ? 'checked' : ''} ${done ? 'disabled' : ''}><span>${esc(label)}</span></label>`).join('')}</div><p class="context-note">التأشير يحفظ الخطوات. تأكيد المرحلة يسجّل إنجازها ويفتح المرحلة التالية.</p><button type="button" class="primary confirm" id="confirmStage" ${done || checks.length < stage.check.length ? 'disabled' : ''}>${done ? '✓ المرحلة مكتملة' : 'تأكيد إكمال المرحلة'}</button>${done ? `<p class="completion-date">أكّدت إنجازها في ${esc(dateLabel(state.completed[key]))}</p>${currentStage + 1 < track.stages.length ? `<button type="button" class="secondary full-width" data-open="${track.id}" data-stage="${currentStage + 1}">الانتقال إلى المرحلة التالية ←</button>` : '<button type="button" class="secondary full-width" data-nav="tracks">اختيار مسار آخر ←</button>'}` : ''}<div class="mini-progress"><span>تقدّم المسار</span><strong>${trackDone(track)}/${track.stages.length}</strong>${progressBar(trackDone(track), track.stages.length, `تقدم مسار ${track.name}`)}</div></aside></div>`;
+  const browserEvidence = track.id === 'logs';
+  const commands = stage.commands.map(([label, command]) => `<div class="field command-field"><span class="command-label">${esc(label)}</span><div class="cmd"><button type="button" class="copy" data-copy="${esc(command)}" aria-label="نسخ: ${esc(label)}">نسخ</button><code>${esc(command)}</code></div></div>`).join('');
+  return `<div class="exercise-breadcrumb"><button type="button" class="link-btn" data-nav="tracks">المسارات</button><span aria-hidden="true">/</span><span>${esc(track.name)}</span><span aria-hidden="true">/</span><span>المرحلة ${currentStage + 1} من ${track.stages.length}</span></div>
+  <section class="track-head exercise-heading"><div><h1 tabindex="-1">${esc(stage.name)}</h1><p>${esc(stage.goal)}</p></div><div class="track-actions"><span class="badge ${done ? 'done' : 'current'}">${done ? 'مكتملة' : 'قيد التدريب'}</span><button type="button" class="link-btn" data-share-stage="${track.id}" data-stage-index="${currentStage}">نسخ رابط المرحلة</button></div></section>
+  <section class="card task-brief" data-task-brief aria-labelledby="taskGuideTitle"><span class="workflow-step">١ · افهم المطلوب</span><h2 id="taskGuideTitle">مهمتك في هذه المرحلة</h2><p class="stage-guide">${esc(stage.guide)}</p><details class="optional-panel hints-disclosure" data-training-hints-disclosure><summary>تحتاج إلى تلميح؟</summary><div data-training-hints><p role="status">جارٍ تحميل التلميحات…</p></div></details></section>
+  ${browserEvidence ? '<section class="card section evidence-step" aria-label="أدلة المرحلة"><span class="workflow-step">٢ · اقرأ الأدلة</span><div data-evidence-workbench><p role="status">جارٍ تحميل قارئ السجلات…</p></div></section>' : ''}
+  <details class="card section optional-panel training-resources" data-training-resources><summary>${browserEvidence ? 'أدوات التحليل على جهازك (اختياري)' : '٢ · افتح ملفات وأوامر التدريب'}</summary>${trainingKitResources(track)}<h2 class="box-title">${browserEvidence ? 'أوامر التحليل المحلي' : 'أوامر وعناوين التمرين'}</h2>${commands}<p class="context-note">${browserEvidence ? 'يمكنك إنجاز قراءة السجلات من القارئ أعلاه. هذه الأدوات لمن يريد التحليل محليًا باستخدام Python 3.' : 'نفّذ الأوامر وتحقق من النتائج داخل بيئتك المصرح بها، ثم وثّق ما لاحظته أدناه.'}</p></details>
+  <div class="exercise section"><section class="card exercise-main" aria-labelledby="stageAnswerTitle"><span class="workflow-step">٣ · اكتب استنتاجك</span><div class="section-head notes-heading"><h2 id="stageAnswerTitle">دوّن ما توصلت إليه</h2><span class="badge">حفظ تلقائي</span></div>
+  <div class="field"><div class="documentation-label"><label for="stageResult">النتائج والأدلة</label><button type="button" class="link-btn" data-template="result">إضافة قالب النتائج</button></div><textarea id="stageResult" class="notearea" data-result="${key}" maxlength="${MAX_TEXT_LENGTH}" placeholder="المخرجات المهمة، ما الذي لاحظته، وكيف تحقّقت منه…">${esc(state.results[key] || '')}</textarea></div>
+  <div class="field"><div class="documentation-label"><label for="stageNotes">ملاحظات وخطوات المتابعة</label><button type="button" class="link-btn" data-template="notes">إضافة قالب المراجعة</button></div><textarea id="stageNotes" class="notearea" data-notes="${key}" maxlength="${MAX_TEXT_LENGTH}" placeholder="ما الذي تعلّمته؟ وما الذي ستراجعه في المرة القادمة؟">${esc(state.notes[key] || '')}</textarea></div><div class="save-line"><span id="draftStatus" class="draft-status" role="status" aria-live="polite"></span><button type="button" class="secondary" id="saveDraft">حفظ الآن</button></div></section><aside class="card check-card"><span class="workflow-step">٤ · راجع وأكمل</span><div class="section-head"><div><h2>خطوات إنجازك</h2><small>أشّر على البنود بعد تنفيذها</small></div><span class="badge" id="checkCount">${checks.length}/${stage.check.length}</span></div><div class="steps">${stage.check.map((label, index) => `<label class="step ${checks.includes(index) ? 'done' : ''}"><input type="checkbox" data-check="${key}" data-index="${index}" ${checks.includes(index) ? 'checked' : ''} ${done ? 'disabled' : ''}><span>${esc(label)}</span></label>`).join('')}</div><p class="context-note">التأشير يحفظ الخطوات. تأكيد المرحلة يسجّل إنجازها ويفتح المرحلة التالية.</p><button type="button" class="primary confirm" id="confirmStage" ${done || checks.length < stage.check.length ? 'disabled' : ''}>${done ? '✓ المرحلة مكتملة' : 'تأكيد إكمال المرحلة'}</button>${done ? `<p class="completion-date">أكّدت إنجازها في ${esc(dateLabel(state.completed[key]))}</p>${currentStage + 1 < track.stages.length ? `<button type="button" class="secondary full-width" data-open="${track.id}" data-stage="${currentStage + 1}">الانتقال إلى المرحلة التالية ←</button>` : '<button type="button" class="secondary full-width" data-nav="tracks">اختيار مسار آخر ←</button>'}` : ''}<div class="mini-progress"><span>تقدّم المسار</span><strong>${trackDone(track)}/${track.stages.length}</strong>${progressBar(trackDone(track), track.stages.length, `تقدم مسار ${track.name}`)}</div></aside></div>`;
 }
 function statusControls() {
   const devices = [['kali', 'Kali Linux'], ['windows', 'Windows Host'], ['target', 'الآلة الهدف'], ['network', 'شبكة المختبر']];
@@ -332,15 +358,20 @@ function troublePage() {
   return `${hero('حلّ العائق، وواصل التدريب', 'إرشادات عملية للأعطال الشائعة في بيئتك المحلية وأدوات المختبر.')}<div class="section-head"><h2>دليل حلول الأعطال</h2><div class="field"><label for="errorSearch">ابحث عن المشكلة</label><input type="search" class="search" id="errorSearch" placeholder="مثل WebGoat أو عنوان IP…" value="${esc(errorQuery)}"></div></div><div class="error-grid">${list.map(([title, description]) => `<article class="error-card"><h3>${esc(title)}</h3><p>${esc(description)}</p></article>`).join('') || '<div class="card empty"><h2>لم نجد نتيجة مطابقة</h2><p>جرّب اسم الأداة أو وصفًا أقصر للمشكلة.</p></div>'}</div>`;
 }
 function render(focus = false) {
+  const nextScope = JSON.stringify([currentView, currentTrack, currentStage, accountStatus.user?.uid ?? null]);
+  const sameScope = nextScope === renderedContentScope;
+  const openPanels = sameScope ? nativePanels.filter(selector => content.querySelector(selector)?.open) : [];
+  const focused = document.activeElement;
+  const focusedPanel = sameScope ? nativePanels.find(selector => content.querySelector(selector)?.contains(focused)) : null;
+  const panelFocus = focusedPanel ? focused.id ? { id: focused.id } : focused.tagName === 'SUMMARY' ? { selector: focusedPanel + ' > summary' } : null : null;
   hintController?.dispose();
   hintController = undefined;
   evidenceDisposer?.();
   evidenceDisposer = undefined;
   const evidenceRun = ++viewGeneration;
   updateMetadata();
-  document.querySelector('#nav [data-view="skills"]').classList.toggle('hidden', !skillState.enabled);
   document.querySelectorAll('#nav [data-view]').forEach(button => {
-    const active = button.dataset.view === currentView || (currentView === 'exercise' && button.dataset.view === 'tracks');
+    const active = button.dataset.view === primaryView(currentView);
     button.classList.toggle('active', active);
     if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
   });
@@ -348,13 +379,24 @@ function render(focus = false) {
   const count = completedCount();
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
-  const pages = { home, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
-  content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${pages[currentView]()}`;
+  const pages = { home, progress: progressPage, account: accountPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
+  content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${sectionNavigation()}${pages[currentView]()}`;
+  renderedContentScope = nextScope;
+  // A same-owner account refresh must not close a guide while it is being used.
+  // Route, stage and account changes deliberately start with folded panels.
+  for (const selector of openPanels) {
+    const panel = content.querySelector(selector);
+    if (panel) panel.open = true;
+  }
   bind();
   void mountStageEvidence(evidenceRun);
   void mountStageHints(evidenceRun);
   updateSaveStatus(Boolean(saveTimer));
   trackPageView();
+  if (!focus && panelFocus) {
+    const target = panelFocus.id ? document.getElementById(panelFocus.id) : content.querySelector(panelFocus.selector);
+    if (target && content.contains(target)) target.focus({ preventScroll: true });
+  }
   if (focus) {
     window.scrollTo({ top: 0, behavior: 'instant' });
     content.querySelector('h1')?.focus({ preventScroll: true });
@@ -748,6 +790,8 @@ accountController = createAccountSync({
     accountUI.update(next);
     content.inert = Boolean(next.user && next.phase === 'loading');
     updateSaveStatus(Boolean(saveTimer));
+    const accountSummaryNode = document.querySelector('[data-workspace-account-state]');
+    if (accountSummaryNode) accountSummaryNode.textContent = accountSummary();
     // Ready receipts can arrive before practical progress. Recompute once the
     // same account finishes loading, without replacing an exercise draft.
     if (skillOwnerChanged || loadingChanged) repaintLinkedSkills();

@@ -3,23 +3,34 @@
 const $=id=>document.getElementById(id);
 const landing=$('landing-page'),overlay=$('bb-tour-overlay'),spot=$('bb-tour-spotlight'),bubble=$('bb-tour-bubble');
 const tour=[
-{selector:'[data-view="home"]',title:'1. لوحة التحكم — نقطة البداية',text:'هذه صفحتك الرئيسية بعد الدخول. ستجد فيها ملخص تقدمك، وآخر نشاط تدريبي، واختصارات للعودة إلى التعلم.\n\nمتى تستخدمها؟ عند بداية كل جلسة لتعرف أين توقفت.\n\n👆 اضغط على زر «لوحة التحكم» المضاء لاستكشافه، أو استخدم «التالي».'},
-{selector:'[data-view="tracks"]',title:'2. مسارات التدريب — ماذا ستتعلم؟',text:'هنا تجد المسارات والمراحل المتاحة، من إعداد البيئة والاستطلاع الآمن إلى استخدام أدوات مثل Nmap وتحليل الأدلة الدفاعية. افتح المسار واقرأ الهدف والتعليمات وقائمة التحقق قبل التنفيذ.\n\nمثال: اختر مسار Nmap لتتعلم فحص آلة افتراضية تملكها داخل شبكتك المعزولة.\n\n👆 اضغط على «مسارات التدريب».'},
-{selector:'[data-view="plan"]',title:'3. خطة جلستك — نظّم وقتك',text:'هذه الأداة تساعدك على اختيار مجال التركيز والوقت المتاح، ثم تعرض اقتراحاً لجلسة تدريب مناسبة. هي خطة للتنظيم وليست فحصاً آلياً لجهازك.\n\nمثال: إذا كان لديك 30 دقيقة، خصصها لهدف واحد واضح بدلاً من فتح عدة أدوات بلا خطة.\n\n👆 اضغط على «خطة جلستك».'},
-{selector:'[data-view="skills"]',title:'4. المهارات المترابطة — اربط التدريب بالتحقيقات',text:'هذا القسم يربط تقدمك في BLACKBOX بنتائج التحقيقات التي أنجزتها في CyberTrace، ليعرض المهارات التي تطورها عبر المشروعين.\n\nكيف تستخدمه؟ سجّل الدخول إلى حسابك المرتبط، وافتح المهارات المترابطة لمراجعة نتائج التحقيقات المحفوظة ومجالات القوة التي تظهر منها. قد تحتاج إلى إتمام تحقيقات في CyberTrace أولاً حتى تظهر بيانات مفيدة.\n\nمهم: هذه النتائج مرتبطة بالحساب ولا تعني أن BLACKBOX نفّذ اختبار اختراق أو تحقق آلياً من مهارتك.\n\n👆 اضغط على «المهارات المترابطة» لفتح القسم.'},
-{selector:'[data-view="journal"]',title:'5. سجل المختبر — وثّق الأدلة',text:'بعد كل تمرين، اكتب ماذا فعلت، والأوامر التي استخدمتها، والنتيجة التي لاحظتها، والمشكلة التي واجهتك. التوثيق يحوّل التجربة إلى مهارة يمكنك مراجعتها.\n\nمثال: سجّل عنوان آلة المختبر ونتيجة فحص Nmap والمنافذ التي ظهرت، دون حفظ كلمات مرور أو أسرار.\n\n👆 اضغط على «سجل المختبر».'},
-{selector:'[data-view="backups"]',title:'6. النسخ والتقارير — لا تفقد عملك',text:'من هنا تستطيع تنزيل نسخة احتياطية من بيانات التدريب أو استعادتها ومراجعة التقارير المتاحة. احتفظ بنسخة خارج المتصفح؛ حذف بياناته قد يؤدي إلى فقدان التقدم المحلي.\n\nمثال: نزّل نسخة احتياطية بعد إنهاء مجموعة مراحل، واحتفظ بها في مكان آمن.\n\n👆 اضغط على «النسخ والتقارير».'},
-{selector:'[data-view="troubleshoot"]',title:'7. حلول الأعطال — عندما تتعطل التجربة',text:'إذا لم تعمل آلة Kali أو لم تتصل آلة الهدف، ابدأ بهذا القسم قبل تغيير الإعدادات عشوائياً. اقرأ وصف المشكلة والخطوات المقترحة، ثم دوّن ما نجح وما لم ينجح.\n\nتذكير: BLACKBOX يرشدك في إعداد المختبر، لكنه لا يتصل تلقائياً بنظام Kali ولا ينفذ أوامر عليه.\n\n👆 اضغط على «حلول الأعطال» لإنهاء الجولة.'}
+{selector:'[data-view="home"]',title:'1. تدريبي — خطوتك التالية',text:'ابدأ من هنا في كل جلسة. ستجد المهمة التي يمكنك متابعتها وملخصًا قصيرًا لتقدمك.\n\nاضغط «تدريبي» أو استخدم التالي.'},
+{selector:'[data-view="tracks"]',title:'2. المسارات — اختر مهارتك',text:'ابحث عن تدريب يناسبك، ثم افتح مرحلة متاحة. بعض المسارات تعمل بملفات التدريب داخل المتصفح، وبعضها يحتاج إلى مختبر محلي.\n\nاقرأ المطلوب وحلّل الأدلة، ثم دوّن إجابتك وأكّد ما أنجزته.'},
+{selector:'[data-view="progress"]',title:'3. تقدّمي — راجع رحلتك',text:'تجد هنا ملخص إنجازك والمهام وبصمة المهارات وسجل التدريب وملف الأعمال. يمكنك أيضًا الوصول إلى خطة الجلسة ونتائج تحقيقات CyberTrace المرتبطة.\n\nالمراحل التي تؤكدها يدويًا تبقى مختلفة عن نتائج التقييم الموثق.'},
+{selector:'[data-view="account"]',title:'4. حسابي — الحفظ والأدوات',text:'راجع حسابك وحالة المزامنة، أو احتفظ بعملك في نسخة احتياطية. ستجد هنا أدوات إعداد المختبر والمساعدة.\n\nيمكنك التدريب كضيف، وتبقى بيانات الضيف في متصفحك. يظهر مصدر الحفظ دائمًا أعلى الصفحة.'}
 ];
 let ti=0,active=false,prior=null,target=null;
 const availableTour=()=>tour.filter(step=>{const el=document.querySelector(step.selector);return el&&!el.classList.contains('hidden')&&getComputedStyle(el).display!=='none';});
 let activeTour=[];
+// History normalization may remove ?view=home before this deferred script runs.
+let initialScreen=true;
+let initialPageURL;
+try{initialPageURL=new URL(globalThis.performance?.getEntriesByType?.('navigation')?.[0]?.name||location.href);}catch{initialPageURL=new URL(location.href);}
 function isHome(){const p=new URL(location.href).searchParams;return !['view','track','stage'].some(k=>p.has(k));}
 const introSeenKey='blackbox-lab-intro-seen-v1';
 function hasSeenIntro(){try{return localStorage.getItem(introSeenKey)==='1';}catch{return false;}}
 function markIntroSeen(){try{localStorage.setItem(introSeenKey,'1');}catch{}}
 function enter(){markIntroSeen();document.body.classList.remove('bb-landing-active');landing.hidden=true;}
-function showLanding(){if(!isHome())return;if(hasSeenIntro()&&!new URL(location.href).searchParams.has('intro')){landing.hidden=true;document.body.classList.remove('bb-landing-active');return;}landing.hidden=false;document.body.classList.add('bb-landing-active');}
+function showLanding(){
+const url=new URL(location.href);
+const requestedWorkspace=initialScreen&&['view','track','stage'].some(key=>initialPageURL.searchParams.has(key));
+initialScreen=false;
+if(requestedWorkspace){enter();return;}
+if(!isHome()){landing.hidden=true;document.body.classList.remove('bb-landing-active');return;}
+if(hasSeenIntro()&&!url.searchParams.has('intro')){landing.hidden=true;document.body.classList.remove('bb-landing-active');return;}
+landing.hidden=false;document.body.classList.add('bb-landing-active');
+const setup=$('local-lab-setup');
+if(url.searchParams.get('intro')==='1'&&url.hash==='#local-lab-setup'&&setup){setup.open=true;setup.scrollIntoView({block:'start'});}
+}
 function place(){
 target=document.querySelector(activeTour[ti]?.selector);if(!target){finish();return;}
 target.scrollIntoView({block:'nearest',behavior:'auto'});
