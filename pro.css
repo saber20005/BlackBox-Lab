@@ -3,3 +3,9 @@
 /* Live free SOC pilot is separate from the future paid bundle. */
 .suite-card .suite-demo-link{margin:10px 0 0;display:inline-flex;background:transparent;color:#a7d7ff;border:1px solid #44729a;font-weight:700;padding:9px 14px;border-radius:8px;text-decoration:none;font-size:13px}
 .suite-card .suite-demo-link:hover{background:#172d48}
+
+
+.suite-level-links{display:grid;grid-template-columns:1fr;gap:9px;margin:12px 0 0}
+.suite-card .suite-level-links>a{display:block;text-decoration:none;color:#b7d8fc;border:1px solid #3b6286;background:#112841;padding:8px 12px;border-radius:8px;font-size:13px}
+.suite-card .suite-level-links>a:hover{border-color:#80b2f1}
+.suite-card .suite-level-links>.suite-demo-link{margin:0;background:#21334b;color:#d7eaff}
