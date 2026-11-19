@@ -107,4 +107,6 @@ const button=document.createElement('button');button.textContent='افتح مس�
 });
 document.querySelectorAll('input[name="bb-level"]').forEach(el=>el.addEventListener('change',()=>{wizard.level=el.value;save();renderWizard();}));
 renderWizard();showLanding();
+document.documentElement.dataset.bbLandingReady = 'true';
+document.dispatchEvent(new Event('blackbox:screen-ready'));
 })();

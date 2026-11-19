@@ -38,6 +38,10 @@ On failure, screenshots and a JSON summary are saved under
 `BLACKBOX_BROWSER_ARTIFACTS` (default `/tmp/blackbox-browser-artifacts`) and
 uploaded as a GitHub Actions artifact.
 
+The same CI job also runs `scripts/test-loading-browser.mjs` against its own
+loopback fixture, retaining the real startup HTML and controlling delayed or
+failed resources. See [startup behavior and performance](loading-performance.md).
+
 This is a guest regression gate. The existing account, paired-site and emulator
 tests remain separate checks; a passing guest journey does not establish live
 Firebase permissions, production App Check acceptance or server-grading readiness.

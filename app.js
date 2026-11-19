@@ -662,4 +662,6 @@ accountController = createAccountSync({
   },
 });
 applyLocation();
+document.documentElement.dataset.bbAppReady = 'true';
+document.dispatchEvent(new Event('blackbox:screen-ready'));
 void accountController.start().catch(() => accountUI.update(accountController.getStatus()));
