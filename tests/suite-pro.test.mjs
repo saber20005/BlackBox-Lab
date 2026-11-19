@@ -10,7 +10,10 @@ test('Suite Pro is informational only and preserves the free training entry', ()
   assert(page.includes('لا يوجد دفع أو شراء أو اشتراك فعّال الآن'));
   assert(page.includes('https://cybertracelab.dev/?view=pro'));
   assert(page.includes('https://cybertracelab.dev/?view=soc'));
-  assert(page.includes('مناوبة SOC تجريبية مجانية'));
+  assert(page.includes('3 مناوبات SOC مجانية'));
+  for (const id of ['SOC-SHIFT-01','SOC-SHIFT-02','SOC-SHIFT-03']) {
+    assert(page.includes('https://cybertracelab.dev/?view=soc&shift='+id));
+  }
   assert(page.includes('تقييم محلي غير موثق'));
   assert(!page.includes('مناوبة SOC مدفوعة الآن'));
 
