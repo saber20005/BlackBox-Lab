@@ -56,3 +56,15 @@ Account-focused scripts mark the introduction as seen only in the top-level
 local BLACKBOX origin. They do not access fixture storage in opaque or
 third-party SDK frames. The fresh landing and guides remain covered separately
 by the guest suite.
+
+The learner journey also checks CSV filtering and line citations without losing
+typed notes, plus progressive hints whose review is unavailable for untouched
+templates. `test-session-pages-browser.mjs` runs against the same loopback fixture
+with a controlled account adapter: it checks owner switching, delayed reads,
+preservation of dirty caches, account-backed mission cards, and portfolio resets.
+
+Portfolio tests generate real A4 PDFs in Chromium and extract their text using
+`pdftotext`. Synthetic private markers must be absent by default and appear only
+for explicitly selected documentation. Local runs therefore need `pdftotext` on
+PATH (Poppler tools); CI installs `poppler-utils`. The website's PDF workflow uses
+the browser print dialog and has no Poppler dependency.

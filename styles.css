@@ -599,4 +599,6 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 8px; }
 .training-kit-card code { display: inline-block; color: var(--green); }
 .training-kit-actions { display: grid; gap: 10px; flex: 0 0 220px; }
 .training-kit-actions a { display: block; text-align: center; text-decoration: none; }
+.report-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.report-actions a { display: inline-block; text-decoration: none; }
 @media (max-width: 760px) { .training-kit-card, .defense-intro { align-items: stretch; flex-direction: column; gap: 18px; } .training-kit-actions { flex-basis: auto; } }
