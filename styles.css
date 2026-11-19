@@ -602,3 +602,61 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 8px; }
 .report-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .report-actions a { display: inline-block; text-decoration: none; }
 @media (max-width: 760px) { .training-kit-card, .defense-intro { align-items: stretch; flex-direction: column; gap: 18px; } .training-kit-actions { flex-basis: auto; } }
+
+/* Training stays focused; secondary tools live in their navigation groups. */
+.training-home{max-width:960px;margin-inline:auto;display:grid;gap:18px}
+.training-home>.hero{margin:0 0 4px}
+.training-home>.hero .eyebrow,.training-home>.hero .workspace-tag{display:none}
+.training-home>.resume-card{margin:0;min-height:0;padding:24px;box-shadow:none}
+.training-home>.resume-card h2{font-size:24px;margin:0 0 10px}
+.training-home>.plan-teaser{margin:0;padding:20px}
+.training-home>.plan-teaser .eyebrow{display:none}
+.compact-progress{min-width:0}
+.compact-progress .section-head{margin-bottom:12px}
+.compact-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:0 0 15px}
+.compact-stats>div{min-width:0}
+.compact-stats dt{color:var(--muted);font-size:13px}
+.compact-stats dd{margin:3px 0 0;color:var(--text);font-size:24px;font-weight:600}
+.compact-stats dd small{font-size:13px;color:var(--muted);font-weight:400}
+.context-nav{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 14px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.context-nav button{background:transparent;border:1px solid transparent;padding:8px 12px;border-radius:8px;color:var(--muted)}
+.context-nav button:hover,.context-nav button.active{background:var(--panel);border-color:var(--line);color:var(--text)}
+.progress-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.destination-card{text-decoration:none;color:var(--text);display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.destination-card:hover{border-color:var(--blue)}
+.destination-card h2{font-size:19px;margin:0}
+.destination-card p{color:var(--muted);margin:0}
+.destination-card>span{color:var(--blue);margin-top:auto}
+.account-overview h2,.resource-links h2{font-size:20px;margin:0 0 10px}
+.account-overview p{color:var(--muted);margin:0 0 18px}
+.resource-links{display:grid;justify-items:start;gap:12px}
+.resource-links a{color:var(--blue);text-decoration:none}
+.optional-panel{min-width:0}
+.optional-panel>summary{cursor:pointer;color:var(--text);font-weight:500;padding:4px 0;min-height:36px;align-content:center}
+.optional-panel>summary:focus-visible{outline:2px solid var(--blue);outline-offset:5px;border-radius:4px}
+.optional-panel[open]>summary{margin-bottom:16px}
+.hints-disclosure{border-top:1px solid var(--line);padding-top:12px;margin-top:16px}
+.workflow-step{display:block;font-size:12px;font-weight:500;color:var(--blue);margin-bottom:10px}
+.task-brief h2{font-size:20px;margin:0 0 12px}
+.task-brief .stage-guide{font-size:16px;line-height:1.95;color:var(--text);margin:0}
+.training-resources .training-kit-card{margin-top:0;background:transparent;box-shadow:none}
+.training-resources .training-kit-card .eyebrow{display:none}
+.evidence-step .evidence-workbench>h2{font-size:20px}
+.exercise-heading h1{font-size:clamp(24px,3.3vw,32px);margin-bottom:10px}
+.exercise-main #stageAnswerTitle{font-size:20px;margin:0}
+.check-card .section-head{margin-top:14px}
+@media(max-width:700px){
+ .training-home{gap:14px}
+ .training-home>.resume-card{padding:20px}
+ .training-home>.resume-card h2{font-size:22px}
+ .compact-stats{gap:10px}
+ .compact-stats dt{font-size:11px}
+ .compact-stats dd{font-size:22px}
+ .compact-stats dd small{font-size:11px}
+ .progress-tools{grid-template-columns:minmax(0,1fr)}
+ .context-nav{gap:4px}
+ .context-nav button{font-size:12px;padding:8px 9px}
+ .exercise-heading{flex-direction:column;gap:10px}
+ .exercise-heading .track-actions{width:100%;justify-content:space-between}
+ .task-brief .stage-guide{font-size:15px}
+}

@@ -43,7 +43,7 @@ class Element extends Events {
   close() { this.closeCalls++; this.open = false; this.ownerDocument.openChanged(); this.dispatchEvent(new Event('close')); }
 }
 
-function fixture({ skillsVisible = true, storageFails = false } = {}) {
+function fixture({ storageFails = false, navigationHref, href = 'https://blackboxlab.dev/' } = {}) {
   const document = new Events();
   const nodes = new Map(); const observers = []; const storage = new Map();
   document.body = new Element(document, 'body'); document.activeElement = document.body;
@@ -56,8 +56,7 @@ function fixture({ skillsVisible = true, storageFails = false } = {}) {
   add('bb-tour-spotlight', 'div', overlay); const bubble = add('bb-tour-bubble', 'div', overlay);
   for (const id of ['bb-tour-heading', 'bb-tour-description', 'bb-tour-count']) add(id, 'div', bubble);
   for (const id of ['bb-tour-prev', 'bb-tour-next', 'bb-tour-skip']) add(id, 'button', bubble);
-  const navigation = ['home', 'tracks', 'plan', 'skills', 'journal', 'backups', 'troubleshoot'].map(view => { const node = add('nav-' + view, 'button', app); node.dataset.view = view; return node; });
-  if (!skillsVisible) nodes.get('nav-skills').classList.add('hidden');
+  const navigation = ['home', 'tracks', 'progress', 'account'].map(view => { const node = add('nav-' + view, 'button', app); node.dataset.view = view; return node; });
   add('bb-whats-new-open', 'button', app); const dialog = add('bb-whats-new', 'dialog');
   for (const id of ['bb-whats-new-step', 'bb-whats-new-title', 'bb-whats-new-description']) add(id, 'div', dialog);
   for (const id of ['bb-whats-new-prev', 'bb-whats-new-next', 'bb-whats-new-close']) add(id, 'button', dialog);
@@ -79,9 +78,10 @@ function fixture({ skillsVisible = true, storageFails = false } = {}) {
   document.querySelectorAll = selector => selector === 'input[name="bb-level"]' ? radios : [];
   document.openChanged = () => { for (const observer of observers) observer.callback(); };
   const window = new Events();
-  const location = { href: 'https://blackboxlab.dev/' };
+  const location = { href };
   const context = vm.createContext({
     document, window, Event, URL,
+    performance: { getEntriesByType: () => [{ name: navigationHref || href }] },
     location, innerWidth: 1440, innerHeight: 1000,
     getComputedStyle: element => ({ display: element.getClientRects().length ? 'block' : 'none', visibility: element.style.visibility || 'visible' }),
     localStorage: {
@@ -99,7 +99,7 @@ test('classic guides load together, stay manual, and the native guide opens, clo
   const f = fixture();
   f.window.dispatchEvent(new Event('DOMContentLoaded'));
   assert.equal(f.dialog.open, false);
-  f.activate('landing-enter');
+  f.activate('landing-enter-top');
   assert.equal(f.dialog.open, false);
   f.activate('bb-whats-new-open');
   assert.equal(f.dialog.open, true);
@@ -117,7 +117,7 @@ test('classic guides load together, stay manual, and the native guide opens, clo
 });
 
 test('a competing account dialog is neither closed nor replaced by the feature guide', () => {
-  const f = fixture(); f.activate('landing-enter'); f.otherDialog.showModal();
+  const f = fixture(); f.activate('landing-enter-top'); f.otherDialog.showModal();
   f.nodes.get('bb-whats-new-open').click();
   assert.equal(f.otherDialog.open, true);
   assert.equal(f.otherDialog.closeCalls, 0);
@@ -126,7 +126,7 @@ test('a competing account dialog is neither closed nor replaced by the feature g
 });
 
 test('native cancel closes the guide and a hidden opener falls back to the visible workspace', () => {
-  const f = fixture({ storageFails: true }); f.activate('landing-enter'); f.activate('bb-whats-new-open');
+  const f = fixture({ storageFails: true }); f.activate('landing-enter-top'); f.activate('bb-whats-new-open');
   f.nodes.get('bb-whats-new-open').hidden = true;
   const cancel = new Event('cancel'); f.dialog.dispatchEvent(cancel);
   assert.equal(cancel.defaultPrevented, true);
@@ -135,7 +135,7 @@ test('native cancel closes the guide and a hidden opener falls back to the visib
 });
 
 test('ending the final feature step closes the dialog through its ordinary close lifecycle', () => {
-  const f = fixture(); f.activate('landing-enter'); f.activate('bb-whats-new-open');
+  const f = fixture(); f.activate('landing-enter-top'); f.activate('bb-whats-new-open');
   for (let index = 0; index < 4; index++) f.activate('bb-whats-new-next');
   assert.equal(f.dialog.open, false);
   assert.equal(f.document.activeElement.id, 'bb-whats-new-open');
@@ -162,15 +162,15 @@ test('Escape finishes the nonmodal tour and restores visible focus instead of th
   assert.equal(f.nodes.get('landing-start-tour').focusCalls, 1, 'hidden opener is never refocused');
 });
 
-test('a tour with the optional skills navigation hidden finishes after its six actual steps', () => {
-  const f = fixture({ skillsVisible: false }); f.activate('landing-start-tour');
-  for (let index = 0; index < 6; index++) {
-    assert.equal(f.nodes.get('bb-tour-count').textContent, `${index + 1} / 6`);
+test('the four-section tour finishes at the account section and releases its listeners', () => {
+  const f = fixture(); f.activate('landing-start-tour');
+  for (let index = 0; index < 4; index++) {
+    assert.equal(f.nodes.get('bb-tour-count').textContent, `${index + 1} / 4`);
     assert(f.nodes.get('bb-tour-heading').textContent.startsWith(`${index + 1}.`));
     f.activate('bb-tour-next');
   }
   assert.equal(f.overlay.hidden, true);
-  assert.equal(f.document.activeElement.id, 'nav-troubleshoot');
+  assert.equal(f.document.activeElement.id, 'nav-account');
   assert.equal((f.window.listeners.get('resize') || []).length, 0);
 });
 
@@ -200,4 +200,22 @@ test('returning to the explicit introduction during a tour restores focus in tha
   assert.equal(f.overlay.hidden, true);
   assert.equal(f.nodes.get('landing-page').hidden, false);
   assert.equal(f.document.activeElement.id, 'landing-start-tour');
+});
+
+
+test('fresh deep links bypass the introduction without requiring a stored seen marker', () => {
+  for (const route of ['?view=home', '?view=progress', '?view=account', '?track=logs&stage=0']) {
+    const f = fixture({ href: 'https://blackboxlab.dev/' + route });
+    assert.equal(f.nodes.get('landing-page').hidden, true, route);
+    assert.equal(f.document.body.classList.contains('bb-landing-active'), false, route);
+    assert.equal(f.nodes.get('main-content').getClientRects().length, 1, route);
+  }
+});
+
+
+test('explicit workspace home still opens when route normalization runs before deferred landing startup', () => {
+  const f = fixture({ href: 'https://blackboxlab.dev/', navigationHref: 'https://blackboxlab.dev/?view=home' });
+  assert.equal(f.nodes.get('landing-page').hidden, true);
+  assert.equal(f.document.body.classList.contains('bb-landing-active'), false);
+  assert.equal(f.storage.get('blackbox-lab-intro-seen-v1'), '1');
 });

@@ -28,6 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link id="bb-fonts" rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./workspace-shell.css">
   <link rel="stylesheet" href="./loading.css">
   <script defer src="./loading.js"></script>
   <script type="module" src="./app.js"></script>
@@ -45,16 +46,10 @@
     <header class="bb-landing-nav"><a href="./" class="bb-landing-brand"><span>B.</span><strong>BLACKBOX <em>Lab</em></strong></a><button type="button" id="landing-enter-top">الدخول إلى مساحة التدريب ←</button></header>
     <main class="bb-landing-main">
       <section class="bb-landing-hero">
-        <div><span class="bb-kicker">CYBERSECURITY / INTERACTIVE LEARNING</span><h1 id="landing-title">مختبرك السيبراني يبدأ <span>من هنا.</span></h1><p>BLACKBOX منصة عربية لتنظيم تعلم الأمن السيبراني عملياً. اختر تدريبًا من ملفات التحليل المرفقة أو جهّز مختبرك داخل VirtualBox، ثم سجّل نتائجك خطوة بخطوة.</p><div class="bb-landing-actions"><button type="button" id="landing-start-tour">ابدأ الجولة الإرشادية ←</button><button type="button" id="landing-enter">استكشف مساحة التدريب</button></div><div class="bb-landing-meta"><span>◈ 10 مسارات</span><span>▤ 30 مرحلة</span><span>✓ توثيق التقدم</span></div></div>
-        <div class="bb-landing-terminal" aria-label="رسم توضيحي لخطوات المختبر"><div class="bb-terminal-bar"><i></i><i></i><i></i><span>BLACKBOX / LAB SETUP</span></div><pre>01  PREPARE WINDOWS HOST
-02  INSTALL VIRTUALBOX
-03  START KALI LINUX
-04  ISOLATE LAB NETWORK
-05  SELECT TRAINING TRACK
-06  DOCUMENT YOUR RESULTS
-
-<span>STATUS: READY TO LEARN</span></pre><div class="bb-terminal-logo">B.</div></div>
+        <div class="bb-landing-copy"><span class="bb-kicker">تعلّم الأمن السيبراني بالتطبيق</span><h1 id="landing-title">ابدأ بمهمة واحدة.<br><span>وابنِ مهارتك.</span></h1><p>حلّل سجلات تدريبية داخل المتصفح، ودوّن استنتاجك، وتابع تقدمك. يمكنك تجهيز مختبر محلي عندما تحتاجه.</p><div class="bb-landing-actions"><a class="bb-start-training" id="landing-enter" href="./?track=logs&amp;stage=0">ابدأ التدريب من المتصفح ←</a><button type="button" id="landing-start-tour">كيف أستخدم الموقع؟</button></div><p class="bb-start-note">يمكنك البدء كضيف. تبقى الملاحظات محفوظة في متصفحك.</p></div>
+        <ol class="bb-learning-steps" aria-label="خطوات التدريب"><li><span>01</span><div><strong>افهم المهمة</strong><p>هدف واضح وخطوات يمكنك متابعتها.</p></div></li><li><span>02</span><div><strong>حلّل الأدلة</strong><p>جرّب، وابحث، واكتب ما استنتجته.</p></div></li><li><span>03</span><div><strong>وثّق وتقدّم</strong><p>احتفظ بعملك ثم انتقل إلى المهمة التالية.</p></div></li></ol>
       </section>
+      <details class="bb-local-setup" id="local-lab-setup"><summary><span><strong>أحتاج إلى تجهيز مختبر محلي</strong><small>إرشادات VirtualBox وKali للتدريبات التي تتطلبهما</small></span><span aria-hidden="true">＋</span></summary><div class="bb-local-setup-body">
       <section class="bb-landing-section" aria-labelledby="bb-how-title"><span class="bb-kicker">HOW IT WORKS</span><h2 id="bb-how-title">كيف تنشئ مختبرك؟</h2><p>اتبع هذه الخطوات بالترتيب. يمكنك فتح شرح كل خطوة قبل الانتقال إلى التدريب. لا يمكن تجاوز أي خطوة في معالج الإعداد دون تأكيد تنفيذها.</p><div class="bb-setup-grid">
         <details open><summary><b>01</b><span>جهّز جهاز Windows</span></summary><p>تأكد من توفر مساحة تخزين وذاكرة كافيتين، ومن تفعيل دعم المحاكاة الافتراضية. احتفظ بنسخة احتياطية من الملفات المهمة.</p></details>
         <details><summary><b>02</b><span>ثبّت VirtualBox</span></summary><p>ثبّت VirtualBox من المصدر الرسمي، ثم أنشئ آلة افتراضية جديدة أو استورد آلة Kali الموجودة لديك.</p></details>
@@ -80,29 +75,25 @@
 <div class="bb-wizard-buttons"><button type="button" id="bb-wizard-back">السابق</button><button type="button" id="bb-wizard-next">التالي ←</button></div></div>
 <div id="bb-wizard-result" class="bb-wizard-result" hidden></div>
 </section>
-      <section class="bb-landing-section" aria-labelledby="mission-mode-title"><span class="bb-kicker">MISSION MODE / SKILL DNA</span><h2 id="mission-mode-title">جرّب المهام المترابطة وبصمة المهارات</h2><p>تابع مهامك وبصمة مهاراتك من آخر تقدم محفوظ في حسابك، أو من تقدم الضيف المحلي. تبقى المراحل مؤكدة من المتعلم دون منح نقاط أو شهادات جديدة.</p><p><a href="./mission-mode.html">افتح مهامك وبصمة مهاراتك ←</a></p></section>
-<section class="bb-landing-section" aria-labelledby="labs-directory-title"><span class="bb-kicker">HANDS-ON LABS</span><h2 id="labs-directory-title">مختبرات عملية معزولة</h2><p>استكشف مختبرات الويب والشبكات، وراجع المتطلبات والأهداف قبل تشغيلها يدويًا داخل VirtualBox. الربط الآلي مع Kali قيد التطوير.</p><p><a href="./labs.html">استكشف دليل المختبرات ←</a></p></section>
-      <section class="bb-landing-section bb-landing-how"><span class="bb-kicker">GUIDED EXPERIENCE</span><h2>لست متأكداً أين تضغط؟</h2><p>ستفتح الجولة لوحة التحكم وتسلّط الضوء على الأزرار الحقيقية. اضغط على الزر المضيء للانتقال إلى الخطوة التالية.</p><button type="button" id="landing-start-tour-bottom">شغّل الجولة التفاعلية ←</button></section>
-      <section class="bb-landing-note"><strong>حالة ربط Kali:</strong> الربط الآلي غير مفعّل بعد. يمكنك استخدام BLACKBOX لتنظيم تدريبك وتوثيق نتائجه، لكن الموقع لا ينفذ أوامر Kali مباشرة.</section>
+      <section class="bb-landing-note"><strong>حالة ربط Kali:</strong> التشغيل محلي ويدوي. الموقع يوجّهك ويساعدك على توثيق النتائج، ولا ينفذ أوامر على جهازك.</section>
+      </div></details>
+      <p class="bb-landing-help">تفضّل التعرف إلى الأقسام أولًا؟ <button type="button" id="landing-start-tour-bottom">افتح الجولة الإرشادية</button></p>
     </main><footer class="bb-landing-footer">BLACKBOX Lab · تعلّم، طبّق، وثّق · <a href="https://cybertracelab.dev/">CyberTrace</a></footer>
   </div>
   <div id="bb-tour-overlay" class="bb-tour-overlay" hidden><div class="bb-tour-spotlight" id="bb-tour-spotlight"></div><div class="bb-tour-bubble" id="bb-tour-bubble" role="dialog" aria-modal="false" aria-labelledby="bb-tour-heading"><span id="bb-tour-count"></span><h2 id="bb-tour-heading"></h2><p id="bb-tour-description"></p><div class="bb-tour-actions"><button type="button" id="bb-tour-skip">إنهاء الجولة</button><button type="button" id="bb-tour-prev">السابق</button><button type="button" id="bb-tour-next">التالي ←</button></div></div></div>
   <div class="app">
     <aside class="sidebar" aria-label="التنقل الرئيسي">
-      <a class="brand" href="./" aria-label="BLACKBOX — لوحة التحكم">
+      <a class="brand" href="./" aria-label="BLACKBOX — تدريبي">
         <span class="brand-icon" aria-hidden="true">B.</span>
         <span><strong>BLACKBOX</strong><small>TRAINING WORKSPACE</small></span>
       </a>
       <div class="sidebar-section">
         <div class="nav-title">مساحة العمل</div>
         <nav class="nav" id="nav" aria-label="أقسام المختبر">
-          <button type="button" data-view="home"><span class="ic" aria-hidden="true">◈</span><span>لوحة التحكم</span></button>
-          <button type="button" data-view="tracks"><span class="ic" aria-hidden="true">▤</span><span>مسارات التدريب</span></button>
-          <button type="button" data-view="plan"><span class="ic" aria-hidden="true">↗</span><span>خطة جلستك</span></button>
-          <button type="button" data-view="skills" class="hidden"><span class="ic" aria-hidden="true">◇</span><span>المهارات المترابطة</span></button>
-          <button type="button" data-view="journal"><span class="ic" aria-hidden="true">▧</span><span>سجل المختبر</span></button>
-          <button type="button" data-view="backups"><span class="ic" aria-hidden="true">↓</span><span>النسخ والتقارير</span></button>
-          <button type="button" data-view="troubleshoot"><span class="ic" aria-hidden="true">⌁</span><span>حلول الأعطال</span></button>
+          <button type="button" data-view="home"><span class="ic" aria-hidden="true">◈</span><span>تدريبي</span></button>
+          <button type="button" data-view="tracks"><span class="ic" aria-hidden="true">▤</span><span>المسارات</span></button>
+          <button type="button" data-view="progress"><span class="ic" aria-hidden="true">↗</span><span>تقدّمي</span></button>
+          <button type="button" data-view="account"><span class="ic" aria-hidden="true">○</span><span>حسابي</span></button>
         </nav>
       </div>
       <div class="side-bottom">
@@ -112,8 +103,8 @@
     </aside>
     <main class="main" id="main-content" tabindex="-1">
       <header class="topbar">
-        <div class="crumb"><span class="mono">BLACKBOX</span><span aria-hidden="true"> / </span><b id="crumb">لوحة التحكم</b></div>
-        <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة</button><button type="button" class="secondary compact account-trigger" id="accountButton">سجّل لحفظ تقدّمك</button></div>
+        <div class="crumb"><span class="mono">BLACKBOX</span><span aria-hidden="true"> / </span><b id="crumb">تدريبي</b></div>
+        <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><details class="workspace-tools" id="workspace-tools"><summary>أدوات ومساعدة</summary><div class="workspace-tools-menu"><button type="button" class="secondary compact account-trigger" id="accountButton">سجّل لحفظ تقدّمك</button><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة احتياطية</button><a href="./?view=backups">النسخ والتقارير</a><a href="./training-guide.html">دليل التدريب</a><a href="./labs.html">دليل المختبرات المحلية</a><a href="./?view=troubleshoot">حلول الأعطال</a><button type="button" id="bb-whats-new-open">تعرّف على الميزات الجديدة</button></div></details></div>
       </header>
       <div id="storageNotice" class="storage-notice hidden" role="status"></div>
       <div id="accountSyncNotice" class="account-sync-notice hidden" role="status"><span id="accountSyncNoticeText"></span><button type="button" class="link-btn" id="reviewAccountSync">مراجعة الحساب</button></div>
@@ -148,7 +139,7 @@
       <div class="guide-tip" data-guide-tip><button type="button" aria-expanded="false" aria-controls="tip-3">🛡️ لماذا نستخدم مختبراً معزولاً؟</button><div id="tip-3" class="guide-tip-body" hidden>لتجربة الأدوات على آلات تملكها أو لديك تصريح باختبارها، دون تعريض شبكتك الفعلية أو الآخرين للخطر.</div></div>
     </div>
   </section>
-      <section aria-label="آخر تحديثات BLACKBOX"><button type="button" id="bb-whats-new-open">✨ تعرّف على الميزات الجديدة</button> <a href="./labs.html">افتح المختبرات العملية ←</a></section><div id="content"></div>
+      <div id="content"></div>
       <footer class="footer">BLACKBOX · تعلّم، وثّق، وراجع تقدّمك · تدريب للضيف وحفظ اختياري في الحساب</footer>
     </main>
   </div>

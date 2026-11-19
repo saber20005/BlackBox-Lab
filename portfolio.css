@@ -1,62 +1,46 @@
-:root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;line-height:1.8;background:#090f20;color:#edf2ff}
-*{box-sizing:border-box}
-body{margin:0}
-[hidden]{display:none!important}
-a{color:#a4ceff;text-underline-offset:.2em}
-a:hover{color:#d5e7ff}
-button,input{font:inherit}
-button{border:1px solid #6b87b2;border-radius:.65rem;padding:.65rem 1rem;background:#152642;color:#edf2ff;line-height:1.6;cursor:pointer;max-width:100%;white-space:normal}
-button:hover:not(:disabled){background:#203b64}
-button:disabled{opacity:.6;cursor:default}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #fbbf24;outline-offset:4px}
-.primary{background:#bcd9ff;color:#0b1930;border-color:#bcd9ff;font-weight:700}
-.primary:hover:not(:disabled){background:#daeaff}
-h1,h2,h3,h4{line-height:1.5;overflow-wrap:anywhere}
-h1{font-size:clamp(1.8rem,4vw,2.5rem);margin-block:.5rem 1rem}
-h2{font-size:1.4rem;margin-block:0 1rem}
-h3{font-size:1.25rem;margin-block:.25rem .75rem}
-h4{font-size:1rem;margin-block:1rem .35rem}
-p{margin-block:.5rem 1rem;overflow-wrap:anywhere}
-.page-header,main{width:min(1240px,100%);margin-inline:auto;padding:1.25rem}
-.page-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-block:1.5rem .5rem}
-.portfolio-intro{max-width:80ch;margin-block:1rem 1.75rem}
-.muted{color:#c5d0e3}
-.manual-notice{border-inline-start:4px solid #fbbf24;padding:.75rem 1rem;background:#1c2941}
-.source-panel,.portfolio-controls{border:1px solid #344c70;border-radius:1rem;background:#111d32;padding:1.25rem}
+.portfolio-intro{max-width:80ch;margin-block:1rem 1.5rem}
+.portfolio-intro h1{font-size:clamp(26px,4vw,38px);line-height:1.3;margin-block:.4rem .75rem}
+.portfolio-intro p{color:var(--muted)}
+.manual-notice{font-size:.85rem;border-inline-start:2px solid var(--line);padding-inline-start:.85rem}
+.source-panel,.portfolio-controls{border:1px solid var(--line);border-radius:13px;background:linear-gradient(150deg,#0f1218,#0b0e12);padding:1.1rem}
 .source-panel{margin-block:1.5rem}
 .source-panel p:last-child{margin-bottom:0}
 .action-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
-.portfolio-layout{display:grid;grid-template-columns:minmax(17rem,23rem) minmax(0,1fr);gap:1.5rem;align-items:start}
+.portfolio-layout{display:grid;grid-template-columns:minmax(15rem,21rem) minmax(0,1fr);gap:1.5rem;align-items:start}
 .portfolio-controls,.portfolio-preview{min-width:0}
-fieldset{min-width:0;border:0;padding:0;margin:1.5rem 0}
-legend{font-weight:700;margin-bottom:.75rem;padding:0}
+.portfolio-controls h2,.portfolio-preview>h2{font-size:1.15rem;margin-block:0 .85rem}
+.portfolio-page fieldset{min-width:0;border:0;padding:0;margin:1.5rem 0}
+.portfolio-page legend{font-weight:700;margin-bottom:.75rem;padding:0}
 .check-option{display:flex;align-items:flex-start;gap:.75rem;margin-block:.85rem;cursor:pointer;overflow-wrap:anywhere;min-width:0}
-.check-option input{flex:none;width:1.2rem;height:1.2rem;margin:.4rem 0 0;accent-color:#a4ceff}
+.check-option input{flex:none;width:1.15rem;height:1.15rem;margin:.3rem 0 0;accent-color:var(--green)}
 .check-option span{min-width:0}
 .check-option strong,.check-option small{display:block}
-.check-option small{font-size:1rem;color:#c5d0e3}
-.stage-choice{border-bottom:1px solid #344c70;padding-bottom:.85rem}
+.check-option small{font-size:.85rem;color:var(--muted)}
+.stage-choice{border-bottom:1px solid var(--line);padding-bottom:.85rem}
 .print-button{width:100%}
 .print-help{margin-top:.85rem}
-.empty-preview{padding:2rem 1.5rem;border:1px dashed #6b87b2;border-radius:1rem;text-align:center;color:#c5d0e3}
-#portfolio-report{padding:clamp(1rem,3vw,2rem);border-radius:.75rem;border:1px solid #b7c5d5;background:white;color:#172234;overflow-wrap:anywhere}
-.report-title{font-size:1.8rem;margin-block:0 1rem}
+.portfolio-page .print-help,.portfolio-page .muted{color:var(--muted)}
+.empty-preview{padding:2rem 1.5rem;border:1px dashed var(--line);border-radius:13px;text-align:center;color:var(--muted)}
+#portfolio-report{padding:clamp(1rem,3vw,2rem);border-radius:.75rem;border:1px solid #b7c5d5;background:white;color:#172234;overflow-wrap:anywhere;font-size:1rem;line-height:1.8}
+#portfolio-report .report-title{font-size:1.8rem;line-height:1.5;margin-block:0 1rem}
 .report-source,.report-disclaimer{color:#253d58;border-inline-start:3px solid #496d93;padding-inline-start:.85rem}
 .report-summary{font-weight:700}
 .portfolio-entry{border-top:1px solid #bbc8d6;padding-top:1.25rem;margin-top:1.5rem;break-inside:auto}
+.portfolio-entry h3{font-size:1.25rem;line-height:1.5;margin-block:.25rem .75rem}
+.portfolio-entry h4{font-size:1rem;margin-block:1rem .35rem}
 .entry-track{color:#355578;font-weight:700;margin-bottom:.2rem}
 .entry-meta{font-size:1rem;color:#344c65}
 .portfolio-text{white-space:pre-wrap;overflow-wrap:anywhere;unicode-bidi:plaintext}
-@media(max-width:900px){.portfolio-layout{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:420px){.page-header,main{padding-inline:1rem}.portfolio-controls,.source-panel{padding:1rem}.action-row{align-items:stretch;flex-direction:column}.action-row button{text-align:center}}
+@media(max-width:1150px){.portfolio-layout{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){.portfolio-controls,.source-panel{padding:1rem}.portfolio-page .action-row{align-items:stretch;flex-direction:column}.portfolio-page .action-row button{text-align:center}}
 @page{size:A4;margin:16mm}
 @media print{
   :root{color-scheme:light;background:white;color:#111;font-size:11pt;line-height:1.7}
-  body{background:white;color:#111;margin:0}
-  .screen-only,noscript{display:none!important}
-  main,.portfolio-layout,.portfolio-preview{display:block;width:auto;max-width:none;margin:0;padding:0;border:0;background:white}
-  #portfolio-report{padding:0;border:0;border-radius:0;color:#111;background:white}
-  .report-title{font-size:22pt}
+  body.portfolio-page{background:white;color:#111;margin:0}
+  .portfolio-page .screen-only,.portfolio-page .sidebar,.portfolio-page .topbar,.portfolio-page .footer,.portfolio-page noscript{display:none!important}
+  .portfolio-page .app,.portfolio-page .main,.portfolio-page .standalone-content,.portfolio-layout,.portfolio-preview{display:block;width:auto;max-width:none;min-height:0;margin:0;padding:0;border:0;background:white}
+  #portfolio-report{padding:0;border:0;border-radius:0;color:#111;background:white;font-size:11pt;line-height:1.7}
+  #portfolio-report .report-title{font-size:22pt}
   .report-source,.report-disclaimer,.entry-track,.entry-meta{color:#222}
   .entry-meta{font-size:11pt}
   .portfolio-entry{break-inside:auto}

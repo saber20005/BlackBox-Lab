@@ -92,6 +92,9 @@ try {
   await page.waitForFunction(() => !document.querySelector('#content').inert);
   await page.locator('#stageNotes').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#saveStatus').innerText(), 'محفوظ هنا · بانتظار المزامنة');
+  await page.locator('[data-training-hints-disclosure] summary').click();
+  await page.locator('[data-hint-next]').click();
+  await page.locator('[data-hint-level="1"]').waitFor({ state: 'visible' });
   await page.evaluate(() => { window.dispatchEvent(new Event('offline')); window.dispatchEvent(new Event('online')); });
   await page.waitForFunction(() => window.testLifecycle.readCounts['local-owner-c'] === 2);
   const bufferedNote = 'Synthetic UI draft typed while the recovery read is pending.';
@@ -108,4 +111,30 @@ try {
   assert.deepEqual(errors, []);
   assert.deepEqual([...externalHosts], [], 'controlled account lifecycle must remain local-only');
   console.log('PASS real textarea debounce race: recovery flushes newly typed text before applying remote progress and synchronizes it without repaint loss');
+  assert.equal(await page.locator('[data-training-hints-disclosure]').evaluate(node => node.open), true, 'same-owner recovery keeps the current hint panel open');
+  await page.locator('[data-hint-level="1"]').waitFor({ state: 'visible' });
+
+  await page.locator('#nav [data-view="account"]').click();
+  await page.evaluate(() => window.testLifecycle.emitUser({ uid: 'local-owner-d', email: 'd@example.test' }));
+  await page.waitForFunction(() => !!window.testLifecycle.rejects['local-owner-d']);
+  await page.evaluate(() => window.testLifecycle.rejects['local-owner-d'](Object.assign(new Error('Synthetic offline read'), { code: 'unavailable' })));
+  await page.waitForFunction(() => !document.querySelector('#content').inert);
+  await page.locator('[data-environment-settings] summary').click();
+  await page.locator('#localSetupGuideLink').focus();
+  await page.evaluate(() => { window.dispatchEvent(new Event('offline')); window.dispatchEvent(new Event('online')); });
+  await page.waitForFunction(() => window.testLifecycle.readCounts['local-owner-d'] === 2);
+  await page.evaluate(() => window.testLifecycle.reads['local-owner-d'](null));
+  await page.waitForFunction(() => document.querySelector('#saveStatus')?.textContent === 'محفوظ في حسابك');
+  assert.equal(await page.locator('[data-environment-settings]').evaluate(node => node.open), true, 'same-owner remote apply preserves the guide currently in use');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'localSetupGuideLink', 'same-owner repaint restores keyboard focus inside the guide');
+  await page.evaluate(() => window.testLifecycle.emitUser({ uid: 'local-owner-e', email: 'e@example.test' }));
+  await page.waitForFunction(() => !!window.testLifecycle.reads['local-owner-e']);
+  assert.equal(await page.locator('[data-environment-settings]').evaluate(node => node.open), false, 'switching accounts folds the previous owner guide');
+  await page.evaluate(() => window.testLifecycle.reads['local-owner-e'](null));
+  await page.waitForFunction(() => !document.querySelector('#content').inert);
+  assert.equal(await page.locator('[data-environment-settings]').evaluate(node => node.open), false);
+  assert.deepEqual(errors, []);
+  assert.deepEqual([...externalHosts], []);
+  console.log('PASS native panel lifecycle: same-owner refresh preserves open guide, hint state and focus; account changes fold panels');
+
 } finally { await browser.close(); }

@@ -172,3 +172,14 @@ test('missing browser objects and blocked script insertion fail without disrupti
     assert.equal(denied.trackPageView(), false);
   });
 });
+
+
+test('private progress and account hubs use known route labels without sending account data', () => {
+  for (const view of ['progress', 'account']) {
+    const fixture = browser({ url: `https://test.example/?view=${view}&uid=PRIVATE_UID&email=private@example.test&notes=PRIVATE_NOTE` });
+    const api = analytics(fixture);
+    assert.equal(api.trackPageView(), true);
+    assert.equal(events(fixture, 'page_view')[0][2].page_location, `https://test.example/?view=${view}`);
+    assert.doesNotMatch(JSON.stringify(commands(fixture)), /PRIVATE_|private@example/);
+  }
+});

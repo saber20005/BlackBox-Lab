@@ -70,6 +70,104 @@ async function settleUI(page) {
 async function navigate(page, path) {
   await page.goto(origin + path, { waitUntil: 'domcontentloaded' });
 }
+async function disclosure(page, selector, open = true, keyboard = false) {
+  const panel = page.locator(selector).first();
+  await panel.waitFor({ state: 'visible' });
+  if (await panel.evaluate(element => element.open) !== open) {
+    const summary = panel.locator(':scope > summary');
+    if (keyboard) { await summary.focus(); await summary.press('Space'); }
+    else await summary.click();
+  }
+  assert.equal(await panel.evaluate(element => element.open), open, `${selector} follows its native disclosure state`);
+}
+async function openTools(page) { await disclosure(page, '#workspace-tools'); }
+async function openView(page, view) {
+  const group = ['plan', 'journal', 'skills'].includes(view) ? 'progress'
+    : ['backups', 'troubleshoot'].includes(view) ? 'account' : view;
+  await page.locator(`#nav [data-view="${group}"]`).click();
+  if (group !== view) await page.locator(`.context-nav [data-nav="${view}"]`).click();
+  await page.locator('#content h1').first().waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#nav [aria-current="page"]').getAttribute('data-view'), group, 'secondary views keep their primary group active');
+}
+async function assertPrimaryNavigation(page) {
+  assert.deepEqual(await page.locator('#nav [data-view]').evaluateAll(nodes => nodes.filter(node => node.getClientRects().length).map(node => node.dataset.view)),
+    ['home', 'tracks', 'progress', 'account'], 'the primary navigation has four reachable items');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'primary navigation fits the viewport');
+}
+async function assertCompactHome(page) {
+  const home = page.locator('[data-training-home]');
+  await home.waitFor({ state: 'visible' });
+  assert.equal(await home.locator(':scope > section:not(.hero)').count(), 3, 'training home presents resume, compact progress and one next-session suggestion');
+  assert.equal(await home.locator('.path, #defenseIntroTitle, #partnerTitle').count(), 0, 'the complete catalogue and promotional blocks belong outside training home');
+  assert.equal(await page.locator('#bb-whats-new-open').isVisible(), false, 'feature announcements stay inside closed tools');
+  const resume = await home.locator('.resume-button').boundingBox();
+  assert(resume && resume.y >= 0 && resume.y + resume.height <= page.viewportSize().height, 'the main training action is visible without scrolling past announcements');
+}
+async function freshPrimaryLinks() {
+  for (const view of ['home', 'tracks', 'progress', 'account']) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const external = [], errors = [];
+    await context.route('**/*', route => {
+      if (new URL(route.request().url()).origin === origin) return route.continue();
+      external.push(new URL(route.request().url()).hostname); return route.abort('blockedbyclient');
+    });
+    const page = await context.newPage(); activePage = page;
+    page.on('pageerror', error => errors.push(error.message));
+    try {
+      // Each direct view starts without an intro marker, cached DOM or learner state.
+      await navigate(page, '/?view=' + view);
+      await page.waitForFunction(() => document.documentElement.dataset.bbAppReady === 'true'
+        && document.documentElement.dataset.bbLandingReady === 'true');
+      await page.locator('#content h1').waitFor({ state: 'visible' });
+      assert.equal(await page.locator('body').evaluate(node => node.classList.contains('bb-landing-active')), false,
+        `fresh ${view} remains in the workspace after both startup scripts settle`);
+      await assertPrimaryNavigation(page);
+      assert.equal(await page.locator('#nav [aria-current="page"]').getAttribute('data-view'), view);
+      assert.deepEqual(errors, []); assert.deepEqual(external, []);
+    } finally { await context.close(); }
+  }
+  report.freshPrimaryLinks = true;
+  console.log('PASS fresh primary links: training home, tracks, progress and account remain usable after both startup scripts settle');
+}
+async function freshDeepLinkAndNavigation() {
+  for (const viewport of [{ width: 320, height: 740 }, { width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
+    const context = await browser.newContext({ viewport });
+    const external = [], errors = [];
+    await context.route('**/*', route => {
+      if (new URL(route.request().url()).origin === origin) return route.continue();
+      external.push(new URL(route.request().url()).hostname); return route.abort('blockedbyclient');
+    });
+    const page = await context.newPage(); activePage = page;
+    page.on('pageerror', error => errors.push(error.message));
+    try {
+      // No stored introduction marker or learner state exists in this context.
+      await navigate(page, '/?track=logs&stage=0');
+      await page.locator('#stageNotes').waitFor({ state: 'visible' });
+      assert.equal(await page.locator('body').evaluate(node => node.classList.contains('bb-landing-active')), false, 'first-visit training links enter the workspace directly');
+      await assertPrimaryNavigation(page);
+      assert.equal(await page.locator('[data-training-hints-disclosure]').evaluate(node => node.open), false);
+      assert.equal(await page.locator('[data-training-resources]').evaluate(node => node.open), false);
+      assert.equal(await page.locator('#workspace-tools').evaluate(node => node.open), false);
+      for (const view of ['home', 'tracks', 'progress', 'account']) {
+        await openView(page, view);
+        await assertPrimaryNavigation(page);
+        if (view === 'home') await assertCompactHome(page);
+      }
+      await page.locator('[data-environment-settings] summary').click();
+      await page.locator('a[href*="intro=1"]').click();
+      await page.locator('#local-lab-setup').waitFor({ state: 'visible' });
+      await page.waitForFunction(() => document.documentElement.dataset.bbLandingReady === 'true');
+      assert.equal(await page.locator('#local-lab-setup').evaluate(node => node.open), true, 'requesting local setup opens its optional guide');
+      assert.equal(new URL(page.url()).searchParams.get('intro'), '1', 'initial route normalization preserves the explicit help request');
+      await page.goBack({ waitUntil: 'domcontentloaded' });
+      await page.locator('[data-environment-settings]').waitFor({ state: 'visible' });
+      await assertPrimaryNavigation(page);
+      assert.deepEqual(errors, []); assert.deepEqual(external, []);
+      console.log(`PASS simplified workspace at ${viewport.width}px: fresh deep link, four primary destinations, compact home and folded tools`);
+    } finally { await context.close(); }
+  }
+  report.freshDeepLinksAndCompactNavigation = true;
+}
 async function downloadBytes(page, selector) {
   const pending = page.waitForEvent('download');
   await page.locator(selector).first().click();
@@ -122,6 +220,7 @@ async function runViewport(viewport) {
       }), true, 'closing the tour restores focus to a visible control');
     }
 
+    await openTools(page);
     await page.locator('#bb-whats-new-open').click();
     assert.equal(await page.locator('#bb-whats-new').evaluate(el => el.open), true);
     await page.locator('#bb-whats-new-close').click();
@@ -131,15 +230,18 @@ async function runViewport(viewport) {
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#bb-whats-new').evaluate(el => el.open), false);
     result.guideOpenCloseReopen = true;
+    await disclosure(page, '#workspace-tools', false);
+    await assertPrimaryNavigation(page);
 
-    for (const view of ['home', 'tracks', 'plan', 'skills', 'journal', 'backups', 'troubleshoot']) {
-      await page.locator(`#nav [data-view="${view}"]`).click();
-      await page.locator('#content h1').first().waitFor({ state: 'visible' });
+    for (const view of ['home', 'tracks', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'troubleshoot']) {
+      await openView(page, view);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${view} must fit the viewport`);
     }
     result.navigation = true;
 
     await navigate(page, '/?track=recon&stage=0');
+    assert.equal(await page.locator('[data-training-hints-disclosure]').evaluate(element => element.open), false, 'hints start folded');
+    await disclosure(page, '[data-training-hints-disclosure]', true, true);
     await page.locator('[data-hint-next]').waitFor({ state: 'visible' });
     assert.equal(await page.locator('[data-hint-level="3"]').count(), 0, 'review text is absent before explicit reveal');
     await page.locator('[data-hint-next]').click();
@@ -151,7 +253,7 @@ async function runViewport(viewport) {
     assert.equal(await page.locator('[data-hint-review]').isDisabled(), true, 'an untouched writing template is not an attempt');
     await page.locator('#nav [data-view="home"]').click();
     assert.equal((await page.locator('[data-stat="notes"]').innerText()).trim(), '0');
-    await page.locator('#nav [data-view="backups"]').click();
+    await openView(page, 'backups');
     const templateBackup = await downloadBytes(page, '[data-backup]');
     assert.match(await previewBackup(page, templateBackup), /0\s+مراحل موثّقة/, 'untouched writing prompts must not count as evidence in import preview');
     await page.locator('#cancelImport').click();
@@ -160,12 +262,17 @@ async function runViewport(viewport) {
     const note = `Synthetic local guest note at viewport ${viewport.width}.`;
     await page.locator('#stageResult').fill('Synthetic browser regression result; no actual lab was performed.');
     await page.locator('#stageNotes').fill(note);
+    await disclosure(page, '[data-training-hints-disclosure]');
     await page.locator('[data-hint-next]').click();
     await page.locator('[data-hint-next]').click();
     assert.equal(await page.locator('[data-hint-review]').isDisabled(), false);
     await page.locator('[data-hint-review]').click();
     await page.locator('[data-hint-level="3"]').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#stageNotes').inputValue(), note, 'revealing review preserves the learner draft');
+    await disclosure(page, '[data-training-hints-disclosure]', false);
+    await disclosure(page, '[data-training-hints-disclosure]', true, true);
+    await page.locator('[data-hint-level="3"]').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#stageNotes').inputValue(), note, 'folding and reopening hints preserves the draft and revealed review');
     await page.waitForFunction(note => JSON.parse(localStorage.getItem('blackbox-progress-v1') || '{}').notes?.['recon-0'] === note, note);
     await page.reload({ waitUntil: 'domcontentloaded' });
     assert.equal(await page.locator('#stageNotes').inputValue(), note);
@@ -182,7 +289,7 @@ async function runViewport(viewport) {
     assert.equal(await page.locator('#stageResult').count(), 0, 'a direct URL must not unlock an unfinished prerequisite');
     result.draftsAndStageLocks = true;
 
-    await page.locator('#nav [data-view="backups"]').click();
+    await openView(page, 'backups');
     const savedBackup = await downloadBytes(page, '[data-backup]');
     const saved = JSON.parse(savedBackup.toString('utf8'));
     assert.equal(saved.data.notes['recon-0'], note);
@@ -197,12 +304,25 @@ async function runViewport(viewport) {
     assert.equal(stageCount, 30, 'the approved expansion preserves eighteen stages and adds twelve');
     await navigate(page, '/?track=logs&stage=0');
     await page.locator('#stageResult').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('[data-training-resources]').evaluate(element => element.open), false, 'optional local resources start folded');
+    await disclosure(page, '[data-training-resources]', true, true);
     const kit = page.locator('[data-training-kit]').first();
     assert.match(await kit.getAttribute('href'), /downloads\/blackbox-defense-kit\.zip$/);
     const archive = await downloadBytes(page, '[data-training-kit]');
     assert.equal(archive.readUInt32LE(0), 0x04034b50, 'training archive must be a downloadable ZIP');
     assert.equal(await page.locator('#sideProgress').innerText(), `1 / ${stageCount}`, 'old completion survives the expanded catalogue');
     result.defensiveKitDownload = true;
+    await disclosure(page, '[data-training-resources]', false);
+    assert.equal(await page.locator('[data-training-hints-disclosure]').evaluate(element => element.open), false);
+    assert.equal(await page.evaluate(() => {
+      const guide = document.querySelector('.stage-guide');
+      const evidence = document.querySelector('[data-evidence-workbench]');
+      const answer = document.querySelector('#stageResult');
+      const complete = document.querySelector('#confirmStage');
+      return Boolean(guide.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING)
+        && Boolean(evidence.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING)
+        && Boolean(answer.compareDocumentPosition(complete) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }), true, 'the task precedes evidence, answer and completion');
 
     await page.locator('[data-evidence-search]').waitFor({ state: 'visible' });
     await page.waitForFunction(() => document.querySelectorAll('[data-evidence-line]').length === 12);
@@ -217,6 +337,11 @@ async function runViewport(viewport) {
     await page.locator('#stageResult').fill(draftResult);
     await page.locator('#stageNotes').fill(draftNote);
     await page.locator('[data-evidence-select="6"]').check();
+    await disclosure(page, '[data-training-resources]', true);
+    await disclosure(page, '[data-training-resources]', false, true);
+    assert.equal(await page.locator('[data-evidence-select="6"]').isChecked(), true, 'resource toggling preserves the evidence selection');
+    assert.equal(await page.locator('#stageResult').inputValue(), draftResult);
+    assert.equal(await page.locator('#stageNotes').inputValue(), draftNote);
     await page.locator('[data-evidence-append]').click();
     const cited = await page.locator('#stageResult').inputValue();
     assert(cited.startsWith(draftResult));
@@ -232,6 +357,17 @@ async function runViewport(viewport) {
     assert.equal(await page.locator('#sideProgress').innerText(), `1 / ${stageCount}`);
     result.evidenceFilteringCitationAndDrafts = true;
 
+    // Leave before the debounced save, then return through browser history.
+    const navigatedDraft = cited + '\nSynthetic navigation draft.';
+    await page.locator('#stageResult').fill(navigatedDraft);
+    await openView(page, 'account');
+    await page.goBack();
+    await page.locator('#stageResult').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#stageResult').inputValue(), navigatedDraft, 'account navigation and browser Back preserve a pending draft');
+    assert.equal(await page.locator('#stageNotes').inputValue(), draftNote);
+    result.disclosureAndHistoryPreserveDrafts = true;
+
+    await disclosure(page, '[data-training-resources]');
     const openedGuide = page.waitForEvent('popup');
     await page.locator('[data-training-guide]').click();
     const guide = await openedGuide;
@@ -315,7 +451,7 @@ async function runViewport(viewport) {
 
 try {
   await Promise.race([
-    (async () => { for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) await runViewport(viewport); })(),
+    (async () => { await freshPrimaryLinks(); await freshDeepLinkAndNavigation(); for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) await runViewport(viewport); })(),
     new Promise((_, no) => { deadline = setTimeout(() => no(new Error('Guest browser regression exceeded its three-minute deadline')), 180000); }),
   ]);
   const staticGuideContext = await browser.newContext({ viewport: { width: 320, height: 740 }, javaScriptEnabled: false });
