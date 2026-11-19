@@ -328,4 +328,41 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     await assertFails(setDoc(doc(bob, verifiedPath('bob')), verified));
   });
 
+  test('SOC challenges, private rubrics and sessions are invisible; verified SOC receipt is owner-read-only', async () => {
+    const shiftId = 'SOC-VERIFY-01';
+    const sensitive = [
+      `socVerifiedCatalog/${shiftId}`,
+      `socVerifiedRubrics/${shiftId}`,
+      'socVerifiedSessions/00000000-0000-0000-0000-000000000001',
+      'socVerifiedQuotas/alice',
+    ];
+    const verifiedPath = uid => `blackboxUsers/${uid}/verifiedSocShifts/${shiftId}`;
+    await environment.withSecurityRulesDisabled(async context => {
+      const db = context.firestore();
+      for (const entry of sensitive) await setDoc(doc(db,entry), { private: true, answerKey: 'server-only' });
+      await setDoc(doc(db,verifiedPath('alice')), { schemaVersion:1, shiftId, source:'server-grading', bestScore:88 });
+    });
+    const alice=environment.authenticatedContext('alice').firestore();
+    const bob=environment.authenticatedContext('bob').firestore();
+    const guest=environment.unauthenticatedContext().firestore();
+    for(const db of [alice,bob,guest]){
+      for(const entry of sensitive){
+        await assertFails(getDoc(doc(db,entry)));
+        await assertFails(setDoc(doc(db,entry), { private:false }));
+        await assertFails(updateDoc(doc(db,entry), { answerKey:'tampered' }));
+        await assertFails(deleteDoc(doc(db,entry)));
+      }
+    }
+    const result=doc(alice,verifiedPath('alice'));
+    assert.equal((await assertSucceeds(getDoc(result))).data().bestScore,88);
+    await assertSucceeds(getDocs(collection(alice,'blackboxUsers/alice/verifiedSocShifts')));
+    await assertFails(getDoc(doc(bob,verifiedPath('alice'))));
+    await assertFails(getDoc(doc(guest,verifiedPath('alice'))));
+    await assertFails(getDocs(collection(bob,'blackboxUsers/alice/verifiedSocShifts')));
+    await assertFails(setDoc(result,{source:'client',bestScore:100}));
+    await assertFails(updateDoc(result,{bestScore:100}));
+    await assertFails(deleteDoc(result));
+    await assertFails(setDoc(doc(bob,verifiedPath('bob')),{bestScore:100}));
+  });
+
 }

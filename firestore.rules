@@ -146,6 +146,25 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // SOC grading security boundary. Challenge data and answer keys are server-only.
+    // Result reads are owner-scoped, and ALL writes use Admin SDK transactions.
+    match /socVerifiedCatalog/{shiftId} {
+      allow read, write: if false;
+    }
+    match /socVerifiedRubrics/{shiftId} {
+      allow read, write: if false;
+    }
+    match /socVerifiedSessions/{sessionId} {
+      allow read, write: if false;
+    }
+    match /socVerifiedQuotas/{uid} {
+      allow read, write: if false;
+    }
+    match /blackboxUsers/{uid}/verifiedSocShifts/{shiftId} {
+      allow get, list: if isOwner(uid);
+      allow create, update, delete: if false;
+    }
+
     // Reserved server-owned suite membership records. Admin SDK only; never grant client access.
     match /suiteMemberships/{uid} {
       allow read, write: if false;

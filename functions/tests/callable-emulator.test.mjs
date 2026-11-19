@@ -8,7 +8,7 @@ if (!endpoint) {
   test('Callable integration requires Functions emulator', { skip: true }, () => {});
 } else {
   const base = `http://${endpoint}/${project}/us-central1`;
-  for (const fn of ['startGradingSession', 'submitGradingAnswer']) {
+  for (const fn of ['startGradingSession', 'submitGradingAnswer', 'startVerifiedSocShift', 'submitVerifiedSocShift']) {
     test(`${fn} rejects requests without Firebase Auth`, async () => {
       const response = await fetch(`${base}/${fn}`, {
         method: 'POST',
@@ -39,7 +39,7 @@ if (!endpoint) {
     const { idToken } = await signup.json();
     assert.ok(idToken);
     // Exercise both callable handlers with a real Auth-emulator identity but no App Check.
-    for (const fn of ['startGradingSession', 'submitGradingAnswer']) {
+    for (const fn of ['startGradingSession', 'submitGradingAnswer', 'startVerifiedSocShift', 'submitVerifiedSocShift']) {
       const response = await fetch(`${base}/${fn}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
@@ -55,6 +55,22 @@ if (!endpoint) {
       });
       assert.equal(response.status, 401, `missing App Check must be rejected for ${caseId}`);
       assert.notEqual(response.status, 200);
+    }
+  });
+
+  test('SOC grading callables reject missing App Check even if authenticated', async () => {
+    const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+    const signup = await fetch(`http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({returnSecureToken:true})
+    });
+    assert.equal(signup.status,200);
+    const {idToken} = await signup.json();
+    for (const name of ['startVerifiedSocShift','submitVerifiedSocShift']) {
+      const response=await fetch(`${base}/${name}`, {
+        method:'POST',headers:{ 'Content-Type':'application/json',Authorization:`Bearer ${idToken}` },
+        body:JSON.stringify({data:{shiftId:'SOC-VERIFY-01'}}),
+      });
+      assert.equal(response.status,401,`unattested SOC access must fail: ${name}`);
     }
   });
 
