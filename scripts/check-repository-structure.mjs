@@ -20,6 +20,31 @@ const expectedCss = [
   "training-hints.css", "whats-new.css", "workspace-shell.css",
 ];
 
+// Existing public JS/HTML entry points are documented exceptions to the
+// flat-root policy. New frontend files must be grouped or explicitly reviewed.
+const allowedRootJs = new Set([
+  "account-config.js","account-sync.js","account-ui.js","analytics.js","app.js",
+  "appcheck-diagnostic.js","cybertrace-catalog.js","data.js","defense-tracks.js",
+  "documentation-templates.js","evidence-workbench.js","firebase-client.js",
+  "lab-catalog.js","lab-intro.js","landing.js","linked-skills-ui.js","loading.js",
+  "mission-mode.js","mission-page.js","onboarding.js","portfolio-page.js","portfolio.js",
+  "progress-session.js","progress.js","recaptcha-diagnostic-core.js",
+  "recaptcha-independent-diagnostic.js","routes.js","training-hints.js",
+  "training-plan-ui.js","training-plan.js","ux-test-model.js","ux-test.js",
+  "verified-grading-client.js","vm-report-ui.js","vm-report.js","whats-new.js",
+]);
+const allowedRootHtml = new Set([
+  "appcheck-diagnostic.html","beginner-journey.html","index.html","labs.html",
+  "mission-mode.html","portfolio.html","pro.html","recaptcha-independent-diagnostic.html",
+  "training-guide.html","ux-test.html","vm-report.html",
+]);
+for (const name of readdirSync(root)) {
+  if (name.endsWith(".js") && !allowedRootJs.has(name))
+    errors.push("New root JavaScript file requires relocation or explicit review: "+name);
+  if (name.endsWith(".html") && !allowedRootHtml.has(name))
+    errors.push("New root HTML page requires public-route compatibility review: "+name);
+}
+
 for (const name of mustRemain) if (!existsSync(pathOf(name)))
   errors.push("Missing protected public/deploy entry: " + name);
 for (const name of expectedCss) {
