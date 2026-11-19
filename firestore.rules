@@ -146,6 +146,11 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Reserved server-owned suite membership records. Admin SDK only; never grant client access.
+    match /suiteMemberships/{uid} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
