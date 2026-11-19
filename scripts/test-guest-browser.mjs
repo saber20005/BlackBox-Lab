@@ -140,7 +140,15 @@ async function runViewport(viewport) {
     result.navigation = true;
 
     await navigate(page, '/?track=recon&stage=0');
+    await page.locator('[data-hint-next]').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('[data-hint-level="3"]').count(), 0, 'review text is absent before explicit reveal');
+    await page.locator('[data-hint-next]').click();
+    await page.locator('[data-hint-level="1"]').waitFor({ state: 'visible' });
+    await page.locator('[data-hint-next]').click();
+    await page.locator('[data-hint-level="2"]').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('[data-hint-review]').isDisabled(), true, 'review requires a written attempt');
     await page.locator('[data-template="result"]').click();
+    assert.equal(await page.locator('[data-hint-review]').isDisabled(), true, 'an untouched writing template is not an attempt');
     await page.locator('#nav [data-view="home"]').click();
     assert.equal((await page.locator('[data-stat="notes"]').innerText()).trim(), '0');
     await page.locator('#nav [data-view="backups"]').click();
@@ -152,6 +160,12 @@ async function runViewport(viewport) {
     const note = `Synthetic local guest note at viewport ${viewport.width}.`;
     await page.locator('#stageResult').fill('Synthetic browser regression result; no actual lab was performed.');
     await page.locator('#stageNotes').fill(note);
+    await page.locator('[data-hint-next]').click();
+    await page.locator('[data-hint-next]').click();
+    assert.equal(await page.locator('[data-hint-review]').isDisabled(), false);
+    await page.locator('[data-hint-review]').click();
+    await page.locator('[data-hint-level="3"]').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#stageNotes').inputValue(), note, 'revealing review preserves the learner draft');
     await page.waitForFunction(note => JSON.parse(localStorage.getItem('blackbox-progress-v1') || '{}').notes?.['recon-0'] === note, note);
     await page.reload({ waitUntil: 'domcontentloaded' });
     assert.equal(await page.locator('#stageNotes').inputValue(), note);

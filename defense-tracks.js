@@ -162,12 +162,12 @@ export const DEFENSE_TRACKS = [
       {
         name: 'قراءة الرسالة الأصلية',
         goal: 'استخرج هويات المرسل ومسار الرد ونتائج المصادقة من ملف EML.',
-        guide: 'من مجلد blackbox-defense اقرأ email/suspicious.eml كنص. سجّل From وReply-To وReturn-Path وAuthentication-Results والموضوع في جدول مع مصدر كل قيمة. عناوين الرسائل وروابط hxxps في الحزمة اصطناعية؛ لا تحتاج فتح رابط أو إرسال رسالة لإتمام الفحص.',
+        guide: 'من مجلد blackbox-defense اقرأ email/suspicious.eml كنص. سجّل From وReply-To وAuthentication-Results والموضوع في جدول مع مصدر كل قيمة، ودوّن Return-Path إن وُجد أو سجّل غيابه. عناوين الرسائل وروابط hxxps في الحزمة اصطناعية؛ لا تحتاج فتح رابط أو إرسال رسالة لإتمام الفحص.',
         commands: [
           ['اعرض الرسالة المشبوهة كنص محلي', 'python3 -c "from pathlib import Path; print(Path(\'email/suspicious.eml\').read_text(encoding=\'utf-8\'))"'],
         ],
         check: [
-          'دوّن حقول From وReply-To وReturn-Path والموضوع كما تظهر في ملف EML.',
+          'دوّن حقول From وReply-To والموضوع، واذكر Return-Path إن وُجد أو سجّل غيابه.',
           'افصل اسم العرض عن النطاق الفعلي وعنوان الرد، وقارنها بالنطاق المتوقع في دليل الحزمة.',
           'حدّد مصدر Authentication-Results وحدود الاعتماد عليه قبل بناء حكمك.',
         ],
