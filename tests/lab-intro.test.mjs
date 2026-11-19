@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 
 const html = readFileSync(new URL('../labs.html', import.meta.url), 'utf8');
 const script = readFileSync(new URL('../lab-intro.js', import.meta.url), 'utf8');
-const css = readFileSync(new URL('../lab-intro.css', import.meta.url), 'utf8');
+const css = readFileSync(new URL('../assets/styles/lab-intro.css', import.meta.url), 'utf8');
 
 test('onboarding has accessible dialog and replay control', () => {
   for (const id of ['lab-intro', 'lab-intro-title', 'lab-intro-body', 'lab-intro-open', 'lab-intro-back', 'lab-intro-next', 'lab-intro-close']) {
@@ -13,7 +13,7 @@ test('onboarding has accessible dialog and replay control', () => {
   assert.match(html, /aria-labelledby="lab-intro-title"/);
   assert.match(html, /aria-describedby="lab-intro-body"/);
   assert.match(html, /src="\.\/lab-intro\.js"/);
-  assert.match(html, /href="\.\/lab-intro\.css"/);
+  assert.match(html, /href="\.\/assets\/styles\/lab-intro\.css"/);
   assert.match(css, /::backdrop/);
 });
 test('guide discloses manual labs and read-only inspector', () => {

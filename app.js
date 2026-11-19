@@ -429,7 +429,7 @@ async function mountStageHints(run) {
   if (!panel || !scope) return;
   const isCurrent = () => run === viewGeneration && scope === hintScope && panel.isConnected;
   try {
-    const [module] = await Promise.all([import('./training-hints.js'), loadOptionalStyles('./training-hints.css')]);
+    const [module] = await Promise.all([import('./training-hints.js'), loadOptionalStyles('./assets/styles/training-hints.css')]);
     if (!isCurrent()) return;
     hintViewState ??= module.createHintViewState();
     hintController = module.mountTrainingHints(panel, {
@@ -449,7 +449,7 @@ async function mountStageEvidence(run) {
   if (!panel || !scope) return;
   const isCurrent = () => run === viewGeneration && scope === currentEvidenceScope() && panel.isConnected;
   try {
-    const [module] = await Promise.all([import('./evidence-workbench.js'), loadOptionalStyles('./evidence-workbench.css')]);
+    const [module] = await Promise.all([import('./evidence-workbench.js'), loadOptionalStyles('./assets/styles/evidence-workbench.css')]);
     if (!isCurrent()) return;
     evidenceViewState ??= module.createEvidenceViewState();
     evidenceDisposer = module.mountEvidenceWorkbench(panel, {
