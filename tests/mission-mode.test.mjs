@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { MISSIONS, missionStatus, skillDNA } from '../mission-mode.js';
 import { tracks } from '../data.js';
-import { DOCUMENTATION_TEMPLATES } from '../documentation-templates.js';
+import { DOCUMENTATION_TEMPLATES } from '../assets/modules/training/documentation-templates.js';
 
 test('every mission references a known stage', () => {
   for (const mission of MISSIONS) {
