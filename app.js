@@ -9,7 +9,7 @@ import { linkedSkillsPage } from './linked-skills-ui.js';
 import { trainingPlanPage, trainingPlanSummary } from './training-plan-ui.js';
 import { getRelatedCaseIds } from './training-plan.js';
 import { CASE_META } from './cybertrace-catalog.js';
-import { appendDocumentationTemplate, hasMeaningfulDocumentation } from './documentation-templates.js';
+import { appendDocumentationTemplate, hasMeaningfulDocumentation } from './assets/modules/training/documentation-templates.js';
 import {
   loadProgress, saveProgress, createInitialState, createBackup, parseBackup,
   MAX_BACKUP_BYTES, MAX_TEXT_LENGTH,
@@ -429,7 +429,7 @@ async function mountStageHints(run) {
   if (!panel || !scope) return;
   const isCurrent = () => run === viewGeneration && scope === hintScope && panel.isConnected;
   try {
-    const [module] = await Promise.all([import('./training-hints.js'), loadOptionalStyles('./assets/styles/training-hints.css')]);
+    const [module] = await Promise.all([import('./assets/modules/training/training-hints.js'), loadOptionalStyles('./assets/styles/training-hints.css')]);
     if (!isCurrent()) return;
     hintViewState ??= module.createHintViewState();
     hintController = module.mountTrainingHints(panel, {
