@@ -1,5 +1,5 @@
 import { tracks } from './data.js';
-import { hasMeaningfulDocumentation } from './documentation-templates.js';
+import { hasMeaningfulDocumentation } from './assets/modules/training/documentation-templates.js';
 
 export const MISSIONS = Object.freeze([
   { id: 'network-investigator', title: 'محقق الشبكات', description: 'اعزل البيئة، حلّل الشبكة، ثم وثّق استنتاجًا دفاعيًا.', steps: [{ trackId: 'recon', stageIndex: 0 }, { trackId: 'network', stageIndex: 1 }, { trackId: 'network', stageIndex: 2 }] },
