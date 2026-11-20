@@ -1,5 +1,5 @@
 // Voluntary, self-reported UX pilot. No network, cookies, analytics events, or storage.
-import {summarizeUX} from './ux-test-model.js';
+import {summarizeUX} from './assets/modules/diagnostics/ux-test-model.js';
 const form=document.getElementById('ux-form');
 const status=document.getElementById('status');
 form.addEventListener('submit',event=>{

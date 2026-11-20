@@ -6,7 +6,7 @@ Build a guided Arabic cyber range with progressive paths and isolated, authorize
 ## Verified versus proposed
 - Existing static learning application, accounts, progress and reports: implemented in repository; production behavior requires separate verification.
 - Verified server-side grading: gated off in `account-config.js`; do not enable until App Check, callable deployment and end-to-end checks pass.
-- Local VM lab catalog: metadata only (`lab-catalog.js`). **No VM automation exists yet.**
+- Local VM lab catalog: metadata only (`assets/modules/training/lab-catalog.js`). **No VM automation exists yet.**
 - VirtualBox/Kali integration: proposed, not implemented.
 - Cloud per-user machines, flag verification, leaderboards, subscriptions: proposed, not implemented.
 
