@@ -276,6 +276,39 @@ async function runViewport(viewport) {
     await page.waitForFunction(note => JSON.parse(localStorage.getItem('blackbox-progress-v1') || '{}').notes?.['recon-0'] === note, note);
     await page.reload({ waitUntil: 'domcontentloaded' });
     assert.equal(await page.locator('#stageNotes').inputValue(), note);
+
+    // Security regression: locally saved, user-authored evidence must remain
+    // literal text across the exercise textarea and journal HTML render paths.
+    // Include a closing textarea marker to catch parser-context breakouts.
+    const syntheticMarkup = '</textarea><svg onload="window.__bbXssTest=1"></svg><img src=x onerror="window.__bbXssTest=1">';
+    await page.locator('#stageResult').fill(syntheticMarkup);
+    await page.locator('#stageNotes').fill(syntheticMarkup);
+    await page.waitForFunction(value => {
+      const stored = JSON.parse(localStorage.getItem('blackbox-progress-v1') || '{}');
+      return stored.notes?.['recon-0'] === value && stored.results?.['recon-0'] === value;
+    }, syntheticMarkup);
+    await openView(page, 'journal');
+    await page.locator('.journal-entry').first().waitFor({ state: 'visible' });
+    assert((await page.locator('.journal-entry').first().innerText()).includes(syntheticMarkup),
+      'journal displays the exact saved note as text');
+    assert.equal(await page.locator('.journal-entry svg, .journal-entry img').count(), 0,
+      'saved HTML/SVG-like evidence must not become active journal DOM elements');
+    assert.equal(await page.evaluate(() => window.__bbXssTest ?? null), null,
+      'saved HTML/SVG-like evidence must not execute browser event handlers');
+    await navigate(page, '/?track=recon&stage=0');
+    assert.equal(await page.locator('#stageResult').inputValue(), syntheticMarkup,
+      'a closing textarea tag in saved evidence remains literal');
+    assert.equal(await page.locator('#stageNotes').inputValue(), syntheticMarkup,
+      'a closing textarea tag in saved notes remains literal');
+    assert.equal(await page.evaluate(() => window.__bbXssTest ?? null), null);
+    await page.locator('#stageResult').fill('Synthetic browser regression result; no actual lab was performed.');
+    await page.locator('#stageNotes').fill(note);
+    await page.waitForFunction(value => {
+      const stored = JSON.parse(localStorage.getItem('blackbox-progress-v1') || '{}');
+      return stored.notes?.['recon-0'] === value &&
+        stored.results?.['recon-0'] === 'Synthetic browser regression result; no actual lab was performed.';
+    }, note);
+    result.savedHtmlSvgRemainsText = true;
     assert.equal(await page.locator('#confirmStage').isDisabled(), true);
     const checks = page.locator('[data-check]');
     const checkCount = await checks.count();
