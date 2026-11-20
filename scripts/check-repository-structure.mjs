@@ -2,6 +2,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { findBrokenRelativeImports } from "./relative-import-guard.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pathOf = p => resolve(root, p);
@@ -106,6 +107,9 @@ for (const name of docs) {
     docChecked++;
   }
 }
+// Confirm static and literal dynamic ESM imports still resolve after file relocations.
+errors.push(...findBrokenRelativeImports(root));
+
 if(errors.length){
   for(const error of errors) console.error("STRUCTURE:",error);
   process.exitCode=1;
