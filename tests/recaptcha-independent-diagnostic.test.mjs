@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createEnterpriseScriptLoader, createRecaptchaProbe, classifyRecaptchaFailure } from '../recaptcha-diagnostic-core.js';
+import { createEnterpriseScriptLoader, createRecaptchaProbe, classifyRecaptchaFailure } from '../assets/modules/diagnostics/recaptcha-diagnostic-core.js';
 
 function deferred() {
   let resolve;
@@ -216,7 +216,7 @@ test('empty values fail validation and invalid configuration starts no Google re
 test('page stays opt-in/noindex and displays only safe probe reports without Firebase or security bypasses', async () => {
   const page = await readFile(new URL('../recaptcha-independent-diagnostic.html', import.meta.url), 'utf8');
   const client = await readFile(new URL('../recaptcha-independent-diagnostic.js', import.meta.url), 'utf8');
-  const core = await readFile(new URL('../recaptcha-diagnostic-core.js', import.meta.url), 'utf8');
+  const core = await readFile(new URL('../assets/modules/diagnostics/recaptcha-diagnostic-core.js', import.meta.url), 'utf8');
   assert.match(page, /noindex,nofollow/);
   assert.match(page, /role="status" aria-live="polite"/);
   assert.match(page, /src="\.\/recaptcha-independent-diagnostic.js"/);

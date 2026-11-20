@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { labs, validateLab, filterLabs, labStartURL } from '../lab-catalog.js';
+import { labs, validateLab, filterLabs, labStartURL } from '../assets/modules/training/lab-catalog.js';
 import { tracks } from '../data.js';
 import { parseRoute } from '../routes.js';
 

@@ -1,5 +1,5 @@
 import { accountConfig } from './account-config.js';
-import { createEnterpriseScriptLoader, createRecaptchaProbe } from './recaptcha-diagnostic-core.js';
+import { createEnterpriseScriptLoader, createRecaptchaProbe } from './assets/modules/diagnostics/recaptcha-diagnostic-core.js';
 
 const button = document.getElementById('run');
 const result = document.getElementById('result');
