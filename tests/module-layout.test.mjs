@@ -26,6 +26,7 @@ test('public entry points import only their new internal module paths',()=>{
     ['recaptcha-independent-diagnostic.js','./assets/modules/diagnostics/recaptcha-diagnostic-core.js'],
     ['labs.html','./assets/modules/training/lab-catalog.js'],
     ['app.js','./assets/modules/training/documentation-templates.js'],
+    ['mission-mode.js','./assets/modules/training/documentation-templates.js'],
     ['app.js','./assets/modules/training/training-hints.js'],
   ]) {
     assert(source(entry).includes(expected),entry);
