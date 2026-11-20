@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRoute, routeURL, canonicalURL, routeMetadata } from '../routes.js';
+import { parseRoute, routeURL, canonicalURL, routeMetadata, primaryView } from '../routes.js';
+import { tracks } from '../data.js';
 
 test('public track and zero-based stage links parse without changing progress', () => {
   assert.deepEqual(parseRoute('https://blackboxlab.dev/'), { view: 'home', trackId: 'recon', stageIndex: 0, invalid: false });
@@ -29,6 +30,26 @@ test('unknown, duplicated and malformed route values fall back to known pages', 
   assert.equal(parseRoute('?stage=0').invalid, true);
   assert.equal(parseRoute('?view=missing').view, 'home');
   assert.equal(parseRoute('?view=missing&track=network').view, 'tracks');
+});
+
+test('new defensive tracks have public links and three valid stages without accepting unknown fourth stages', () => {
+  for (const trackId of ['logs', 'integrity', 'headers', 'email']) {
+    const publicRoute = parseRoute(`?view=tracks&track=${trackId}`);
+    assert.equal(publicRoute.invalid, false);
+    assert.equal(publicRoute.view, 'tracks');
+    assert.equal(publicRoute.trackId, trackId);
+    assert.equal(routeMetadata(publicRoute).shouldIndex, true);
+    for (const stageIndex of [0, 1, 2]) {
+      const parsed = parseRoute(`?track=${trackId}&stage=${stageIndex}`);
+      assert.deepEqual(parsed, { view: 'exercise', trackId, stageIndex, invalid: false });
+      assert.equal(routeURL(parsed).search, `?track=${trackId}&stage=${stageIndex}`);
+      assert.equal(canonicalURL(parsed), `https://blackboxlab.dev/?view=tracks&track=${trackId}`);
+    }
+    assert.equal(parseRoute(`?track=${trackId}&stage=3`).invalid, true);
+  }
+  const metadata = routeMetadata({ view: 'home' });
+  assert(metadata.description.includes(`${tracks.length} مسارات`));
+  assert(metadata.description.includes(`${tracks.reduce((sum, track) => sum + track.stages.length, 0)} مرحلة`));
 });
 
 test('navigation keeps allowed attribution and removes stale routes, arbitrary fields and hashes', () => {
@@ -74,7 +95,7 @@ test('sitemap lists only canonical public URLs and uses the production domain', 
   const { readFile } = await import('node:fs/promises');
   const xml = await readFile(new URL('../sitemap.xml', import.meta.url), 'utf8');
   const urls = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1].replaceAll('&amp;', '&'));
-  assert.equal(urls.length, 8);
+  assert.equal(urls.length, tracks.length + 2);
   assert.equal(new Set(urls).size, urls.length);
   for (const url of urls) {
     assert.equal(new URL(url).origin, 'https://blackboxlab.dev');
@@ -83,4 +104,34 @@ test('sitemap lists only canonical public URLs and uses the production domain', 
     assert.equal(canonicalURL(parsed), url);
     assert.equal(routeMetadata(parsed).shouldIndex, true);
   }
+});
+
+
+test('four navigation groups retain secondary URLs and keep new private hubs out of indexing', () => {
+  const groups = { home: 'home', tracks: 'tracks', exercise: 'tracks', progress: 'progress', plan: 'progress', skills: 'progress', journal: 'progress', account: 'account', backups: 'account', troubleshoot: 'account' };
+  for (const [view, primary] of Object.entries(groups)) assert.equal(primaryView(view), primary);
+  assert.equal(primaryView('__proto__'), 'home');
+  for (const view of ['progress', 'account']) {
+    const url = routeURL({ view }, 'https://example.test/?email=private@example.test&utm_source=launch');
+    assert.equal(url.searchParams.get('view'), view);
+    assert.equal(url.searchParams.has('email'), false);
+    assert.equal(parseRoute(url).view, view);
+    assert.equal(routeMetadata({ view }).shouldIndex, false);
+    assert.equal(canonicalURL({ view }), 'https://blackboxlab.dev/');
+  }
+});
+
+
+test('explicit local setup help survives initial normalization and clears on leaving introduction', () => {
+  const input = 'https://blackboxlab.dev/?intro=1#local-lab-setup';
+  const route = parseRoute(input);
+  assert.equal(route.view, 'home');
+  assert.equal(routeURL(route, input).href, input);
+  for (const view of ['account', 'progress', 'tracks']) {
+    const next = routeURL({ view }, input);
+    assert.equal(next.searchParams.has('intro'), false);
+    assert.equal(next.hash, '');
+  }
+  assert.equal(routeURL({ view: 'home' }, 'https://blackboxlab.dev/?intro=2#private').href, 'https://blackboxlab.dev/');
+  assert.equal(routeURL({ view: 'home' }, 'https://blackboxlab.dev/?intro=1#private').hash, '');
 });

@@ -4,6 +4,7 @@ import {
   STORAGE_KEY, MAX_BACKUP_BYTES, MAX_TEXT_LENGTH, createInitialState,
   normalizeState, loadProgress, saveProgress, createBackup, parseBackup,
 } from '../progress.js';
+import { validateCloudProgress } from '../firebase-client.js';
 
 const timestamp = '2026-11-09T08:00:00.000Z';
 function populatedState() {
@@ -20,6 +21,87 @@ function populatedState() {
   state.lastActivity = { trackId: 'recon', stageIndex: 1, at: timestamp };
   return state;
 }
+
+// This fixture deliberately does not use createInitialState(): it represents
+// an actual saved document from the release with six tracks/eighteen stages.
+const oldTrackIds = ['recon', 'nmap', 'network', 'webgoat', 'proxy', 'metasploit'];
+const addedTrackIds = ['logs', 'integrity', 'headers', 'email'];
+const oldStageKeys = oldTrackIds.flatMap(id => [0, 1, 2].map(index => `${id}-${index}`));
+const addedStageKeys = addedTrackIds.flatMap(id => [0, 1, 2].map(index => `${id}-${index}`));
+function eighteenStageProgress() {
+  return {
+    checks: {
+      ...Object.fromEntries(oldStageKeys.map(key => [key, []])),
+      'recon-0': [0, 1, 2],
+      'network-0': [0, 1, 2],
+      'network-1': [0, 2],
+    },
+    notes: { 'recon-0': 'ملاحظة قديمة <b>تُحفظ كنص</b>', 'network-1': 'متابعة تحليل الحزم' },
+    results: { 'network-0': 'تم حفظ الالتقاط المحلي\nمصدره: مختبري' },
+    completed: { 'recon-0': timestamp, 'network-0': timestamp },
+    devices: { kali: 'on', windows: 'off', target: 'on', network: 'isolated' },
+    logs: [{ msg: 'توثيق مرحلة من النسخة السابقة', at: timestamp }],
+    lastActivity: { trackId: 'network', stageIndex: 1, at: timestamp },
+    updatedAt: timestamp,
+    stageUpdatedAt: { 'recon-0': timestamp, 'network-0': timestamp, 'network-1': timestamp },
+  };
+}
+
+function assertExpandedLegacyProgress(actual, original) {
+  assert.equal(Object.keys(original.checks).length, 18, 'the input is a genuine eighteen-stage snapshot');
+  assert.equal(Object.keys(actual.checks).length, 30);
+  assert.deepEqual(Object.keys(actual.checks).sort(), [...oldStageKeys, ...addedStageKeys].sort());
+  for (const key of oldStageKeys) assert.deepEqual(actual.checks[key], original.checks[key], `preserve ${key}`);
+  for (const field of ['notes', 'results', 'completed', 'devices', 'logs', 'lastActivity', 'updatedAt', 'stageUpdatedAt']) {
+    assert.deepEqual(actual[field], original[field], `preserve legacy ${field}`);
+  }
+  for (const key of addedStageKeys) {
+    assert.deepEqual(actual.checks[key], [], `new stage ${key} starts unchecked`);
+    for (const field of ['notes', 'results', 'completed', 'stageUpdatedAt']) assert.equal(Object.hasOwn(actual[field], key), false);
+  }
+}
+
+test('a genuine eighteen-stage browser snapshot expands without rewriting existing work or marking new stages complete', () => {
+  const old = eighteenStageProgress();
+  const original = JSON.stringify(old);
+  assertExpandedLegacyProgress(normalizeState(old), old);
+  const loaded = loadProgress({ getItem(key) { assert.equal(key, STORAGE_KEY); return original; } });
+  assert.equal(loaded.ok, true);
+  assert.equal(loaded.recovered, false);
+  assertExpandedLegacyProgress(loaded.state, old);
+  assert.equal(JSON.stringify(old), original, 'normalization does not mutate the old snapshot');
+});
+
+test('raw and version-one eighteen-stage backups and cloud validation retain dates, resume point and evidence', () => {
+  const old = eighteenStageProgress();
+  const original = JSON.stringify(old);
+  const oldBackup = { format: 'blackbox-lab-progress', version: 1, exportedAt: timestamp, data: old };
+  const fromRaw = parseBackup(original);
+  const fromVersioned = parseBackup(JSON.stringify(oldBackup));
+  const fromCloud = validateCloudProgress(old);
+  for (const expanded of [fromRaw, fromVersioned, fromCloud]) {
+    assertExpandedLegacyProgress(expanded, old);
+    assert.deepEqual(parseBackup(JSON.stringify(createBackup(expanded))), expanded);
+  }
+  assert.equal(JSON.stringify(old), original, 'import/cloud validation leaves the supplied old data intact');
+});
+
+test('new practical track results, completions and resume points survive backup and cloud roundtrips', () => {
+  const state = parseBackup(JSON.stringify(eighteenStageProgress()));
+  for (const id of addedTrackIds) {
+    const key = `${id}-2`;
+    state.checks[key] = [0, 1, 2];
+    state.notes[key] = `مراجعة موثقة لمسار ${id}`;
+    state.results[key] = `دليل محلي محفوظ لمسار ${id}`;
+    state.completed[key] = timestamp;
+    state.stageUpdatedAt[key] = timestamp;
+    state.lastActivity = { trackId: id, stageIndex: 2, at: timestamp };
+    assert.deepEqual(parseBackup(JSON.stringify(createBackup(state))), state);
+    assert.deepEqual(validateCloudProgress(state), state);
+  }
+  assert.equal(state.notes['recon-0'], eighteenStageProgress().notes['recon-0']);
+  assert.equal(state.completed['network-0'], timestamp);
+});
 
 test('legacy exported progress migrates without losing notes, checklist, completions or device state', () => {
   const original = populatedState();

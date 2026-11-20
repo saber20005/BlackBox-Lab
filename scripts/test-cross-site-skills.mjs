@@ -2,6 +2,9 @@ const { chromium } = await import(process.env.BLACKBOX_PLAYWRIGHT_MODULE || 'pla
 const { CASES } = await import(process.env.CYBERTRACE_CASES_MODULE || new URL('../../CyberTrace/src/data/cases.js', import.meta.url).href);
 import assert from 'node:assert/strict';
 import { CASE_IDS, CASE_META } from '../cybertrace-catalog.js';
+import { tracks } from '../data.js';
+
+const practicalStages = tracks.reduce((sum, track) => sum + track.stages.length, 0);
 
 const cyberBase = new URL(process.env.CYBERTRACE_TEST_URL || 'http://127.0.0.1:4175/');
 const blackboxBase = new URL(process.env.BLACKBOX_TEST_URL || 'http://127.0.0.1:4176/');
@@ -14,6 +17,11 @@ const errors = [];
 async function context() {
   const result = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   contexts.push(result);
+  // Avoid writing fixture storage into opaque or third-party SDK frames.
+  await result.addInitScript(expectedOrigin => {
+    if (window.top !== window || location.origin !== expectedOrigin) return;
+    try { localStorage.setItem('blackbox-lab-intro-seen-v1', '1'); } catch {}
+  }, blackboxBase.origin);
   await result.route(/https:\/\/[^/]*googleapis\.com\//, route => route.abort());
   await result.route('**/account-config.js', route => route.fulfill({ contentType: 'text/javascript', body: `export const accountConfig = ${JSON.stringify({ enabled: true, linkedSkillsEnabled: true, firebase, emulators, providers: { email: true, google: true } })};` }));
   await result.route('**/src/blackbox/config.js*', route => route.fulfill({ contentType: 'text/javascript', body: `export const blackBoxConfig = ${JSON.stringify({ enabled: true, firebase, emulators, providers: { email: true, google: true } })};` }));
@@ -75,7 +83,7 @@ try {
 
   const firstScore = await solve(cyber, 'INC-0417', false);
   await points(blackbox, firstScore);
-  assert.equal(await blackbox.locator('#sideProgress').textContent(), '0 / 18');
+  assert.equal(await blackbox.locator('#sideProgress').textContent(), `0 / ${practicalStages}`);
   await cyber.getByRole('button', { name: 'إعادة المحاولة', exact: true }).click();
   await solve(cyber, 'INC-0417', true, true, false);
   await points(blackbox, 70);
@@ -120,7 +128,7 @@ try {
   await points(blackbox, 0);
   await solve(cyber, 'INC-0633', true);
   await points(blackbox, 70);
-  assert.equal(await blackbox.locator('#sideProgress').textContent(), '0 / 18');
+  assert.equal(await blackbox.locator('#sideProgress').textContent(), `0 / ${practicalStages}`);
   assert(!await blackbox.locator('[data-linked-case-id="INC-0417"] .linked-case-score').count());
   console.log('PASS account switching clears previous receipts and credits only the newly linked UID');
 
@@ -129,7 +137,7 @@ try {
   assert.equal(await blackbox.locator('[data-linked-case-id="INC-1203"] .linked-case-score').textContent(), `${newCaseScore} / 70`);
   const webCaseCount = CASE_IDS.filter(id => CASE_META[id].skillId === 'web').length;
   assert.equal(await blackbox.locator('[data-skill-id="web"] progress').getAttribute('value'), String(Math.round(100 / webCaseCount)));
-  assert.equal(await blackbox.locator('#sideProgress').textContent(), '0 / 18');
+  assert.equal(await blackbox.locator('#sideProgress').textContent(), `0 / ${practicalStages}`);
   console.log('PASS new catalogue case syncs through the current rules and contributes only to its linked skill');
 
   const independent = await context();

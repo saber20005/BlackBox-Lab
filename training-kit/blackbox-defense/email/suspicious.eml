@@ -1,0 +1,18 @@
+From: "Training IT Support" <support@support-notices.example>
+Reply-To: help@reply.example
+To: learner@lab.example
+Date: Thu, 15 Jan 2026 09:20:00 +0000
+Message-ID: <sample-suspicious-01@gateway.training.example>
+Subject: Training sample: urgent account verification
+Authentication-Results: gateway.training.example;
+ spf=fail smtp.mailfrom=support-notices.example;
+ dkim=none;
+ dmarc=fail header.from=support-notices.example
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+هذا ملف تدريب اصطناعي، وليس رسالة بريد حقيقية.
+يطلب النص تحديث الحساب سريعًا، ويعرض رابطًا معطّلًا للقراءة فقط:
+hxxps://login-help.example/reset
+لا توجد مرفقات أو بيانات اعتماد في هذا المثال.

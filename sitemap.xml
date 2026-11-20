@@ -7,5 +7,9 @@
   <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=webgoat</loc></url>
   <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=proxy</loc></url>
   <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=metasploit</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=logs</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=integrity</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=headers</loc></url>
+  <url><loc>https://blackboxlab.dev/?view=tracks&amp;track=email</loc></url>
   <url><loc>https://blackboxlab.dev/?view=troubleshoot</loc></url>
 </urlset>

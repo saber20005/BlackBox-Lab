@@ -1,0 +1,13 @@
+time,user,src_ip,event,session_id,device,result,resource
+2026-01-15T08:55:00Z,analyst01,192.0.2.10,login,session-lab-01,LAB-LT01,success,/signin
+2026-01-15T08:55:04Z,analyst01,192.0.2.10,mfa,session-lab-01,LAB-LT01,success,/mfa
+2026-01-15T08:56:00Z,analyst01,192.0.2.10,session_use,session-lab-01,LAB-LT01,success,/dashboard
+2026-01-15T09:00:00Z,analyst01,192.0.2.10,file_read,session-lab-01,LAB-LT01,success,/reports/demo-overview.csv
+2026-01-15T09:05:00Z,analyst01,198.51.100.20,session_use,session-lab-01,UNKNOWN,success,/dashboard
+2026-01-15T09:05:15Z,analyst01,198.51.100.20,file_read,session-lab-01,UNKNOWN,success,/reports/finance-demo.csv
+2026-01-15T09:06:00Z,analyst01,198.51.100.20,export_start,session-lab-01,UNKNOWN,success,/exports/training-summary
+2026-01-15T09:06:05Z,analyst01,198.51.100.20,export_complete,session-lab-01,UNKNOWN,success,/exports/training-summary.csv
+2026-01-15T09:10:00Z,analyst02,203.0.113.15,login,session-lab-02,LAB-LT02,success,/signin
+2026-01-15T09:10:06Z,analyst02,203.0.113.15,mfa,session-lab-02,LAB-LT02,success,/mfa
+2026-01-15T09:12:00Z,analyst02,203.0.113.15,session_use,session-lab-02,LAB-LT02,success,/dashboard
+2026-01-15T09:13:00Z,analyst02,203.0.113.15,logout,session-lab-02,LAB-LT02,success,/signout

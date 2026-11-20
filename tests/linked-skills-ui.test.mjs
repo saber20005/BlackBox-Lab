@@ -25,7 +25,9 @@ test('skill UI displays best-score credit, source, and contextual practice witho
   assert(html.includes('data-skill-id="web"'));
   assert(html.includes('data-linked-case-id="INC-1101"'));
   assert(html.includes('70 / 70'));
-  assert(html.includes('مصدر الإنجاز: CyberTrace'));
+  assert(html.includes('سجلات مستلمة من CyberTrace'));
+  assert(html.includes('غير مُتحقّق منها خادميًا'));
+  assert(html.includes('لا تصلح لإثبات مهارة أو شهادة'));
   assert(html.includes('data-track="webgoat"'));
   assert(html.includes('data-track="proxy"'));
   assert(!html.includes('data-check='));

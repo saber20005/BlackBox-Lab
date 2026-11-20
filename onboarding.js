@@ -1,3 +1,5 @@
+(() => {
+'use strict';
 const key = 'blackbox-onboarding-dismissed-v1';
 const section = document.getElementById('welcome-guide');
 const close = document.getElementById('welcome-dismiss');
@@ -38,3 +40,4 @@ function startWelcomeTour() {
 }
 document.getElementById('welcome-tour')?.addEventListener('click',startWelcomeTour);
 document.getElementById('welcome-tour-secondary')?.addEventListener('click',startWelcomeTour);
+})();

@@ -4,6 +4,9 @@ import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { requireCaseId } from './grading-core.js';
+import { membershipForClient } from './suite-membership.js';
+import { startVerifiedSocSession, submitVerifiedSocSession } from './soc-verified-service.js';
+import { requireVerifiedSocId } from './soc-verified-core.js';
 
 initializeApp();
 const db = getFirestore();
@@ -43,5 +46,62 @@ export const submitGradingAnswer = onCall({ region: REGION, enforceAppCheck: tru
   } catch (error) {
     if (error instanceof HttpsError) throw error;
     throw invalid();
+  }
+});
+
+// Read-only membership endpoint. This cannot grant Pro access or process payments.
+// Requires BLACKBOX Firebase Auth and App Check; the UID is taken exclusively
+// from the verified caller, never from submitted data or CyberTrace email.
+export const getSuiteMembership = onCall({ region: REGION, enforceAppCheck: true, maxInstances: 10 }, async request => {
+  const uid = authUid(request);
+  try {
+    const snap = await db.doc(`suiteMemberships/${uid}`).get();
+    return membershipForClient(snap.exists ? snap.data() : null);
+  } catch {
+    throw new HttpsError('unavailable', 'Membership status is temporarily unavailable.');
+  }
+});
+
+// New server-verified SOC pilot. Disabled in production until the admin
+// publishes BOTH a public catalog document and private rubric document.
+// The existing free browser-scored SOC shifts and CyberTrace XP are untouched.
+const socRequest = (data, names) => data && typeof data === 'object' && !Array.isArray(data) &&
+  Object.keys(data).length === names.length && names.every(key => Object.hasOwn(data, key));
+
+export const startVerifiedSocShift = onCall({ region: REGION, enforceAppCheck: true, maxInstances: 10 }, async request => {
+  const uid = authUid(request);
+  if (!socRequest(request.data, ['shiftId'])) throw new HttpsError('invalid-argument', 'Invalid challenge request.');
+  let shiftId;
+  try { shiftId = requireVerifiedSocId(request.data.shiftId); }
+  catch { throw new HttpsError('invalid-argument', 'Unsupported challenge.'); }
+  try {
+    return await startVerifiedSocSession(db, FieldValue, uid, shiftId);
+  } catch (error) {
+    if (error?.message === 'quota-exceeded') throw new HttpsError('resource-exhausted', 'Session limit reached. Try again later.');
+    if (error?.message === 'challenge-unavailable' || error?.message === 'invalid-private-rubric' || error?.message === 'invalid-public-challenge') {
+      throw new HttpsError('failed-precondition', 'Verified SOC training is not enabled yet.');
+    }
+    throw new HttpsError('unavailable', 'Unable to start verified assessment.');
+  }
+});
+
+export const submitVerifiedSocShift = onCall({ region: REGION, enforceAppCheck: true, maxInstances: 10 }, async request => {
+  const uid = authUid(request);
+  if (!socRequest(request.data, ['shiftId', 'sessionId', 'responses', 'correlationId'])) {
+    throw new HttpsError('invalid-argument', 'Unexpected submission fields.');
+  }
+  let shiftId;
+  try { shiftId = requireVerifiedSocId(request.data.shiftId); }
+  catch { throw new HttpsError('invalid-argument', 'Unsupported challenge.'); }
+  try {
+    return await submitVerifiedSocSession(db, FieldValue, { ...request.data, uid, shiftId });
+  } catch (error) {
+    if (error?.message === 'invalid-submission' || error?.message === 'invalid-session-id') {
+      throw new HttpsError('invalid-argument', 'Invalid answer format.');
+    }
+    if (['invalid-or-expired-session', 'rubric-version-mismatch'].includes(error?.message)) {
+      throw new HttpsError('failed-precondition', 'Session expired or already used. Start a new challenge.');
+    }
+    throw new HttpsError('failed-precondition', 'Verified submission could not be accepted.');
   }
 });

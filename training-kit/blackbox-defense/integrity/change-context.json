@@ -1,0 +1,6 @@
+{
+  "scenario": "BLACKBOX synthetic local training",
+  "baseline_ref": "LAB-021",
+  "approved_changes": [],
+  "observed_file": "integrity/current/settings.conf"
+}

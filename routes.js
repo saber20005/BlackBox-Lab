@@ -2,7 +2,8 @@ import { tracks } from './data.js';
 
 export const SITE_ORIGIN = 'https://blackboxlab.dev';
 const HOME = `${SITE_ORIGIN}/`;
-const VIEWS = new Set(['home', 'tracks', 'plan', 'skills', 'journal', 'backups', 'troubleshoot']);
+const totalStages = tracks.reduce((sum, track) => sum + track.stages.length, 0);
+const VIEWS = new Set(['home', 'tracks', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'troubleshoot']);
 const CAMPAIGN_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 const trackById = id => tracks.find(track => track.id === id);
 const defaultTrack = id => trackById(id)?.id || tracks[0].id;
@@ -68,6 +69,10 @@ export function routeURL(route, base = HOME, { preserveCampaign = true } = {}) {
     if (track) url.searchParams.set('track', track.id);
   } else if (VIEWS.has(route?.view) && route.view !== 'home') {
     url.searchParams.set('view', route.view);
+  } else if (route?.view === 'home' && previous.get('intro') === '1') {
+    // Keep the explicit help entry while the app normalizes its initial route.
+    url.searchParams.set('intro', '1');
+    if (safeURL(base)?.hash === '#local-lab-setup') url.hash = '#local-lab-setup';
   }
   return url;
 }
@@ -86,9 +91,9 @@ export function routeMetadata(route) {
   const stage = track?.stages[route?.stageIndex];
   const base = {
     title: 'BLACKBOX | مساحة التدريب السيبراني',
-    description: 'مساحة تدريب عربية تضم 6 مسارات و18 مرحلة للمختبر المحلي، مع حفظ الملاحظات والتقدم والنسخ الاحتياطية والتقارير.',
+    description: `مساحة تدريب عربية تضم ${tracks.length} مسارات و${totalStages} مرحلة للمختبر المحلي، مع حفظ الملاحظات والتقدم والنسخ الاحتياطية والتقارير.`,
     canonical: canonicalURL(route),
-    shouldIndex: !['exercise', 'plan', 'skills', 'journal', 'backups'].includes(route?.view),
+    shouldIndex: !['exercise', 'progress', 'account', 'plan', 'skills', 'journal', 'backups'].includes(route?.view),
   };
   if (route?.view === 'exercise' && track && stage) {
     return { ...base, title: `${stage.name} | ${track.name} | BLACKBOX`, description: stage.goal };
@@ -99,9 +104,19 @@ export function routeMetadata(route) {
       : { ...base, title: 'مسارات التدريب | BLACKBOX' };
   }
   if (route?.view === 'troubleshoot') return { ...base, title: 'حلول أعطال المختبر | BLACKBOX', description: 'إرشادات عملية لحل أعطال المختبر المحلي والشبكة وأدوات التدريب، مع البحث في الحلول.' };
+  if (route?.view === 'progress') return { ...base, title: 'تقدّمي | BLACKBOX', description: 'تقدّم التدريب، وسجل الملاحظات، والمهام وملف الأعمال في مكان واحد.' };
+  if (route?.view === 'account') return { ...base, title: 'حسابي | BLACKBOX', description: 'إدارة الحساب وحالة الحفظ والنسخ الاحتياطية ومساعدة المختبر.' };
   if (route?.view === 'journal') return { ...base, title: 'سجل المختبر | BLACKBOX' };
   if (route?.view === 'plan') return { ...base, title: 'خطة جلستك | BLACKBOX', description: 'اقتراحات عملية لجلستك التالية حسب تقدّمك والوقت المتاح والمهارة التي تريد تدريبها.' };
   if (route?.view === 'skills') return { ...base, title: 'المهارات المترابطة | BLACKBOX', description: 'نتائج تحقيقات CyberTrace المرتبطة بحسابك، ونقاط التعلّم حسب المهارة.' };
   if (route?.view === 'backups') return { ...base, title: 'النسخ الاحتياطي والتقارير | BLACKBOX' };
   return base;
+}
+
+// Secondary pages retain their own URLs while sharing four stable navigation groups.
+export function primaryView(view) {
+  if (['tracks', 'exercise'].includes(view)) return 'tracks';
+  if (['progress', 'plan', 'skills', 'journal'].includes(view)) return 'progress';
+  if (['account', 'backups', 'troubleshoot'].includes(view)) return 'account';
+  return 'home';
 }
