@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tracks } from '../data.js';
-import { getStageHints, createHintViewState, mountTrainingHints } from '../training-hints.js';
+import { getStageHints, createHintViewState, mountTrainingHints } from '../assets/modules/training/training-hints.js';
 
 test('all existing stages have three distinct bounded guidance levels', () => {
   let count = 0;

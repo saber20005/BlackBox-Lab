@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { appendDocumentationTemplate, DOCUMENTATION_TEMPLATES, hasMeaningfulDocumentation } from '../documentation-templates.js';
+import { appendDocumentationTemplate, DOCUMENTATION_TEMPLATES, hasMeaningfulDocumentation } from '../assets/modules/training/documentation-templates.js';
 
 test('result prompts are optional proposed text and preserve existing evidence exactly', () => {
   const existing = 'ملاحظتي السابقة\n  فراغات محفوظة  \n';

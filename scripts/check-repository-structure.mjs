@@ -14,6 +14,8 @@ const mustRemain = [
   "firestore.rules", "functions/index.js", "functions/soc-verified-service.js",
   "training-kit/blackbox-defense/analyze.py", "docs/repository-map.md", "docs/README.md",
   "assets/modules/training/lab-catalog.js",
+  "assets/modules/training/documentation-templates.js",
+  "assets/modules/training/training-hints.js",
   "assets/modules/diagnostics/ux-test-model.js",
   "assets/modules/diagnostics/recaptcha-diagnostic-core.js",
 ];
@@ -28,11 +30,11 @@ const expectedCss = [
 const allowedRootJs = new Set([
   "account-config.js","account-sync.js","account-ui.js","analytics.js","app.js",
   "appcheck-diagnostic.js","cybertrace-catalog.js","data.js","defense-tracks.js",
-  "documentation-templates.js","evidence-workbench.js","firebase-client.js",
+  "evidence-workbench.js","firebase-client.js",
   "lab-intro.js","landing.js","linked-skills-ui.js","loading.js",
   "mission-mode.js","mission-page.js","onboarding.js","portfolio-page.js","portfolio.js",
   "progress-session.js","progress.js",
-  "recaptcha-independent-diagnostic.js","routes.js","training-hints.js",
+  "recaptcha-independent-diagnostic.js","routes.js",
   "training-plan-ui.js","training-plan.js","ux-test.js",
   "verified-grading-client.js","vm-report-ui.js","vm-report.js","whats-new.js",
 ]);
@@ -50,7 +52,7 @@ for (const name of readdirSync(root)) {
 
 for (const name of mustRemain) if (!existsSync(pathOf(name)))
   errors.push("Missing protected public/deploy entry: " + name);
-for(const legacy of ["ux-test-model.js","recaptcha-diagnostic-core.js","lab-catalog.js"]) {
+for(const legacy of ["ux-test-model.js","recaptcha-diagnostic-core.js","lab-catalog.js","training-hints.js","documentation-templates.js"]) {
   if(existsSync(pathOf(legacy))) errors.push("Internal module left in root: "+legacy);
 }
 for (const name of expectedCss) {
