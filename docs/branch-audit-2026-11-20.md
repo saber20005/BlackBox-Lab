@@ -81,6 +81,8 @@
 - `test/grading-adversarial-20261114` — [PR #13](https://github.com/saber20005/BlackBox-Lab/pull/13) merged
 - `test/grading-emulator-security-20261114` — [PR #12](https://github.com/saber20005/BlackBox-Lab/pull/12) merged
 
+**ملاحظة مراجعة:** [PR #39](https://github.com/saber20005/BlackBox-Lab/pull/39) لإصلاح نافذة What's New ما زال مفتوحًا ويحتاج إعادة اختبار على النسخة الحالية؛ [PR #28](https://github.com/saber20005/BlackBox-Lab/pull/28) و[PR #30](https://github.com/saber20005/BlackBox-Lab/pull/30) أُغلقا دون دمج، وينبغي مقارنة عملهما مع PR #33 المدمج قبل الحذف؛ وفرع `preview/red-team-ui` بلا PR محفوظ للمراجعة.
+
 ## سياسة الحذف الآمن
 
 1. لا يُحذف `main` مطلقًا. ولا يُحذف فرع في PR مفتوح أو مغلق دون دمج، ولا فرع دون PR، إلا بعد قرار منفصل ومراجعة فروقه الحالية.
