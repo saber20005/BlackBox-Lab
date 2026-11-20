@@ -33,7 +33,7 @@ function close(){markSeen();if(dialog.open)dialog.close();previousFocus?.focus?.
 openButton?.addEventListener('click',show);
 closeButton?.addEventListener('click',close);
 document.getElementById('bb-whats-new-prev')?.addEventListener('click',()=>{if(step){step--;render();}});
-document.getElementById('bb-whats-new-next')?.addEventListener('click',()=>{if(step<steps.length-1){step++;render();}else close();}});
+document.getElementById('bb-whats-new-next')?.addEventListener('click',()=>{if(step<steps.length-1){step++;render();}else close();});
 dialog?.addEventListener('cancel',event=>{event.preventDefault();close();});
 // The guide is explicitly user-invoked. Avoid automatic modal collisions with onboarding.
 // This also keeps the button functional regardless of whether the user has seen the guide.
