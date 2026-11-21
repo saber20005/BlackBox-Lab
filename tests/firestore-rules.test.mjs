@@ -365,4 +365,32 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     await assertFails(setDoc(doc(bob,verifiedPath('bob')),{bestScore:100}));
   });
 
+
+  test('certificate registry is unreadable and immutable by guests and all account holders', async () => {
+    const id = '0123456789abcdef0123456789abcdef';
+    const path = `certificateRegistry/${id}`;
+    await environment.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), path), {
+        schemaVersion: 1, issuer: 'blackbox', groupTitle: 'الشبكات والاستطلاع',
+        groupId: 'network-foundations', status: 'active', proofType: 'server-assessment',
+        issuerAuthority: 'trusted-backend', issuedAt: Timestamp.now(), uid: 'alice',
+      });
+    });
+    for (const database of [
+      environment.unauthenticatedContext().firestore(),
+      environment.authenticatedContext('alice').firestore(),
+      environment.authenticatedContext('bob').firestore(),
+    ]) {
+      const reference = doc(database, path);
+      await assertFails(getDoc(reference));
+      await assertFails(getDocs(collection(database, 'certificateRegistry')));
+      await assertFails(setDoc(reference, { status: 'active' }));
+      await assertFails(updateDoc(reference, { status: 'revoked' }));
+      await assertFails(deleteDoc(reference));
+      await assertFails(setDoc(doc(database, 'certificateRegistry/ffffffffffffffffffffffffffffffff'), {
+        proofType: 'server-assessment', issuerAuthority: 'trusted-backend',
+      }));
+    }
+  });
+
 }
