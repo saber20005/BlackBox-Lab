@@ -116,5 +116,5 @@ if(errors.length){
   for(const error of errors) console.error("STRUCTURE:",error);
   process.exitCode=1;
 }else{
-  console.log(BLACKBOX structure OK: "+expectedCss.length+" grouped CSS assets, "+htmlPages.length+" HTML pages ("+htmlChecked+" local refs), "+docs.length+" Markdown documents ("+docChecked+" local links).");
+  console.log("BLACKBOX structure OK: "+expectedCss.length+" grouped CSS assets, "+htmlPages.length+" HTML pages ("+htmlChecked+" local refs), "+docs.length+" Markdown documents ("+docChecked+" local links).");
 }
