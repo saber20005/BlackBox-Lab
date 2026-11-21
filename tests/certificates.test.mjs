@@ -46,3 +46,13 @@ test('BLACKBOX certificate keeps its own blue lab brand and accessible PDF layou
   assert(css.includes('@media print'));
   assert(css.includes('print-color-adjust:exact'));
 });
+
+test('BLACKBOX links to the single shared preview without claiming issuance', () => {
+  const html = readFileSync(new URL('../certificates.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/styles/certificates.css', import.meta.url), 'utf8');
+  assert(html.includes('href="https://www.cybertracelab.dev/?view=joint-certificate"'));
+  assert(html.includes('معاينة تصميم الشهادة المشتركة'));
+  assert(html.includes('المعاينة نموذج غير صادر'));
+  assert(css.includes('.bb-cert-joint-link'));
+  assert(!html.includes('verify?id='));
+});
