@@ -36,3 +36,32 @@
 }
 @media(prefers-reduced-motion:reduce){.bb-quick-dock *{transition:none!important;animation:none!important}}
 @media print {.bb-quick-dock{display:none!important}}
+
+/* Phone dock: two columns keep Arabic labels legible; the closed control
+   stays compact and sits at the edge rather than blocking the main cards. */
+@media (max-width:640px) {
+  .bb-quick-dock {
+    left:max(12px,env(safe-area-inset-left,0px));right:auto;
+    bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    transform:none;max-width:calc(100vw - 24px);
+  }
+  .bb-quick-dock:not([open]) {width:max-content}
+  .bb-quick-dock[open] {width:min(274px,calc(100vw - 24px))}
+  .bb-quick-dock>summary {
+    width:max-content;min-height:44px;margin-left:0;margin-right:auto;
+    padding:9px 14px;
+  }
+  .bb-quick-dock-items {
+    box-sizing:border-box;width:100%;min-width:0;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;padding:9px;border-radius:16px;
+  }
+  .bb-quick-dock-items button {
+    box-sizing:border-box;width:100%;min-width:0;
+    min-height:66px;padding:7px 6px;gap:3px;
+  }
+  .bb-quick-dock-items button small {
+    display:block;width:100%;min-width:0;line-height:1.4;
+    font-size:12px;white-space:normal;overflow-wrap:anywhere;text-align:center;
+  }
+}

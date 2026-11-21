@@ -737,6 +737,18 @@ quickDock?.addEventListener('click', event => {
   quickDock.open = false;
   navigate(button.dataset.bbDockView);
 });
+// Do not leave the open dock covering training content on mobile.
+document.addEventListener('pointerdown', event => {
+  if (quickDock?.open && !quickDock.contains(event.target)) quickDock.open = false;
+});
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || !quickDock?.open) return;
+  quickDock.open = false;
+  quickDock.querySelector('summary')?.focus();
+});
+window.addEventListener('scroll', () => {
+  if (quickDock?.open) quickDock.open = false;
+}, { passive: true });
 document.querySelector('.brand').addEventListener('click', event => {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
