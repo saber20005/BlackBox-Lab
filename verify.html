@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#091326">
+  <title>BLACKBOX | التحقق من الشهادات</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./assets/styles/certificate-verify.css">
+</head>
+<body>
+  <main class="verify-shell">
+    <a class="verify-back" href="./certificates.html">← العودة إلى مركز الشهادات</a>
+    <section class="verify-panel" aria-labelledby="verify-title">
+      <p class="verify-kicker">BLACKBOX LAB / CERTIFICATE AUTHENTICITY</p>
+      <h1 id="verify-title">التحقق من شهادة صادرة</h1>
+      <p>هذه الصفحة تتحقق فقط من الشهادات التي أصدرها خادم المنصة بعد تقييم مستقل. إفادات الإتمام التعليمية القديمة غير موثّقة ولا تحمل رقمًا صالحًا للتحقق.</p>
+      <form id="verify-form">
+        <label for="verify-id">رقم الشهادة</label>
+        <div class="verify-form-row">
+          <input id="verify-id" name="id" type="text" required
+            autocomplete="off" autocapitalize="off" spellcheck="false"
+            maxlength="32" pattern="[0-9a-f]{32}" dir="ltr"
+            placeholder="32 hexadecimal characters">
+          <button type="submit" id="verify-submit">تحقق من الحالة</button>
+        </div>
+      </form>
+      <div class="verify-result" id="verify-result" role="status" aria-live="polite">
+        أدخل رقم شهادة أصدرها الخادم. لا يعني عدم توفر الخدمة أن الشهادة مزوّرة.
+      </div>
+      <dl class="verify-details" id="verify-details" hidden>
+        <div><dt>الجهة</dt><dd id="verify-issuer"></dd></div>
+        <div><dt>المجموعة</dt><dd id="verify-group"></dd></div>
+        <div><dt>تاريخ الإصدار</dt><dd id="verify-date"></dd></div>
+        <div><dt>معرّف الشهادة</dt><dd id="verify-code" dir="ltr"></dd></div>
+      </dl>
+      <p class="verify-note">التحقق من أصالة السجل لا يساوي اعتمادًا مهنيًا خارجيًا. لا نعرض البريد الإلكتروني أو بيانات المتدرّب الخاصة.</p>
+    </section>
+  </main>
+  <script type="module" src="./certificate-verify-page.js"></script>
+</body>
+</html>
