@@ -11,7 +11,7 @@ const errors = [];
 
 const mustRemain = [
   "index.html", "app.js", "labs.html", "pro.html", "mission-mode.html",
-  "portfolio.html", "training-guide.html", "vm-report.html", "firebase.json",
+  "portfolio.html", "certificates.html", "training-guide.html", "vm-report.html", "firebase.json",
   "firestore.rules", "functions/index.js", "functions/soc-verified-service.js",
   "training-kit/blackbox-defense/analyze.py", "docs/repository-map.md", "docs/README.md",
   "assets/modules/training/lab-catalog.js",
@@ -21,15 +21,17 @@ const mustRemain = [
   "assets/modules/diagnostics/recaptcha-diagnostic-core.js",
 ];
 const expectedCss = [
-  "evidence-workbench.css", "lab-intro.css", "landing.css", "loading.css",
+  "certificates.css", "evidence-workbench.css", "lab-intro.css", "landing.css", "loading.css",
   "onboarding.css", "portfolio.css", "pro.css", "styles.css", "training-guide.css",
   "training-hints.css", "whats-new.css", "workspace-shell.css",
 ];
 
+// Reviewed new /certificates.html route and its read-only scripts are explicitly allowlisted.
 // Existing public JS/HTML entry points are documented exceptions to the
 // flat-root policy. New frontend files must be grouped or explicitly reviewed.
 const allowedRootJs = new Set([
   "account-config.js","account-sync.js","account-ui.js","analytics.js","app.js",
+  "certificates.js","certificates-page.js",
   "appcheck-diagnostic.js","cybertrace-catalog.js","data.js","defense-tracks.js",
   "evidence-workbench.js","firebase-client.js",
   "lab-intro.js","landing.js","linked-skills-ui.js","loading.js",
@@ -40,7 +42,7 @@ const allowedRootJs = new Set([
   "verified-grading-client.js","vm-report-ui.js","vm-report.js","whats-new.js",
 ]);
 const allowedRootHtml = new Set([
-  "appcheck-diagnostic.html","beginner-journey.html","index.html","labs.html",
+  "appcheck-diagnostic.html","beginner-journey.html","certificates.html","index.html","labs.html",
   "mission-mode.html","portfolio.html","pro.html","recaptcha-independent-diagnostic.html",
   "training-guide.html","ux-test.html","vm-report.html",
 ]);
@@ -114,5 +116,5 @@ if(errors.length){
   for(const error of errors) console.error("STRUCTURE:",error);
   process.exitCode=1;
 }else{
-  console.log("BLACKBOX structure OK: 12 grouped CSS assets, "+htmlPages.length+" HTML pages ("+htmlChecked+" local refs), "+docs.length+" Markdown documents ("+docChecked+" local links).");
+  console.log(BLACKBOX structure OK: "+expectedCss.length+" grouped CSS assets, "+htmlPages.length+" HTML pages ("+htmlChecked+" local refs), "+docs.length+" Markdown documents ("+docChecked+" local links).");
 }
