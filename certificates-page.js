@@ -1,6 +1,5 @@
-import { tracks as catalog } from './data.js';
 import { createProgressSession } from './progress-session.js';
-import { completedTrainingTracks, validLearnerName } from './certificates.js';
+import { trainingCertificateGroups, completedTrainingGroups, validLearnerName } from './certificates.js';
 
 const source = document.getElementById('bb-cert-source-status');
 const refresh = document.getElementById('bb-cert-refresh');
@@ -25,19 +24,16 @@ function eligible() {
 }
 
 function renderPreview() {
-  const tracks = eligible() ? completedTrainingTracks(snapshot.progress) : [];
-  const selected = catalog.find(track => track.id === select.value);
-  const chosen = tracks.find(item => item.trackId === select.value);
-  const done = selected && eligible()
-    ? selected.stages.filter((_, index) => Boolean(snapshot.progress.completed[selected.id + '-' + index])).length
-    : null;
-  trackHelp.textContent = !selected
-    ? 'يمكنك اختيار أي مسار للاطلاع على حالته؛ الطباعة متاحة للمسارات المكتملة فقط.'
-    : !eligible()
-      ? 'المسار محدد، لكن لم يتم التحقق من مصدر التقدم بعد. لا يمكن طباعة إفادة.'
+  const groups = eligible() ? trainingCertificateGroups(snapshot.progress) : [];
+  const selected = groups.find(group => group.id === select.value);
+  const chosen = selected?.complete ? selected : null;
+  trackHelp.textContent = !eligible()
+    ? 'مصدر التقدم لم يجهز بعد؛ يمكنك استعراض أسماء المجموعات دون إصدار إفادات.'
+    : !selected
+      ? 'اختر مجموعة تدريبية لمعرفة تقدمك؛ إفادة واحدة عند إكمال جميع مسارات المجموعة.'
       : chosen
-        ? 'هذا المسار مكتمل بتأكيدك اليدوي. أدخل اسمًا صالحًا لتفعيل الطباعة.'
-        : `المسار غير مكتمل: ${done} من ${selected.stages.length} مراحل. أكمل البقية لتفعيل الطباعة.`;
+        ? 'المجموعة مكتملة بتأكيدك اليدوي. أدخل اسمًا صالحًا لتفعيل طباعة الإفادة.'
+        : `المجموعة غير مكتملة: ${selected.completedStages} من ${selected.stageCount} مرحلة عبر ${selected.trackCount} مسارات.`;
   const ready = Boolean(chosen && validLearnerName(name.value));
   paper.hidden = !ready;
   empty.hidden = ready;
@@ -46,15 +42,15 @@ function renderPreview() {
     empty.textContent = !eligible()
       ? 'انتظر قراءة تقدمك من المصدر الصحيح قبل معاينة الإفادة.'
       : selected && !chosen
-        ? `اخترت «${selected.name}»؛ أكملت ${done} من ${selected.stages.length} مراحل. لا تتوفر إفادة إتمام قبل اكتمال المسار.`
+        ? `اخترت «${selected.title}»؛ أكملت ${selected.completedStages} من ${selected.stageCount} مرحلة. لا تتوفر إفادة حتى اكتمال المجموعة.`
         : chosen
-          ? 'أدخل اسمًا صالحًا لمعاينة إفادة هذا المسار المكتمل.'
-          : 'اختر مسارًا من القائمة. لا تتوفر الطباعة إلا بعد اكتمال جميع مراحله.';
+          ? 'أدخل اسمًا صالحًا لمعاينة إفادة المجموعة المكتملة.'
+          : 'اختر مجموعة تدريبية؛ لا تتوفر الطباعة إلا بعد إكمال جميع مساراتها.';
     return;
   }
   nameText.textContent = name.value.trim();
   titleText.textContent = chosen.title;
-  details.textContent = chosen.stageCount + ' / ' + chosen.stageCount;
+  details.textContent = chosen.trackCount + ' مسارات · ' + chosen.stageCount + ' / ' + chosen.stageCount + ' مرحلة';
   date.textContent = fmt(chosen.completedAt);
 }
 
@@ -71,22 +67,18 @@ function render(next) {
   source.dataset.scope = next.scope;
   source.dataset.phase = next.phase;
   refresh.disabled = ['loading', 'restoring'].includes(next.phase);
-  const tracks = eligible() ? completedTrainingTracks(next.progress) : [];
-  select.replaceChildren(new Option('— اختر المسار —', ''));
-  // Always offer the catalogue for navigation, even with zero completed tracks.
-  // Never imply completion while account data is loading, cached or unverified.
-  for (const track of catalog) {
-    const done = eligible()
-      ? track.stages.filter((_, index) => Boolean(next.progress.completed[track.id + '-' + index])).length
-      : null;
-    const status = done === null ? 'بانتظار التحقق من التقدم' : `${done} / ${track.stages.length} مراحل`;
-    select.add(new Option(`${track.name} — ${status}`, track.id));
+  const groups = eligible() ? trainingCertificateGroups(next.progress) : trainingCertificateGroups(null);
+  select.replaceChildren(new Option('— اختر المجموعة —', ''));
+  // Browsing group titles never implies an award while account scope is unresolved.
+  for (const group of groups) {
+    const status = eligible() ? `${group.completedStages} / ${group.stageCount} مرحلة` : 'بانتظار التقدم';
+    select.add(new Option(`${group.title} — ${status}`, group.id));
   }
-  if (catalog.some(track => track.id === previousSelection)) select.value = previousSelection;
+  if (groups.some(group => group.id === previousSelection)) select.value = previousSelection;
   select.disabled = false;
   name.disabled = !eligible();
-  count.textContent = eligible() ? tracks.length + ' مسارات مكتملة بالتأكيد اليدوي في المصدر المعروض.'
-    : 'مصدر التقدم لم يجهز أو يتطلب تحديث الحساب؛ لا يمكن إصدار إفادة الآن.';
+  count.textContent = eligible() ? groups.filter(group => group.complete).length + ' من ' + groups.length + ' مجموعات مكتملة بالتأكيد اليدوي.'
+    : 'المجموعات معروضة للاطلاع فقط حتى يجهز مصدر التقدم؛ لا يمكن طباعة إفادة الآن.';
   renderPreview();
 }
 
@@ -97,7 +89,7 @@ name.addEventListener('input', renderPreview);
 refresh.addEventListener('click', () => { void session.refresh(); });
 print.addEventListener('click', () => {
   if (!eligible() || print.disabled) return;
-  const chosen = completedTrainingTracks(snapshot.progress).find(track => track.trackId === select.value);
+  const chosen = completedTrainingGroups(snapshot.progress).find(group => group.id === select.value);
   if (!chosen || !validLearnerName(name.value)) return;
   window.print();
 });
