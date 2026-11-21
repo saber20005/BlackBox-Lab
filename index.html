@@ -29,6 +29,7 @@
   <link id="bb-fonts" rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="./assets/styles/styles.css">
   <link rel="stylesheet" href="./assets/styles/workspace-shell.css">
+  <link rel="stylesheet" href="./assets/styles/quick-dock.css">
   <link rel="stylesheet" href="./assets/styles/loading.css">
   <script defer src="./loading.js"></script>
   <script type="module" src="./app.js"></script>
@@ -142,6 +143,15 @@
       <div id="content"></div>
       <footer class="footer">BLACKBOX · تعلّم، وثّق، وراجع تقدّمك · تدريب للضيف وحفظ اختياري في الحساب</footer>
     </main>
+    <details id="bb-quick-dock" class="bb-quick-dock">
+      <summary aria-label="فتح الاختصارات السريعة">⌘ <span>اختصارات</span></summary>
+      <nav aria-label="اختصارات BLACKBOX" class="bb-quick-dock-items">
+        <button type="button" data-bb-dock-view="home" title="تدريبي"><span aria-hidden="true">⌂</span><small>تدريبي</small></button>
+        <button type="button" data-bb-dock-view="tracks" title="المسارات"><span aria-hidden="true">▦</span><small>المسارات</small></button>
+        <button type="button" data-bb-dock-view="progress" title="تقدّمي"><span aria-hidden="true">↗</span><small>تقدّمي</small></button>
+        <button type="button" data-bb-dock-view="backups" title="النسخ والتقارير"><span aria-hidden="true">▤</span><small>التقارير</small></button>
+      </nav>
+    </details>
   </div>
   <dialog id="bb-whats-new" aria-labelledby="bb-whats-new-title" aria-describedby="bb-whats-new-description"><span id="bb-whats-new-step"></span><h2 id="bb-whats-new-title"></h2><p id="bb-whats-new-description"></p><p><a href="./labs.html">زيارة دليل المختبرات ←</a></p><div class="bb-new-actions"><button type="button" id="bb-whats-new-prev">السابق</button><button type="button" id="bb-whats-new-next">التالي ←</button><button type="button" id="bb-whats-new-close">إغلاق</button></div></dialog><div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 </body>

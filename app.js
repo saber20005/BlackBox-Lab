@@ -370,6 +370,11 @@ function render(focus = false) {
   evidenceDisposer = undefined;
   const evidenceRun = ++viewGeneration;
   updateMetadata();
+  document.querySelectorAll('#bb-quick-dock [data-bb-dock-view]').forEach(button => {
+    const selected = button.dataset.bbDockView === (currentView === 'exercise' ? 'tracks' : currentView);
+    if (selected) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
   document.querySelectorAll('#nav [data-view]').forEach(button => {
     const active = button.dataset.view === primaryView(currentView);
     button.classList.toggle('active', active);
@@ -724,6 +729,14 @@ function bind() {
 }
 
 document.getElementById('quickBackup').addEventListener('click', exportBackup);
+// Keyboard/touch-friendly native disclosure; only existing navigation targets.
+const quickDock = document.getElementById('bb-quick-dock');
+quickDock?.addEventListener('click', event => {
+  const button = event.target.closest('[data-bb-dock-view]');
+  if (!button || !quickDock.contains(button)) return;
+  quickDock.open = false;
+  navigate(button.dataset.bbDockView);
+});
 document.querySelector('.brand').addEventListener('click', event => {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
