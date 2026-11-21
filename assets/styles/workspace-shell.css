@@ -91,3 +91,19 @@
   .sidebar #nav .bb-pro-sidebar small {font-size:9px}
 }
 @media print {.bb-pro-cta,.bb-pro-sidebar {display:none!important}}
+
+/* A four-column mobile training navigation must not wrap into a fifth row.
+   Suite Pro remains available in the persistent top bar and tools menu.
+   Desktop sidebar Pro entry stays visible without demoting free training. */
+@media(max-width:700px) {
+  .sidebar #nav .bb-pro-sidebar {display:none}
+  .sidebar #nav {grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+  .sidebar #nav :is(button,a) {min-width:0;white-space:normal;text-align:center}
+  .sidebar #nav .ic {flex:none}
+  .topbar .right-actions .bb-pro-cta {flex:0 0 auto;white-space:nowrap}
+}
+@media(max-width:400px) {
+  .sidebar #nav :is(button,a) {font-size:11px;gap:3px;padding:7px 3px}
+  .topbar .right-actions .bb-pro-cta {padding:7px 6px}
+  .topbar .right-actions .save-status {overflow-wrap:anywhere}
+}
