@@ -100,3 +100,8 @@
   .bb-cert-sheet-series{display:block!important}
   #bb-cert-paper .bb-cert-printed-disclaimer{background:#f0f6ff!important;border-color:#759bcb!important;color:#1b436d!important}
 }
+
+
+.bb-cert-joint-link{display:block;text-decoration:none;margin-top:13px;padding:11px 12px;border:1px solid #3988ff;border-radius:8px;color:#d7eaff;background:#102b4c;text-align:center;font:inherit;font-weight:700;line-height:1.6}
+.bb-cert-joint-link:hover{background:#18416f}
+.bb-cert-joint-link:focus-visible{outline:3px solid #9fc6ff;outline-offset:3px}
