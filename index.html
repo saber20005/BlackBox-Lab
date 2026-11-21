@@ -44,7 +44,7 @@
   <noscript><p>BLACKBOX مساحة تدريب عربية تضم 10 مسارات و30 مرحلة، مع ملفات للتحليل الدفاعي المحلي. فعّل JavaScript لفتح المسارات وحفظ نتائجك وملاحظاتك وتنزيل تقاريرك.</p></noscript>
   <a class="skip-link" href="#main-content">تجاوز إلى المحتوى</a>
   <div id="landing-page" class="bb-landing" aria-labelledby="landing-title">
-    <header class="bb-landing-nav"><a href="./" class="bb-landing-brand"><span>B.</span><strong>BLACKBOX <em>Lab</em></strong></a><a class="bb-pro-nav" href="./pro.html">الخطة الموحدة · قريبًا</a><button type="button" id="landing-enter-top">الدخول إلى مساحة التدريب ←</button></header>
+    <header class="bb-landing-nav"><a href="./" class="bb-landing-brand"><span>B.</span><strong>BLACKBOX <em>Lab</em></strong></a><a class="bb-pro-nav" href="./pro.html" aria-label="تعرّف على اشتراك Suite Pro القادم">الاشتراك Pro · قريبًا</a><button type="button" id="landing-enter-top">الدخول إلى مساحة التدريب ←</button></header>
     <main class="bb-landing-main">
       <section class="bb-landing-hero">
         <div class="bb-landing-copy"><span class="bb-kicker">تعلّم الأمن السيبراني بالتطبيق</span><h1 id="landing-title">ابدأ بمهمة واحدة.<br><span>وابنِ مهارتك.</span></h1><p>حلّل سجلات تدريبية داخل المتصفح، ودوّن استنتاجك، وتابع تقدمك. يمكنك تجهيز مختبر محلي عندما تحتاجه.</p><div class="bb-landing-actions"><a class="bb-start-training" id="landing-enter" href="./?track=logs&amp;stage=0">ابدأ التدريب من المتصفح ←</a><button type="button" id="landing-start-tour">كيف أستخدم الموقع؟</button></div><p class="bb-start-note">يمكنك البدء كضيف. تبقى الملاحظات محفوظة في متصفحك.</p></div>
@@ -95,6 +95,7 @@
           <button type="button" data-view="tracks"><span class="ic" aria-hidden="true">▤</span><span>المسارات</span></button>
           <button type="button" data-view="progress"><span class="ic" aria-hidden="true">↗</span><span>تقدّمي</span></button>
           <button type="button" data-view="account"><span class="ic" aria-hidden="true">○</span><span>حسابي</span></button>
+          <a class="bb-pro-sidebar" href="./pro.html" aria-label="خطط اشتراك Suite Pro — لم يبدأ البيع"><span class="ic" aria-hidden="true">✧</span><span>الاشتراك Pro</span><small>قريبًا</small></a>
         </nav>
       </div>
       <div class="side-bottom">
@@ -105,7 +106,7 @@
     <main class="main" id="main-content" tabindex="-1">
       <header class="topbar">
         <div class="crumb"><span class="mono">BLACKBOX</span><span aria-hidden="true"> / </span><b id="crumb">تدريبي</b></div>
-        <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><details class="workspace-tools" id="workspace-tools"><summary>أدوات ومساعدة</summary><div class="workspace-tools-menu"><button type="button" class="secondary compact account-trigger" id="accountButton">سجّل لحفظ تقدّمك</button><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة احتياطية</button><a href="./?view=backups">النسخ والتقارير</a><a href="./training-guide.html">دليل التدريب</a><a href="./labs.html">دليل المختبرات المحلية</a><a href="./?view=troubleshoot">حلول الأعطال</a><button type="button" id="bb-whats-new-open">تعرّف على الميزات الجديدة</button></div></details></div>
+        <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><a class="bb-pro-cta" href="./pro.html" aria-label="الاشتراك Suite Pro — قريبًا ولم يبدأ البيع">✧ الاشتراك Pro</a><details class="workspace-tools" id="workspace-tools"><summary>أدوات ومساعدة</summary><div class="workspace-tools-menu"><button type="button" class="secondary compact account-trigger" id="accountButton">سجّل لحفظ تقدّمك</button><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة احتياطية</button><a href="./?view=backups">النسخ والتقارير</a><a href="./training-guide.html">دليل التدريب</a><a href="./labs.html">دليل المختبرات المحلية</a><a href="./pro.html">الاشتراك Suite Pro — قريبًا</a><a href="./?view=troubleshoot">حلول الأعطال</a><button type="button" id="bb-whats-new-open">تعرّف على الميزات الجديدة</button></div></details></div>
       </header>
       <div id="storageNotice" class="storage-notice hidden" role="status"></div>
       <div id="accountSyncNotice" class="account-sync-notice hidden" role="status"><span id="accountSyncNoticeText"></span><button type="button" class="link-btn" id="reviewAccountSync">مراجعة الحساب</button></div>

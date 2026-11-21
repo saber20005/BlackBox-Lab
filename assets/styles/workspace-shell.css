@@ -58,3 +58,36 @@
 .workspace-page .source-details{margin-top:14px;color:var(--muted)}
 .workspace-page .source-details>summary{cursor:pointer;color:var(--text)}
 .workspace-page .source-details p:last-child{margin-bottom:0}
+
+/* Always-reachable Suite Pro information link — deliberately NOT a checkout. */
+.sidebar #nav .bb-pro-sidebar {
+  border:1px solid #365e9d;
+  color:#cce4ff;
+  background:linear-gradient(125deg,#162d4c,#0c192b);
+  gap:10px;
+  white-space:normal;
+}
+.sidebar #nav .bb-pro-sidebar .ic {color:#8dc2ff}
+.sidebar #nav .bb-pro-sidebar small {margin-inline-start:auto;color:#b1c8e4;font-size:10px;white-space:nowrap}
+.sidebar #nav .bb-pro-sidebar:hover,
+.sidebar #nav .bb-pro-sidebar:focus-visible {background:#234772;border-color:#7cadf4;color:#fff}
+.topbar .right-actions .bb-pro-cta {
+  display:inline-flex;align-items:center;justify-content:center;min-height:40px;
+  border:1px solid #618bd1;border-radius:10px;background:linear-gradient(140deg,#23467a,#152c50);
+  padding:9px 13px;color:#eaf5ff;text-decoration:none;font-size:12px;font-weight:700;
+  line-height:1.5;white-space:nowrap;flex:none;
+}
+.topbar .right-actions .bb-pro-cta:hover {background:#2e5b9b;border-color:#b4d4ff;text-decoration:none}
+.topbar .right-actions .bb-pro-cta:focus-visible,
+.sidebar #nav .bb-pro-sidebar:focus-visible {outline:3px solid #9ac9ff;outline-offset:3px}
+@media(max-width:700px) {
+  .topbar .right-actions .bb-pro-cta {padding:7px 9px;min-height:36px;font-size:11px}
+  .topbar .right-actions .save-status {min-width:0;flex:1 1 auto;font-size:10px}
+  .topbar .right-actions {gap:6px;flex-wrap:nowrap}
+}
+@media(max-width:390px) {
+  .topbar .right-actions .bb-pro-cta {font-size:10px;padding:6px 7px}
+  .sidebar #nav .bb-pro-sidebar {gap:5px}
+  .sidebar #nav .bb-pro-sidebar small {font-size:9px}
+}
+@media print {.bb-pro-cta,.bb-pro-sidebar {display:none!important}}
