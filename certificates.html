@@ -64,18 +64,28 @@
           <section class="bb-cert-preview" aria-label="معاينة الإفادة">
             <h2 class="bb-cert-screen">المعاينة</h2>
             <p id="bb-cert-empty" class="bb-cert-empty bb-cert-screen">اختر مسارًا مكتملًا وأدخل الاسم لمعاينة الإفادة.</p>
-            <article id="bb-cert-paper" hidden>
-              <span class="bb-cert-watermark" aria-hidden="true">B.</span>
-              <p class="bb-cert-brand">BLACKBOX LAB</p>
-              <p class="bb-cert-english">TRAINING COMPLETION RECORD</p>
-              <h2>إفادة إتمام تدريب</h2>
-              <p>سجل تعليمي يصف إكمال مسار عملي وفق تأكيد المتدرّب اليدوي</p>
-              <strong id="bb-cert-learner-name"></strong>
-              <p>أكمل المسار التدريبي:</p>
-              <h3 id="bb-cert-track-title"></h3>
-              <p id="bb-cert-details"></p>
-              <p id="bb-cert-date"></p>
-              <div class="ct-cert-printed-disclaimer">غير موثّقة — تعتمد على تأكيد المتدرّب يدويًا. لا إثبات لتقييم خادمي أو اعتماد مهني.<br>لا رقم شهادة · لا رمز QR · لا توقيع رقمي</div>
+            <article id="bb-cert-paper" hidden aria-label="إفادة إتمام مسار تدريبي من BLACKBOX">
+              <header class="bb-cert-sheet-header">
+                <div class="bb-cert-identity">
+                  <img class="bb-cert-logo" src="./favicon.svg" alt="">
+                  <div><strong>BLACKBOX <span>LAB</span></strong><small>CYBERSECURITY TRAINING ENVIRONMENT</small></div>
+                </div>
+                <span class="bb-cert-sheet-series" dir="ltr">LAB RECORD / BB</span>
+              </header>
+              <div class="bb-cert-sheet-content">
+                <div class="bb-cert-emblem" aria-hidden="true">B<span>.</span></div>
+                <p class="bb-cert-english" dir="ltr">TRAINING COMPLETION RECORD</p>
+                <h2>إفادة إتمام مسار تدريبي</h2>
+                <p class="bb-cert-sheet-lead">سجل إكمال مسار عملي داخل مختبر BLACKBOX وفق تأكيد المتدرّب</p>
+                <span class="bb-cert-name-label">اسم المتدرّب</span>
+                <strong id="bb-cert-learner-name"></strong>
+                <div class="bb-cert-facts">
+                  <div><span>المسار التدريبي</span><strong id="bb-cert-track-title"></strong></div>
+                  <div><span>المراحل المؤكَّدة</span><strong id="bb-cert-details"></strong></div>
+                  <div><span>تاريخ آخر إكمال</span><strong id="bb-cert-date"></strong></div>
+                </div>
+              </div>
+              <div class="bb-cert-printed-disclaimer" role="note"><strong>إفادة تعليمية غير موثّقة</strong><p>تستند إلى تأكيد المتدرّب اليدوي، ولا تثبت اجتياز تقييم خادمي أو اعتمادًا مهنيًا.</p><small>لا رقم شهادة · لا رمز QR · لا توقيع رقمي</small></div>
             </article>
           </section>
         </div>
