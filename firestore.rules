@@ -170,6 +170,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Public certificate details are returned by a restricted server endpoint.
+    // Browsers may neither enumerate nor forge server-issued records.
+    match /certificateRegistry/{certificateId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
