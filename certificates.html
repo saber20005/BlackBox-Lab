@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#091326">
+  <title>BLACKBOX | مركز الشهادات</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./assets/styles/styles.css">
+  <link rel="stylesheet" href="./assets/styles/workspace-shell.css">
+  <link rel="stylesheet" href="./assets/styles/certificates.css">
+</head>
+<body class="workspace-page bb-cert-page">
+  <a class="skip-link bb-cert-screen" href="#main-content">تجاوز إلى المحتوى</a>
+  <div class="app">
+    <aside class="sidebar bb-cert-screen" aria-label="التنقل الرئيسي">
+      <a class="brand" href="./?view=home"><span class="brand-icon" aria-hidden="true">B.</span><span><strong>BLACKBOX</strong><small>TRAINING WORKSPACE</small></span></a>
+      <div class="sidebar-section">
+        <div class="nav-title">مساحة العمل</div>
+        <nav class="nav" aria-label="أقسام المختبر">
+          <a href="./?view=home"><span class="ic" aria-hidden="true">◈</span> تدريبي</a>
+          <a href="./?view=tracks"><span class="ic" aria-hidden="true">▤</span> المسارات</a>
+          <a href="./?view=progress" class="active" aria-current="page"><span class="ic" aria-hidden="true">↗</span> تقدّمي</a>
+          <a href="./?view=account"><span class="ic" aria-hidden="true">○</span> حسابي</a>
+        </nav>
+      </div>
+    </aside>
+    <main class="main" id="main-content" tabindex="-1">
+      <header class="topbar bb-cert-screen">
+        <div class="crumb"><span class="mono">BLACKBOX</span><span aria-hidden="true"> / </span><a href="./?view=progress">تقدّمي</a><span aria-hidden="true"> / </span><b>شهاداتي</b></div>
+        <a href="./portfolio.html" class="secondary compact">ملف الأعمال ←</a>
+      </header>
+      <div class="standalone-content">
+        <section class="bb-cert-screen bb-cert-intro">
+          <span class="eyebrow">BLACKBOX / TRAINING RECORDS</span>
+          <h1>مركز الشهادات</h1>
+          <p>تظهر المسارات التي أكملت جميع مراحلها بتأكيدك اليدوي. يمكنك طباعة إفادة تدريبية وحفظها PDF، لكنها ليست شهادة موثقة من الخادم.</p>
+          <p class="bb-cert-warning" role="note">إفادة تدريب ذاتية غير موثّقة. لا يوجد رقم شهادة أو QR أو اعتماد مهني حاليًا.</p>
+        </section>
+        <section class="bb-cert-screen bb-cert-source" aria-label="مصدر التقدم">
+          <p id="bb-cert-source-status" role="status" aria-live="polite">جارٍ استعادة جلسة الحساب وتحديد مصدر التقدم…</p>
+          <button type="button" class="secondary" id="bb-cert-refresh">تحديث تقدم الحساب</button>
+          <a href="./?view=account">الحساب والمزامنة ←</a>
+        </section>
+        <div class="bb-cert-layout">
+          <section class="bb-cert-controls bb-cert-screen" aria-label="إعداد إفادة الإتمام">
+            <h2>المسارات المكتملة</h2>
+            <p id="bb-cert-count" role="status">جارٍ فحص المراحل المكتملة…</p>
+            <label for="bb-cert-track">اختر المسار
+              <select id="bb-cert-track" disabled><option value="">— اختر المسار —</option></select>
+            </label>
+            <label for="bb-cert-name">الاسم الذي سيظهر في الإفادة
+              <input id="bb-cert-name" type="text" maxlength="70" autocomplete="name" placeholder="اسم المتدرب">
+            </label>
+            <p class="bb-cert-note">الاسم للمعاينة والطباعة فقط، ولا يُحفظ أو يُرسل إلى الخادم.</p>
+            <button type="button" class="primary" id="bb-cert-print" disabled>طباعة / حفظ PDF</button>
+            <p class="bb-cert-note">اختر «حفظ بتنسيق PDF» من نافذة الطباعة إذا كان المتصفح يدعمه.</p>
+            <section class="bb-cert-future">
+              <h3>الشهادة المشتركة الموثّقة</h3>
+              <p>قيد التطوير. يلزمها تقييم خادمي موثوق وربط حسابات صحيح، لا مجرد إكمال قائمة تحقق.</p>
+            </section>
+          </section>
+          <section class="bb-cert-preview" aria-label="معاينة الإفادة">
+            <h2 class="bb-cert-screen">المعاينة</h2>
+            <p id="bb-cert-empty" class="bb-cert-empty bb-cert-screen">اختر مسارًا مكتملًا وأدخل الاسم لمعاينة الإفادة.</p>
+            <article id="bb-cert-paper" hidden>
+              <span class="bb-cert-watermark" aria-hidden="true">B.</span>
+              <p class="bb-cert-brand">BLACKBOX LAB</p>
+              <p class="bb-cert-english">TRAINING COMPLETION RECORD</p>
+              <h2>إفادة إتمام تدريب</h2>
+              <p>سجل تعليمي يصف إكمال مسار عملي وفق تأكيد المتدرّب اليدوي</p>
+              <strong id="bb-cert-learner-name"></strong>
+              <p>أكمل المسار التدريبي:</p>
+              <h3 id="bb-cert-track-title"></h3>
+              <p id="bb-cert-details"></p>
+              <p id="bb-cert-date"></p>
+              <div class="ct-cert-printed-disclaimer">غير موثّقة — تعتمد على تأكيد المتدرّب يدويًا. لا إثبات لتقييم خادمي أو اعتماد مهني.<br>لا رقم شهادة · لا رمز QR · لا توقيع رقمي</div>
+            </article>
+          </section>
+        </div>
+        <noscript><p>يتطلب مركز الشهادات JavaScript لعرض تقدمك، لكنه لا يغير أي بيانات محفوظة.</p></noscript>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./certificates-page.js"></script>
+</body>
+</html>
