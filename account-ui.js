@@ -27,6 +27,16 @@ export function mountAccountUI({ onAction, beforeOpen = () => {}, onExport = () 
   dialog.setAttribute('aria-labelledby', 'accountDialogTitle');
   dialog.setAttribute('aria-describedby', 'accountDialogDescription');
   dialog.innerHTML = `
+    <div class="account-dialog-layout">
+      <aside class="account-visual" aria-label="مرحبًا بك في BLACKBOX">
+        <span class="account-visual-mark" aria-hidden="true">B.</span>
+        <p class="account-visual-eyebrow">BLACKBOX LAB / PRACTICAL TRAINING</p>
+        <h2 id="accountVisualTitle">رحلتك العملية تبدأ هنا.</h2>
+        <p class="account-visual-description">درّب مهاراتك في مختبر معزول، واحفظ الملاحظات والتقدم في حسابك دون المساس ببيانات الضيف.</p>
+        <button type="button" id="accountVisualSwitch" class="account-visual-switch">مستخدم جديد؟ أنشئ حسابًا ←</button>
+        <small class="account-visual-note">نتائجك اليدوية تظل تدريبية، وليست شهادة موثّقة.</small>
+      </aside>
+      <div class="account-dialog-form-pane">
     <div class="account-dialog-head"><span class="eyebrow">BLACKBOX / حساب التدريب</span><button type="button" class="account-close" id="closeAccount" aria-label="إغلاق نافذة الحساب">×</button></div>
     <h2 id="accountDialogTitle">احفظ تقدّمك في حسابك</h2>
     <p id="accountDialogDescription" class="account-intro">التدريب متاح للضيف. الحساب يتيح حفظ تقدّمك وملاحظاتك ومتابعتها من أجهزة أخرى عند الاتصال.</p>
@@ -53,6 +63,8 @@ export function mountAccountUI({ onAction, beforeOpen = () => {}, onExport = () 
       <div id="accountUnsyncedSignOut" class="account-action-card hidden"><h3>تعديلات لم تُزامن بعد</h3><p>نزّل نسخة من عملك أو ابقَ حتى تكتمل المزامنة. الخروج الآن قد يزيل النسخة المحلية الخاصة بالحساب.</p><div class="account-choice-buttons"><button type="button" class="secondary" id="exportBeforeSignOut">تنزيل نسخة من التقدّم</button><button type="button" class="secondary" id="cancelSignOut">البقاء في الحساب</button><button type="button" class="secondary danger" id="confirmUnsyncedSignOut">الخروج دون مزامنة</button></div></div>
     </section>
     <button type="button" class="link-btn account-retry hidden" id="retryAccountConnection">إعادة الاتصال بخدمة الحسابات</button>
+      </div>
+    </div>
   `;
   document.body.append(dialog);
   let status = { ...initialStatus };
@@ -61,6 +73,7 @@ export function mountAccountUI({ onAction, beforeOpen = () => {}, onExport = () 
   let recoveryIdentity = '';
 
   const element = id => document.getElementById(id);
+  dialog.querySelector('#accountVisualSwitch').addEventListener('click', () => setMode(mode === 'signup' ? 'signin' : mode === 'reset' ? 'signin' : 'signup'));
   function message(text = '', isError = true) {
     const node = element('accountOperationMessage');
     node.textContent = text;
@@ -70,6 +83,9 @@ export function mountAccountUI({ onAction, beforeOpen = () => {}, onExport = () 
   }
   function setMode(next) {
     mode = next;
+    dialog.dataset.mode = mode;
+    element('accountVisualTitle').textContent = mode === 'signup' ? 'أنشئ مساحتك التدريبية.' : mode === 'reset' ? 'استعد الوصول إلى حسابك.' : 'رحلتك العملية تبدأ هنا.';
+    element('accountVisualSwitch').textContent = mode === 'signup' ? 'لديك حساب؟ سجّل الدخول ←' : mode === 'reset' ? 'العودة لتسجيل الدخول ←' : 'مستخدم جديد؟ أنشئ حسابًا ←';
     message();
     element('accountPasswordField').classList.toggle('hidden', mode === 'reset');
     element('accountPassword').required = mode !== 'reset';
@@ -85,6 +101,7 @@ export function mountAccountUI({ onAction, beforeOpen = () => {}, onExport = () 
     const previousUserId = status.user?.uid;
     status = { ...status, ...next };
     const signedIn = Boolean(status.user);
+    dialog.classList.toggle('is-signed-in', signedIn);
     if (previousUserId !== status.user?.uid) {
       element('accountPassword').value = '';
       element('accountUnsyncedSignOut').classList.add('hidden');

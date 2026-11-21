@@ -660,3 +660,51 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 8px; }
  .exercise-heading .track-actions{width:100%;justify-content:space-between}
  .task-brief .stage-guide{font-size:15px}
 }
+
+/* Split login/create-account presentation, no changes to Firebase handlers. */
+.account-dialog:not(.is-signed-in) { width:min(860px,calc(100% - 28px));padding:0;overflow-x:hidden; }
+.account-dialog.is-signed-in {width:min(570px,calc(100% - 28px));padding:0;}
+.account-dialog-layout {
+  display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  direction:ltr;min-width:0;
+}
+.account-dialog-form-pane {padding:clamp(20px,3vw,30px);min-width:0;direction:rtl;}
+.account-visual {
+  display:flex;flex-direction:column;justify-content:center;min-width:0;
+  padding:clamp(25px,4vw,44px);background:radial-gradient(circle at 20% 15%,#3988ff35,transparent 46%),linear-gradient(150deg,#182b46,#0b1729);
+  border-inline-end:1px solid #385886;direction:rtl;
+}
+.account-visual-mark {
+  width:54px;height:54px;display:grid;place-items:center;border:1px solid #5d8dce;
+  border-radius:14px;color:#8ebdff;font:700 20px "IBM Plex Mono",monospace;margin-bottom:34px;
+}
+.account-visual-eyebrow {font:11px "IBM Plex Mono",monospace;color:#8ebdff;letter-spacing:.06em;margin:0 0 14px;}
+.account-visual h2 {font-size:clamp(24px,2.9vw,36px);line-height:1.5;margin:0 0 16px;}
+.account-visual-description {font-size:14px;color:#bbcee8;line-height:1.95;margin:0 0 26px;}
+.account-visual-switch {
+  align-self:flex-start;min-height:44px;border-radius:999px;border:1px solid #6ba6ff;
+  background:#183b69;color:#eef5ff;font:inherit;font-size:13px;padding:11px 18px;
+  transition:transform .24s ease,background-color .24s ease;
+}
+.account-visual-note {font-size:11px;color:#a9c2df;line-height:1.8;margin-top:auto;padding-top:25px;}
+.account-dialog[data-mode="signup"] .account-visual {
+  background:radial-gradient(circle at 80% 12%,#4f92ee40,transparent 45%),linear-gradient(140deg,#102038,#192b4b);
+}
+.account-dialog.is-signed-in .account-visual {display:none}
+.account-dialog.is-signed-in .account-dialog-layout {display:block}
+@media(max-width:720px) {
+  .account-dialog:not(.is-signed-in) .account-dialog-layout{grid-template-columns:minmax(0,1fr);}
+  .account-visual{padding:20px 24px;border-inline-end:0;border-bottom:1px solid #385886;}
+  .account-visual-mark{width:36px;height:36px;margin-bottom:10px;font-size:15px}
+  .account-visual h2{font-size:21px;margin:0 0 4px}
+  .account-visual-description,.account-visual-note{display:none}
+  .account-visual-switch{margin-top:12px;padding:8px 15px}
+}
+@media(hover:hover) and (prefers-reduced-motion:no-preference) {
+  .account-visual-switch:hover {transform:translateY(-2px);background:#25558b}
+}
+@media(prefers-reduced-motion:reduce) {.account-visual-switch {transition:none!important;transform:none!important}}
+/* Avoid offscreen paint of long read-only troubleshooting lists. Not a network optimization. */
+@supports(content-visibility:auto) {
+  .error-card {content-visibility:auto;contain-intrinsic-size:auto 160px;}
+}
