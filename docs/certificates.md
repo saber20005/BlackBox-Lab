@@ -17,3 +17,13 @@ The linked view is a static, noindex, non-issuing mockup and makes no change to 
 ## Route selection behavior
 
 All 10 training routes are selectable in the certificate center, even with no fully completed routes. The dropdown shows the verified-for-this-session count of manually confirmed stages, and an explanatory message when a route is incomplete. This is a **navigation/status feature only**: the printable record and Print / PDF action remain unavailable until every stage of the chosen route is manually completed and account/guest scope is ready, non-cached and non-pending. During authentication restoration, errors or owner switches, route titles can be browsed but no completion is asserted. Guest and account results are never substituted for one another.
+
+## Group-based training records (2026-11-21)
+
+The certificate center now offers **three learning-group completion records** rather than one for every 3-stage track. All ten pre-existing tracks and thirty stages remain untouched in storage:
+
+- `network-foundations`: recon, nmap, network (9 stages).
+- `practical-assessment`: webgoat, proxy, metasploit (9 stages).
+- `defensive-analysis`: logs, integrity, headers, email (12 stages).
+
+Each group is readable/selectable regardless of completion; only when **all** stages in **all** member tracks are manually confirmed in the ready, uncached and correct guest/account scope may the user preview and print a self-reported record. No legacy result is deleted, upgraded or treated as server-verified evidence. Legacy per-track aggregation functions stay available for compatibility but are no longer used to issue printable records.
