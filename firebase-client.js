@@ -1,6 +1,14 @@
 import { accountConfig } from './account-config.js';
 import { createBackup, parseBackup } from './progress.js';
 import { normalizeReceipt } from './cybertrace-catalog.js';
+ 
+// Ignore identical Firestore metadata echoes without losing the offline-to-
+// server-confirmed transition. Only a canonical in-memory key is retained.
+export function skillsDeliveryKey(receipts, fromCache) {
+  const entries = Object.keys(receipts).sort().map(id => [id, receipts[id]]);
+  return JSON.stringify([fromCache === true, entries]);
+}
+
 
 export const MAX_CLOUD_BYTES = 700000;
 const SDK_VERSION = '12.18.0';
@@ -63,6 +71,7 @@ export async function createFirebaseBackend(config = accountConfig) {
       // Return a synchronous disposer even while the Firestore module is loading.
       let cancelled = false;
       let unsubscribe = null;
+      let lastDeliveredKey = null;
       void getStore().then(({ storeSDK, database }) => {
         if (cancelled) return;
         // Ownership is checked after loading, before opening a listener.
@@ -77,6 +86,9 @@ export async function createFirebaseBackend(config = accountConfig) {
               if (!receipt) throw Object.assign(new Error('تعذّر التحقق من إنجازات CyberTrace في الحساب.'), { code: 'skills/invalid-receipt' });
               receipts[document.id] = receipt;
             }
+            const key = skillsDeliveryKey(receipts, snapshot.metadata.fromCache);
+            if (key === lastDeliveredKey) return;
+            lastDeliveredKey = key;
             onData({ receipts, fromCache: snapshot.metadata.fromCache });
           } catch (reason) { onError(reason); }
         }, error => { if (!cancelled) onError(error); });
