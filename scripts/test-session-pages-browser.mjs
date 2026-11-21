@@ -32,7 +32,7 @@ accountA.results['network-0'] = 'PRIVATE_SELECTED_A_RESULT';
 const accountB = createInitialState();
 accountB.completed['webgoat-0'] = stamp; accountB.checks['webgoat-0'] = [0, 1, 2];
 const fullAccount = createInitialState();
-for (const stage of ['recon-0', 'recon-1', 'recon-2']) fullAccount.completed[stage] = stamp;
+for (const track of ['recon', 'nmap', 'network']) for (const stage of [0, 1, 2]) fullAccount.completed[`${track}-${stage}`] = stamp;
 const cacheKey = 'blackbox-account-progress-v1:fixture-account-a';
 const pendingKey = cacheKey + ':pending:preserve-test';
 const rawCache = JSON.stringify({ revision: 2, progress: accountA, dirty: true, owner: 'fixture-tab', savedAt: stamp });
@@ -192,9 +192,9 @@ try {
       await page.waitForFunction(() => document.querySelector('#bb-cert-source-status')?.dataset.phase === 'ready');
       const trackPicker = page.locator('#bb-cert-track');
       assert.equal(await trackPicker.isEnabled(), true, 'catalogue remains interactive with zero completed tracks');
-      assert.equal(await trackPicker.locator('option').count(), 11, 'all 10 training routes remain selectable');
-      await trackPicker.selectOption('recon');
-      assert.match(await page.locator('#bb-cert-track-help').innerText(), /1 من 3 مراحل/);
+      assert.equal(await trackPicker.locator('option').count(), 4, 'all 3 learning groups remain selectable');
+      await trackPicker.selectOption('network-foundations');
+      assert.match(await page.locator('#bb-cert-track-help').innerText(), /1 من 9 مرحلة/);
       await page.locator('#bb-cert-name').fill('متدرّب اختبار');
       assert.equal(await page.locator('#bb-cert-print').isDisabled(), true, 'partial guest progress cannot print an unearned record');
       assert.equal(await page.locator('#bb-cert-paper').isVisible(), false);
@@ -205,8 +205,8 @@ try {
       assert.equal(await page.locator('#bb-cert-name').inputValue(), '', 'account changes clear guest display name');
       await resolveRead(page, 'fixture-account-full', fullAccount);
       await page.waitForFunction(() => document.querySelector('#bb-cert-source-status')?.dataset.phase === 'ready');
-      await trackPicker.selectOption('recon');
-      assert.match(await page.locator('#bb-cert-track-help').innerText(), /مكتمل/);
+      await trackPicker.selectOption('network-foundations');
+      assert.match(await page.locator('#bb-cert-track-help').innerText(), /مكتملة/);
       await page.locator('#bb-cert-name').fill('متدرّب اختبار');
       assert.equal(await page.locator('#bb-cert-print').isEnabled(), true, 'fully completed account track can print a self-reported record');
       assert.equal(await page.locator('#bb-cert-paper').isVisible(), true);
@@ -220,13 +220,13 @@ try {
       assert.equal(await trackPicker.inputValue(), '', 'switching owners clears the selected printable route');
       assert.equal(await page.locator('#bb-cert-paper').isVisible(), false, 'previous owner certificate is hidden during switch');
       await resolveRead(page, 'fixture-account-b', accountB);
-      await trackPicker.selectOption('recon');
+      await trackPicker.selectOption('network-foundations');
       assert.equal(await page.locator('#bb-cert-print').isDisabled(), true, 'incomplete new account cannot print previous owner record');
       assert.equal(await page.evaluate(() => window.sessionFixture.writes.length), 0, 'certificate picker does not write progress');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'certificate page fits viewport');
       assert.deepEqual(errors, []);
       assert.deepEqual(external, []);
-      console.log(`PASS certificate track picker at ${viewport.width}px: zero-completion selection, locked printing, verified scope isolation and complete-track print`);
+      console.log(`PASS certificate learning group picker at ${viewport.width}px: zero-completion selection, locked printing, verified scope isolation and complete-track print`);
     } finally { await context.close(); }
   }
 } finally { await browser.close(); }
