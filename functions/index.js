@@ -2,7 +2,8 @@ import { allocateGradingSession } from './session-store.js';
 import { submitVerifiedGrading } from './grading-submission.js';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
+import { lookupPublicCertificate, requireCertificateId } from './certificate-registry.js';
 import { requireCaseId } from './grading-core.js';
 import { membershipForClient } from './suite-membership.js';
 import { startVerifiedSocSession, submitVerifiedSocSession } from './soc-verified-service.js';
@@ -103,5 +104,38 @@ export const submitVerifiedSocShift = onCall({ region: REGION, enforceAppCheck: 
       throw new HttpsError('failed-precondition', 'Session expired or already used. Start a new challenge.');
     }
     throw new HttpsError('failed-precondition', 'Verified submission could not be accepted.');
+  }
+});
+
+// Public verification reads ONLY server-issued records. The registry cannot be
+// populated from this endpoint or from user-controlled Firestore progress.
+// Legacy PDF training records deliberately have no valid certificate ID.
+export const verifyIssuedCertificate = onRequest({
+  region: REGION, maxInstances: 10,
+  cors: [
+    'https://blackboxlab.dev', 'https://www.blackboxlab.dev',
+    'https://cybertracelab.dev', 'https://www.cybertracelab.dev',
+  ],
+}, async (request, response) => {
+  response.set('Cache-Control', 'no-store');
+  response.set('X-Content-Type-Options', 'nosniff');
+  response.set('Referrer-Policy', 'no-referrer');
+  if (request.method !== 'GET') {
+    response.set('Allow', 'GET');
+    response.status(405).json({ error: 'method-not-allowed' });
+    return;
+  }
+  let certificateId;
+  try { certificateId = requireCertificateId(request.query?.id); }
+  catch { response.status(400).json({ error: 'invalid-certificate-id', valid: false }); return; }
+  try {
+    const record = await lookupPublicCertificate(db, certificateId);
+    if (!record) {
+      response.status(404).json({ status: 'not-found', valid: false });
+      return;
+    }
+    response.status(200).json(record);
+  } catch {
+    response.status(503).json({ status: 'unavailable', valid: false });
   }
 });
