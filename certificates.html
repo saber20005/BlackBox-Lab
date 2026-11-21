@@ -45,11 +45,12 @@
         </section>
         <div class="bb-cert-layout">
           <section class="bb-cert-controls bb-cert-screen" aria-label="إعداد إفادة الإتمام">
-            <h2>المسارات المكتملة</h2>
+            <h2>اختر مسارك التدريبي</h2>
             <p id="bb-cert-count" role="status">جارٍ فحص المراحل المكتملة…</p>
             <label for="bb-cert-track">اختر المسار
-              <select id="bb-cert-track" disabled><option value="">— اختر المسار —</option></select>
+              <select id="bb-cert-track" aria-describedby="bb-cert-track-help"><option value="">— اختر المسار —</option></select>
             </label>
+            <p id="bb-cert-track-help" class="bb-cert-note" role="status" aria-live="polite">اختر أي مسار لمعرفة تقدّمه؛ لا تُطبع الإفادة قبل اكتمال جميع المراحل.</p>
             <label for="bb-cert-name">الاسم الذي سيظهر في الإفادة
               <input id="bb-cert-name" type="text" maxlength="70" autocomplete="name" placeholder="اسم المتدرب">
             </label>

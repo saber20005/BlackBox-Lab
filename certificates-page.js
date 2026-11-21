@@ -1,9 +1,11 @@
+import { tracks as catalog } from './data.js';
 import { createProgressSession } from './progress-session.js';
 import { completedTrainingTracks, validLearnerName } from './certificates.js';
 
 const source = document.getElementById('bb-cert-source-status');
 const refresh = document.getElementById('bb-cert-refresh');
 const select = document.getElementById('bb-cert-track');
+const trackHelp = document.getElementById('bb-cert-track-help');
 const name = document.getElementById('bb-cert-name');
 const count = document.getElementById('bb-cert-count');
 const print = document.getElementById('bb-cert-print');
@@ -24,7 +26,18 @@ function eligible() {
 
 function renderPreview() {
   const tracks = eligible() ? completedTrainingTracks(snapshot.progress) : [];
+  const selected = catalog.find(track => track.id === select.value);
   const chosen = tracks.find(item => item.trackId === select.value);
+  const done = selected && eligible()
+    ? selected.stages.filter((_, index) => Boolean(snapshot.progress.completed[selected.id + '-' + index])).length
+    : null;
+  trackHelp.textContent = !selected
+    ? 'يمكنك اختيار أي مسار للاطلاع على حالته؛ الطباعة متاحة للمسارات المكتملة فقط.'
+    : !eligible()
+      ? 'المسار محدد، لكن لم يتم التحقق من مصدر التقدم بعد. لا يمكن طباعة إفادة.'
+      : chosen
+        ? 'هذا المسار مكتمل بتأكيدك اليدوي. أدخل اسمًا صالحًا لتفعيل الطباعة.'
+        : `المسار غير مكتمل: ${done} من ${selected.stages.length} مراحل. أكمل البقية لتفعيل الطباعة.`;
   const ready = Boolean(chosen && validLearnerName(name.value));
   paper.hidden = !ready;
   empty.hidden = ready;
@@ -32,7 +45,11 @@ function renderPreview() {
   if (!ready) {
     empty.textContent = !eligible()
       ? 'انتظر قراءة تقدمك من المصدر الصحيح قبل معاينة الإفادة.'
-      : 'اختر مسارًا مكتملًا وأدخل اسمًا صالحًا لمعاينة الإفادة.';
+      : selected && !chosen
+        ? `اخترت «${selected.name}»؛ أكملت ${done} من ${selected.stages.length} مراحل. لا تتوفر إفادة إتمام قبل اكتمال المسار.`
+        : chosen
+          ? 'أدخل اسمًا صالحًا لمعاينة إفادة هذا المسار المكتمل.'
+          : 'اختر مسارًا من القائمة. لا تتوفر الطباعة إلا بعد اكتمال جميع مراحله.';
     return;
   }
   nameText.textContent = name.value.trim();
@@ -56,11 +73,17 @@ function render(next) {
   refresh.disabled = ['loading', 'restoring'].includes(next.phase);
   const tracks = eligible() ? completedTrainingTracks(next.progress) : [];
   select.replaceChildren(new Option('— اختر المسار —', ''));
-  for (const track of tracks) {
-    select.add(new Option(track.title + ' — ' + track.stageCount + ' مراحل', track.trackId));
+  // Always offer the catalogue for navigation, even with zero completed tracks.
+  // Never imply completion while account data is loading, cached or unverified.
+  for (const track of catalog) {
+    const done = eligible()
+      ? track.stages.filter((_, index) => Boolean(next.progress.completed[track.id + '-' + index])).length
+      : null;
+    const status = done === null ? 'بانتظار التحقق من التقدم' : `${done} / ${track.stages.length} مراحل`;
+    select.add(new Option(`${track.name} — ${status}`, track.id));
   }
-  if (tracks.some(track => track.trackId === previousSelection)) select.value = previousSelection;
-  select.disabled = !eligible() || tracks.length === 0;
+  if (catalog.some(track => track.id === previousSelection)) select.value = previousSelection;
+  select.disabled = false;
   name.disabled = !eligible();
   count.textContent = eligible() ? tracks.length + ' مسارات مكتملة بالتأكيد اليدوي في المصدر المعروض.'
     : 'مصدر التقدم لم يجهز أو يتطلب تحديث الحساب؛ لا يمكن إصدار إفادة الآن.';

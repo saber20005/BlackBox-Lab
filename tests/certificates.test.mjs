@@ -56,3 +56,19 @@ test('BLACKBOX links to the single shared preview without claiming issuance', ()
   assert(css.includes('.bb-cert-joint-link'));
   assert(!html.includes('verify?id='));
 });
+
+test('track selector is usable before completion without allowing unearned certificates', () => {
+  const page = readFileSync(new URL('../certificates-page.js', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../certificates.html', import.meta.url), 'utf8');
+  assert(page.includes("import { tracks as catalog } from './data.js'"));
+  assert(page.includes("for (const track of catalog)"));
+  assert(page.includes('select.disabled = false;'));
+  assert(page.includes("select.add(new Option("));
+  assert(page.includes('const chosen = tracks.find(item => item.trackId === select.value)'));
+  assert(page.includes('print.disabled = !ready'));
+  assert(page.includes('if (!eligible() || print.disabled) return'));
+  assert(page.includes('المسار غير مكتمل'));
+  assert(html.includes('aria-describedby="bb-cert-track-help"'));
+  assert(html.includes('id="bb-cert-track-help"'));
+  assert(!html.includes('<select id="bb-cert-track" disabled'));
+});
