@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { tracks } from '../data.js';
 import { createInitialState } from '../progress.js';
-import { completedTrainingTracks, DRAFT_NOTICE, validLearnerName } from '../certificates.js';
+import { completedTrainingTracks, trainingCertificateGroups, completedTrainingGroups, TRAINING_CERTIFICATE_GROUPS, DRAFT_NOTICE, validLearnerName } from '../certificates.js';
 
 test('only whole manually confirmed tracks appear, not partial progress or raw notes', () => {
   const p = createInitialState();
@@ -57,18 +57,42 @@ test('BLACKBOX links to the single shared preview without claiming issuance', ()
   assert(!html.includes('verify?id='));
 });
 
-test('track selector is usable before completion without allowing unearned certificates', () => {
+test('group certificates require every stage of each constituent track and preserve saved progress', () => {
+  const p = createInitialState();
+  const before = JSON.stringify(p);
+  const groups = trainingCertificateGroups(p);
+  assert.equal(groups.length, 3);
+  assert.deepEqual(groups.map(group => group.trackCount), [3, 3, 4]);
+  assert.deepEqual(groups.map(group => group.stageCount), [9, 9, 12]);
+  assert.equal(completedTrainingGroups(p).length, 0);
+  assert.equal(JSON.stringify(p), before, 'computing groups cannot modify progress');
+
+  for (const trackId of TRAINING_CERTIFICATE_GROUPS[0].trackIds.slice(0, 2)) {
+    const track = tracks.find(item => item.id === trackId);
+    track.stages.forEach((_, i) => { p.completed[`${track.id}-${i}`] = '2026-11-20T10:00:00.000Z'; });
+  }
+  assert.equal(completedTrainingGroups(p).length, 0, 'two complete tracks do not produce a group record');
+  const third = tracks.find(item => item.id === TRAINING_CERTIFICATE_GROUPS[0].trackIds[2]);
+  third.stages.forEach((_, i) => { p.completed[`${third.id}-${i}`] = '2026-11-20T11:00:00.000Z'; });
+  const completed = completedTrainingGroups(p);
+  assert.equal(completed.length, 1);
+  assert.equal(completed[0].id, 'network-foundations');
+  assert.equal(completed[0].stageCount, 9);
+  assert.equal(completed[0].completedStages, 9);
+  assert.equal(completed[0].completedAt, Date.parse('2026-11-20T11:00:00.000Z'));
+});
+
+test('certificate group selector stays available but printing is gated', () => {
   const page = readFileSync(new URL('../certificates-page.js', import.meta.url), 'utf8');
   const html = readFileSync(new URL('../certificates.html', import.meta.url), 'utf8');
-  assert(page.includes("import { tracks as catalog } from './data.js'"));
-  assert(page.includes("for (const track of catalog)"));
+  assert(page.includes('trainingCertificateGroups(next.progress)'));
+  assert(page.includes("trainingCertificateGroups(null)"));
   assert(page.includes('select.disabled = false;'));
-  assert(page.includes("select.add(new Option("));
-  assert(page.includes('const chosen = tracks.find(item => item.trackId === select.value)'));
   assert(page.includes('print.disabled = !ready'));
   assert(page.includes('if (!eligible() || print.disabled) return'));
-  assert(page.includes('المسار غير مكتمل'));
+  assert(page.includes('completedTrainingGroups(snapshot.progress)'));
+  assert(html.includes('اختر مجموعتك التدريبية'));
+  assert(html.includes('إفادة إتمام مجموعة تدريبية'));
   assert(html.includes('aria-describedby="bb-cert-track-help"'));
-  assert(html.includes('id="bb-cert-track-help"'));
   assert(!html.includes('<select id="bb-cert-track" disabled'));
 });
