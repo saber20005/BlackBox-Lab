@@ -35,7 +35,7 @@
         <section class="bb-cert-screen bb-cert-intro">
           <span class="eyebrow">BLACKBOX / TRAINING RECORDS</span>
           <h1>مركز الشهادات</h1>
-          <p>تظهر المسارات التي أكملت جميع مراحلها بتأكيدك اليدوي. يمكنك طباعة إفادة تدريبية وحفظها PDF، لكنها ليست شهادة موثقة من الخادم.</p>
+          <p>تظهر المجموعات التي أكملت جميع مساراتها ومراحلها بتأكيدك اليدوي. يمكنك طباعة إفادة تدريبية وحفظها PDF، لكنها ليست شهادة موثقة من الخادم.</p>
           <p class="bb-cert-warning" role="note">إفادة تدريب ذاتية غير موثّقة. لا يوجد رقم شهادة أو QR أو اعتماد مهني حاليًا.</p>
         </section>
         <section class="bb-cert-screen bb-cert-source" aria-label="مصدر التقدم">
@@ -45,12 +45,12 @@
         </section>
         <div class="bb-cert-layout">
           <section class="bb-cert-controls bb-cert-screen" aria-label="إعداد إفادة الإتمام">
-            <h2>اختر مسارك التدريبي</h2>
+            <h2>اختر مجموعتك التدريبية</h2>
             <p id="bb-cert-count" role="status">جارٍ فحص المراحل المكتملة…</p>
-            <label for="bb-cert-track">اختر المسار
-              <select id="bb-cert-track" aria-describedby="bb-cert-track-help"><option value="">— اختر المسار —</option></select>
+            <label for="bb-cert-track">اختر المجموعة
+              <select id="bb-cert-track" aria-describedby="bb-cert-track-help"><option value="">— اختر المجموعة —</option></select>
             </label>
-            <p id="bb-cert-track-help" class="bb-cert-note" role="status" aria-live="polite">اختر أي مسار لمعرفة تقدّمه؛ لا تُطبع الإفادة قبل اكتمال جميع المراحل.</p>
+            <p id="bb-cert-track-help" class="bb-cert-note" role="status" aria-live="polite">اختر مجموعة لمعرفة تقدّمها؛ لا تُطبع الإفادة قبل إكمال جميع المسارات والمراحل فيها.</p>
             <label for="bb-cert-name">الاسم الذي سيظهر في الإفادة
               <input id="bb-cert-name" type="text" maxlength="70" autocomplete="name" placeholder="اسم المتدرب">
             </label>
@@ -66,8 +66,8 @@
           </section>
           <section class="bb-cert-preview" aria-label="معاينة الإفادة">
             <h2 class="bb-cert-screen">المعاينة</h2>
-            <p id="bb-cert-empty" class="bb-cert-empty bb-cert-screen">اختر مسارًا مكتملًا وأدخل الاسم لمعاينة الإفادة.</p>
-            <article id="bb-cert-paper" hidden aria-label="إفادة إتمام مسار تدريبي من BLACKBOX">
+            <p id="bb-cert-empty" class="bb-cert-empty bb-cert-screen">اختر مجموعة مكتملة وأدخل الاسم لمعاينة الإفادة.</p>
+            <article id="bb-cert-paper" hidden aria-label="إفادة إتمام مجموعة تدريبية من BLACKBOX">
               <header class="bb-cert-sheet-header">
                 <div class="bb-cert-identity">
                   <img class="bb-cert-logo" src="./favicon.svg" alt="">
@@ -78,13 +78,13 @@
               <div class="bb-cert-sheet-content">
                 <div class="bb-cert-emblem" aria-hidden="true">B<span>.</span></div>
                 <p class="bb-cert-english" dir="ltr">TRAINING COMPLETION RECORD</p>
-                <h2>إفادة إتمام مسار تدريبي</h2>
-                <p class="bb-cert-sheet-lead">سجل إكمال مسار عملي داخل مختبر BLACKBOX وفق تأكيد المتدرّب</p>
+                <h2>إفادة إتمام مجموعة تدريبية</h2>
+                <p class="bb-cert-sheet-lead">سجل إكمال مجموعة مسارات داخل مختبر BLACKBOX وفق تأكيد المتدرّب</p>
                 <span class="bb-cert-name-label">اسم المتدرّب</span>
                 <strong id="bb-cert-learner-name"></strong>
                 <div class="bb-cert-facts">
-                  <div><span>المسار التدريبي</span><strong id="bb-cert-track-title"></strong></div>
-                  <div><span>المراحل المؤكَّدة</span><strong id="bb-cert-details"></strong></div>
+                  <div><span>المجموعة التدريبية</span><strong id="bb-cert-track-title"></strong></div>
+                  <div><span>المسارات والمراحل المؤكَّدة</span><strong id="bb-cert-details"></strong></div>
                   <div><span>تاريخ آخر إكمال</span><strong id="bb-cert-date"></strong></div>
                 </div>
               </div>
