@@ -31,5 +31,18 @@ test('certificate page only reads progress, and print retains the unverified lab
   assert(!page.includes('setDoc('));
   assert(html.includes('noindex,nofollow'));
   assert(DRAFT_NOTICE.includes('غير موثّقة'));
-  assert(html.includes('ct-cert-printed-disclaimer'));
+  assert(html.includes('bb-cert-printed-disclaimer'));
+});
+
+test('BLACKBOX certificate keeps its own blue lab brand and accessible PDF layout', () => {
+  const html = readFileSync(new URL('../certificates.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/styles/certificates.css', import.meta.url), 'utf8');
+  assert(html.includes('src="./favicon.svg"'));
+  assert(html.includes('BLACKBOX <span>LAB</span>'));
+  assert(html.includes('bb-cert-facts'));
+  assert(html.includes('bb-cert-printed-disclaimer'));
+  assert(!html.includes('CYBERTRACE'));
+  assert(css.includes('#3988ff'));
+  assert(css.includes('@media print'));
+  assert(css.includes('print-color-adjust:exact'));
 });

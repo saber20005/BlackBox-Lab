@@ -1,7 +1,9 @@
+/* BLACKBOX certificate identity: midnight blue / electric blue, technical lab ledger.
+   The disclosure remains visible on screen and in printed PDF. */
 .bb-cert-intro{max-width:900px}
 .bb-cert-intro h1{font-size:clamp(1.8rem,4vw,2.65rem);margin:.6rem 0}
 .bb-cert-intro p{line-height:1.8}
-.bb-cert-warning{background:#162f47;color:#dbecfa;padding:15px;border-inline-start:4px solid #79c9f0;border-radius:8px}
+.bb-cert-warning{background:#162f47;color:#dbecfa;padding:15px;border-inline-start:4px solid #3988ff;border-radius:8px}
 .bb-cert-source{border:1px solid var(--line);border-radius:12px;padding:16px;margin:25px 0;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .bb-cert-source p{flex-basis:100%;margin:0}
 .bb-cert-layout{display:grid;grid-template-columns:minmax(255px,340px) minmax(0,1fr);gap:22px;align-items:start}
@@ -16,24 +18,85 @@
 .bb-cert-future{padding-top:12px;border-top:1px solid #405975;color:#c9dce8}
 .bb-cert-preview{min-width:0}
 .bb-cert-empty{border:1px dashed #526c84;border-radius:14px;color:#c7d9e6;text-align:center;padding:55px 15px}
-#bb-cert-paper{position:relative;overflow:hidden;border:8px double #254d73;padding:clamp(22px,4vw,52px);min-height:405px;box-sizing:border-box;background:white;color:#152e4c;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;text-align:center;box-shadow:0 16px 40px #0003}
+
+/* Technical lab sheet uses squared corners, electric-blue rules and network-grid watermark. */
+#bb-cert-paper{
+  position:relative;box-sizing:border-box;overflow:hidden;
+  border:2px solid #2c6acc;outline:1px solid #a0bfe9;outline-offset:-10px;
+  min-height:450px;background:linear-gradient(90deg,#ebf4ff80 1px,transparent 1px),linear-gradient(#ebf4ff80 1px,transparent 1px),#fff;
+  background-size:35px 35px,35px 35px,auto;color:#13253e;
+  padding:0;display:flex;flex-direction:column;gap:0;box-shadow:0 17px 45px #0005;
+}
 #bb-cert-paper[hidden]{display:none}
-#bb-cert-paper h2,#bb-cert-paper h3,#bb-cert-paper p{margin:0}
-#bb-cert-paper p{line-height:1.65}
-#bb-cert-paper h2{font-size:clamp(1.5rem,3vw,2.25rem)}
-#bb-cert-paper h3{font-size:clamp(1.3rem,2.8vw,2rem);color:#254b70}
-#bb-cert-paper .bb-cert-brand{font-weight:900;color:#254b70;font-size:1.25rem;letter-spacing:.15em}
-#bb-cert-paper .bb-cert-english{font-size:.8rem;color:#647994;letter-spacing:.1em}
-.bb-cert-watermark{position:absolute;left:14px;top:5px;color:#254b701a;font-size:4rem;font-weight:900}
-#bb-cert-learner-name{font-size:clamp(1.4rem,3vw,2.1rem);max-width:100%;overflow-wrap:anywhere;unicode-bidi:plaintext}
-#bb-cert-details,#bb-cert-date{font-size:.85rem;color:#4a6177}
-#bb-cert-paper .ct-cert-printed-disclaimer{background:#fff1f1;color:#772c2c;border:1px solid #ba8888;border-radius:5px;padding:12px;font-size:.82rem;line-height:1.7;margin-top:15px}
+.bb-cert-sheet-header{
+  position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:#090f20;color:#ecf4ff;padding:19px 30px;border-bottom:5px solid #3988ff;
+}
+.bb-cert-identity{display:flex;align-items:center;gap:13px;min-width:0;direction:ltr}
+.bb-cert-logo{width:52px;height:52px;flex:none;border:1px solid #568ff0;border-radius:12px}
+.bb-cert-identity strong{display:block;letter-spacing:.12em;font-size:clamp(17px,2vw,22px);font-weight:900;color:#f1f6ff}
+.bb-cert-identity strong span{color:#3988ff}
+.bb-cert-identity small{display:block;font:10px/1.5 ui-monospace,monospace;color:#acc5ee;letter-spacing:.08em}
+.bb-cert-sheet-series{font:11px/1.5 ui-monospace,monospace;border:1px solid #4b70ac;padding:8px 10px;white-space:nowrap;color:#bad6ff}
+.bb-cert-sheet-content{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  flex:1;text-align:center;padding:26px clamp(20px,4vw,48px) 17px;
+}
+.bb-cert-emblem{
+  width:73px;height:73px;display:flex;align-items:center;justify-content:center;
+  color:#3988ff;background:#091a31;border:3px solid #3988ff;
+  box-shadow:0 0 0 5px white,0 0 0 6px #3988ff;
+  font:900 35px/1 ui-monospace,monospace;border-radius:11px;direction:ltr
+}
+.bb-cert-emblem span{color:#cfe4ff}
+#bb-cert-paper .bb-cert-english{font:600 10px/1.5 ui-monospace,monospace;color:#2866b7;letter-spacing:.16em;margin:10px 0 0}
+#bb-cert-paper h2{margin:0;color:#0a2245;font-size:clamp(23px,3vw,34px);line-height:1.5}
+#bb-cert-paper .bb-cert-sheet-lead{margin:0;line-height:1.75;font-size:clamp(12px,1.7vw,15px);color:#49627c}
+.bb-cert-name-label{color:#4973a7;font-size:12px}
+#bb-cert-learner-name{font-size:clamp(25px,3.7vw,41px);line-height:1.5;color:#0c326a;max-width:100%;overflow-wrap:anywhere;unicode-bidi:plaintext}
+.bb-cert-facts{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;
+  background:#ecf4ff;border-block:1px solid #8eb5ea;margin-top:7px
+}
+.bb-cert-facts>div{min-width:0;padding:12px 9px;display:grid;align-content:center;gap:6px}
+.bb-cert-facts>div+div{border-inline-start:1px solid #9cbae4}
+.bb-cert-facts span{font-size:11px;color:#4e6e96}
+.bb-cert-facts strong{font-size:clamp(12px,1.8vw,17px);color:#103766;line-height:1.55;overflow-wrap:anywhere}
+#bb-cert-paper .bb-cert-printed-disclaimer{
+  position:relative;z-index:1;margin:0 27px 22px;padding:12px 16px;
+  border:1px solid #759bcb;border-inline-start:5px solid #3988ff;
+  background:#f0f6ff;color:#1b436d;text-align:center;line-height:1.6
+}
+.bb-cert-printed-disclaimer strong{font-size:13px}
+.bb-cert-printed-disclaimer p{margin:4px 0!important;font-size:11px;color:#365875}
+.bb-cert-printed-disclaimer small{font-size:10px;color:#466487}
+
 @media(max-width:850px){.bb-cert-layout{grid-template-columns:1fr}.bb-cert-controls{padding:18px}}
+@media(max-width:460px){
+  .bb-cert-sheet-header{padding:13px 16px}
+  .bb-cert-sheet-series{display:none}
+  .bb-cert-identity small{font-size:8px}
+  .bb-cert-logo{width:40px;height:40px}
+  .bb-cert-sheet-content{padding:22px 16px 12px}
+  .bb-cert-emblem{width:56px;height:56px;font-size:29px}
+  .bb-cert-facts{grid-template-columns:1fr}
+  .bb-cert-facts>div{padding:9px}
+  .bb-cert-facts>div+div{border-inline-start:0;border-top:1px solid #9cbae4}
+  #bb-cert-paper .bb-cert-printed-disclaimer{margin:0 15px 15px;padding:9px}
+}
 @page{size:A4 landscape;margin:12mm}
 @media print{
-  :root,html,body{color-scheme:light!important;background:white!important;color:#152e4c!important}
+  :root,html,body{color-scheme:light!important;background:white!important;color:#13253e!important}
   .bb-cert-screen,.bb-cert-controls,.bb-cert-intro,.bb-cert-source,.bb-cert-preview>h2,footer{display:none!important}
   body.bb-cert-page,.bb-cert-page .app,.bb-cert-page .main,.bb-cert-page .standalone-content,.bb-cert-layout,.bb-cert-preview{margin:0!important;padding:0!important;max-width:none!important;min-height:0!important;width:100%!important;display:block!important;background:white!important}
-  #bb-cert-paper{min-height:170mm;box-shadow:none!important;border-width:5px!important;background:white!important;color:#152e4c!important;break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact}
-  #bb-cert-paper .ct-cert-printed-disclaimer{background:#fff1f1!important;color:#772c2c!important;border-color:#ba8888!important}
+  #bb-cert-paper{
+    min-height:170mm!important;box-shadow:none!important;
+    border:2px solid #2c6acc!important;background:white!important;color:#13253e!important;
+    break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact
+  }
+  .bb-cert-sheet-header{background:#090f20!important;color:#ecf4ff!important}
+  .bb-cert-facts{grid-template-columns:repeat(3,minmax(0,1fr))!important;background:#ecf4ff!important}
+  .bb-cert-facts>div+div{border-top:0!important;border-inline-start:1px solid #9cbae4!important}
+  .bb-cert-sheet-series{display:block!important}
+  #bb-cert-paper .bb-cert-printed-disclaimer{background:#f0f6ff!important;border-color:#759bcb!important;color:#1b436d!important}
 }
