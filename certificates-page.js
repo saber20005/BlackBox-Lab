@@ -37,8 +37,8 @@ function renderPreview() {
   }
   nameText.textContent = name.value.trim();
   titleText.textContent = chosen.title;
-  details.textContent = 'المراحل التي أُكدت يدويًا: ' + chosen.stageCount + ' / ' + chosen.stageCount;
-  date.textContent = 'آخر تأكيد إكمال مسجّل: ' + fmt(chosen.completedAt);
+  details.textContent = chosen.stageCount + ' / ' + chosen.stageCount;
+  date.textContent = fmt(chosen.completedAt);
 }
 
 function render(next) {
