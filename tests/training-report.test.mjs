@@ -26,7 +26,8 @@ test('standalone Arabic report has a viewport, printable format, correct section
  assert.match(html,/دليل 0/);
  assert.match(html,/white-space:pre-wrap/);
  assert.match(html,/unicode-bidi:plaintext/);
- assert.match(html,/9.*نوفمبر|نوفمبر.*2026/);
+ const expectedDate = new Intl.DateTimeFormat('ar-JO',{dateStyle:'medium',timeStyle:'short'}).format(new Date('2026-11-09T08:00:00.000Z'));
+ assert(html.includes(expectedDate),'date must be formatted using the browser locale rather than raw ISO');
  assert.equal((html.match(/<details class="stage"/g)||[]).length,all);
  assert.equal((html.match(/<section class="track"/g)||[]).length,tracks.length);
  assert.match(html,/لم تُسجّل ملاحظات/);
@@ -53,6 +54,7 @@ test('the original saved state is never modified by report construction',()=>{
 test('report does not misrepresent completion or manual isolation as externally verified',()=>{
  const state=createInitialState();
  state.devices.network='isolated';
+ state.completed['recon-0']='2026-11-09T08:00:00.000Z';
  const html=createTrainingReportHtml(state,tracks);
  assert.match(html,/مكتملة حسب السجل/);
  assert.match(html,/لم تُسجّل نتائج/);
