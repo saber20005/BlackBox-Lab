@@ -176,6 +176,23 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Final group examination is server-issued and server-scored.
+    // Private rubrics, sessions, quota, review evidence and audit are never
+    // directly writable by the learner. Manual training notes are untrusted.
+    match /defenseFinalCatalog/{groupId} { allow read, write: if false; }
+    match /defenseFinalRubrics/{groupId} { allow read, write: if false; }
+    match /defenseFinalSessions/{sessionId} { allow read, write: if false; }
+    match /defenseFinalQuota/{uid} { allow read, write: if false; }
+    match /defenseFinalReviewAudit/{auditId} { allow read, write: if false; }
+    match /blackboxUsers/{uid}/defenseFinalResults/{groupId} {
+      allow get: if isOwner(uid);
+      allow list, create, update, delete: if false;
+    }
+    match /blackboxUsers/{uid}/defenseFinalEvidence/{groupId} {
+      allow get: if isOwner(uid);
+      allow list, create, update, delete: if false;
+    }
+
     // Strong dual-account identity linkage: never let clients forge, enumerate
     // or replace link/claim documents. Authenticated read is owner-scoped.
     match /blackboxUsers/{uid}/identityLinks/{provider} {
