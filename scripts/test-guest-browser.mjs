@@ -523,7 +523,8 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     try {
       await navigate(page, '/defense-final.html');
-      await page.locator('#exam-status').getByText(/غير مفعّل/).waitFor({ state: 'visible' });
+      await page.locator('#exam-status').waitFor({ state: 'visible' });
+      assert.match(await page.locator('#exam-status').innerText(), /غير مفعّل/);
       assert.equal(await page.locator('#exam-start').isDisabled(), true);
       assert.equal(await page.locator('#portfolio-form').isVisible(), false);
       assert.equal(await page.locator('#reviewer-console').isVisible(), false);
