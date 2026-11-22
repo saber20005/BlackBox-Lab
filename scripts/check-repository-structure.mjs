@@ -38,6 +38,9 @@ const allowedRootJs = new Set([
   // Reviewed 2026-11-22: stand-alone guided certificate-training pilot and
   // its fail-closed App Check/Functions assessment client (not issuance).
   "evidence-labs.js","lab-assessment-client.js",
+  // Reviewed group capstone: no learner-controlled credential authority;
+  // private answers are available ONLY to trusted Firebase Admin SDK.
+  "defense-final.js",
   "mission-mode.js","mission-page.js","onboarding.js","portfolio-page.js","portfolio.js",
   "progress-session.js","progress.js",
   "recaptcha-independent-diagnostic.js","routes.js",
@@ -49,7 +52,7 @@ const allowedRootHtml = new Set([
   "mission-mode.html","portfolio.html","pro.html","recaptcha-independent-diagnostic.html",
   "training-guide.html","ux-test.html","vm-report.html",
   // Reviewed 2026-11-22: public read-only training route, no trusted award API.
-  "evidence-labs.html",
+  "evidence-labs.html","defense-final.html",
 ]);
 for (const name of readdirSync(root)) {
   if (name.endsWith(".js") && !allowedRootJs.has(name))

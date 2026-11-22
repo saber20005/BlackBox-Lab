@@ -11,6 +11,9 @@ import { getAuth } from 'firebase-admin/auth';
 import { getApps, initializeApp as initializeSecondaryApp } from 'firebase-admin/app';
 import { linkCyberTraceIdentity, currentCyberTraceLink, unlinkCyberTraceIdentity } from './cybertrace-identity-service.js';
 import { requireLabStageKey, beginLabStageAssessment, submitLabStageAssessment } from './lab-stage-assessment.js';
+import { beginDefenseFinalExam, submitDefenseFinalExam, submitDefensePortfolio,
+  getMyDefenseReadiness, readDefensePortfolioForReview, reviewDefensePortfolio,
+} from './defense-final-service.js';
 import { startVerifiedSocSession, submitVerifiedSocSession } from './soc-verified-service.js';
 import { requireVerifiedSocId } from './soc-verified-core.js';
 
@@ -87,6 +90,79 @@ export const submitVerifiedLabStage = onCall({
     uid,stageKey,sessionId:request.data.sessionId,responses:request.data.responses,
   });}
   catch{throw new HttpsError('failed-precondition','Session expired, already used, or invalid.');}
+});
+
+// Independent BLACKBOX defensive-analysis group final. It is a KNOWLEDGE
+// assessment with private administrator-provisioned questions and rubric,
+// not a trustworthy attestation of VM execution or an issuing endpoint.
+const strictRequest=(data,keys)=>data&&typeof data==='object'&&!Array.isArray(data)&&
+  Object.keys(data).length===keys.length&&keys.every(key=>Object.hasOwn(data,key));
+const reviewerUid=request=>{
+  const uid=authUid(request);
+  if(request.auth?.token?.certificateReviewer!==true)
+    throw new HttpsError('permission-denied','Certificate evidence reviewer claim required.');
+  return uid;
+};
+export const beginDefenseFinalCapstone = onCall({
+  region:REGION,enforceAppCheck:true,maxInstances:5,
+},async request=>{
+  const uid=authUid(request);
+  if(request.data&&Object.keys(request.data).length)
+    throw new HttpsError('invalid-argument','No client examination selector accepted.');
+  try{return await beginDefenseFinalExam(db,FieldValue,uid);}
+  catch(error){
+    if(error?.message==='exam-quota-exceeded')
+      throw new HttpsError('resource-exhausted','Exam attempt limit reached.');
+    throw new HttpsError('failed-precondition','Reviewed final examination not available.');
+  }
+});
+export const submitDefenseFinalCapstone = onCall({
+  region:REGION,enforceAppCheck:true,maxInstances:5,
+},async request=>{
+  const uid=authUid(request);
+  if(!strictRequest(request.data,['sessionId','responses']))
+    throw new HttpsError('invalid-argument','Only sessionId and responses accepted.');
+  try{return await submitDefenseFinalExam(db,FieldValue,{uid,...request.data});}
+  catch{throw new HttpsError('failed-precondition','Expired, used or invalid final exam submission.');}
+});
+export const submitDefensePracticalPortfolio = onCall({
+  region:REGION,enforceAppCheck:true,maxInstances:5,
+},async request=>{
+  const uid=authUid(request);
+  if(!strictRequest(request.data,['artifacts','consent']))
+    throw new HttpsError('invalid-argument','Structured portfolio and explicit consent required.');
+  try{return await submitDefensePortfolio(db,FieldValue,{uid,...request.data});}
+  catch{throw new HttpsError('failed-precondition','Portfolio cannot be accepted; exam or review requirements are not met.');}
+});
+export const getMyDefenseFinalReadiness = onCall({
+  region:REGION,enforceAppCheck:true,maxInstances:5,
+},async request=>{
+  const uid=authUid(request);
+  if(request.data&&Object.keys(request.data).length)
+    throw new HttpsError('invalid-argument','Unexpected parameters.');
+  try{return await getMyDefenseReadiness(db,uid);}
+  catch{throw new HttpsError('unavailable','Readiness is not available.');}
+});
+// Privileged internal reviewer functions. Never trust a submitted reviewer UID
+// or browser Admin UI state: require trusted Firebase Admin custom claim.
+export const getDefensePortfolioForReview = onCall({
+  region:REGION,enforceAppCheck:true,maxInstances:5,
+},async request=>{
+  const reviewer=reviewerUid(request);
+  if(!strictRequest(request.data,['candidateUid'])||
+    request.data.candidateUid===reviewer)
+    throw new HttpsError('invalid-argument','Candidate identity is invalid.');
+  try{return await readDefensePortfolioForReview(db,request.data.candidateUid);}
+  catch{throw new HttpsError('not-found','No pending review record.');}
+});
+export const reviewDefensePracticalPortfolio = onCall({
+  region:REGION,enforceAppCheck:true,maxInstances:5,
+},async request=>{
+  const reviewer=reviewerUid(request);
+  if(!strictRequest(request.data,['candidateUid','decision','reviewNote']))
+    throw new HttpsError('invalid-argument','Invalid review fields.');
+  try{return await reviewDefensePortfolio(db,FieldValue,{...request.data,reviewerUid:reviewer});}
+  catch{throw new HttpsError('failed-precondition','Review cannot be applied.');}
 });
 
 // Cross-project identity proof: BLACKBOX Auth and App Check authenticate this

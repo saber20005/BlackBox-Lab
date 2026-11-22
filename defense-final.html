@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,follow">
+<meta name="description" content="الامتحان النهائي لمجموعة التحليل الدفاعي والأدلة في BLACKBOX؛ تقييم خادمي مستقل وملف ملاحظات لمراجعة المشرف، وليس إصدار شهادة.">
+<meta name="theme-color" content="#090f20">
+<title>الامتحان النهائي | التحليل الدفاعي والأدلة | BLACKBOX</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./assets/styles/defense-final.css">
+</head>
+<body>
+<a href="#main" class="skip">الانتقال إلى الاختبار</a>
+<header class="bar"><a href="./" class="brand">BLACKBOX <span>LAB</span></a>
+<nav aria-label="التنقل"><a href="./evidence-labs.html">الورش الأربع</a><a href="./certificates.html">مركز الشهادات</a></nav></header>
+<main id="main">
+<section class="hero">
+<span class="eyebrow">FINAL CAPSTONE / DEFENSIVE ANALYSIS</span>
+<h1>الامتحان النهائي — التحليل الدفاعي والأدلة</h1>
+<p>الامتحان مستقل عن ملفات الورش المنشورة: 12 مهمة جديدة موزّعة على أربعة مجالات. يختار الخادم الأسئلة ويصحح إجاباتك دون إظهار مفاتيح الحل.</p>
+<div class="stats" aria-label="معايير التقييم">
+<div><strong>12</strong><span>مهمة في الامتحان</span></div>
+<div><strong>25</strong><span>دقيقة للجلسة</span></div>
+<div><strong>10/12</strong><span>حد إجمالي للنجاح</span></div>
+<div><strong>2/3</strong><span>الحد الأدنى في كل مجال</span></div>
+</div>
+<p class="warning" role="note"><strong>إشعار مهم:</strong> هذه نسخة تجهيز للاختبار النهائي، وليست شهادة صادرة. لا تُفعّل الأسئلة الحقيقية إلا بعد اعتمادها بصورة خاصة على الخادم. اجتياز اختبار المعرفة ورفع بصمات ملفات لا يثبتان وحدهما تنفيذ المختبر عمليًا.</p>
+</section>
+<section class="topics" aria-labelledby="topics-title"><h2 id="topics-title">مجالات الامتحان</h2>
+<div class="topics-grid">
+<article><h3>تحليل السجلات</h3><p>ربط المصادر والجلسات والتوقيت، والتمييز بين الاشتباه والحقيقة.</p></article>
+<article><h3>سلامة الملفات</h3><p>بصمات SHA-256 وفروق الإعدادات والتحقق من اعتماد التغيير.</p></article>
+<article><h3>ترويسات الويب</h3><p>Cookie وCSP وHSTS وسياق HTTPS وحدود الدليل النصي.</p></article>
+<article><h3>البريد المشبوه</h3><p>From وReply-To ونتائج SPF وDKIM وDMARC وقرارات الفرز.</p></article>
+</div><p><a href="./evidence-labs.html">العودة للتدريب على الورش الأربع ←</a></p></section>
+<section class="panel" aria-labelledby="exam-title">
+<h2 id="exam-title">بدء الامتحان المستقل</h2>
+<p>يتطلب تسجيل الدخول إلى BLACKBOX، وApp Check، وكتالوج أسئلة ومفاتيح تصحيح خادمية معتمدة. محاولة واحدة تُستهلك عند تسليم الإجابات، وبحد ثلاث جلسات خلال 24 ساعة.</p>
+<p id="exam-status" role="status" aria-live="polite">التحقق من التهيئة…</p>
+<button id="exam-start" type="button" disabled>بدء امتحان موثّق من الخادم</button>
+<form id="exam-form" hidden aria-label="الامتحان النهائي">
+<p id="exam-deadline"></p><div id="exam-tasks"></div>
+<button id="exam-submit" type="submit" disabled>تسليم الإجابات إلى الخادم</button>
+</form>
+<div id="exam-result" hidden role="status" aria-live="polite"></div>
+<button id="refresh-readiness" type="button" disabled>تحديث حالة الملف لدى الخادم</button>
+<p id="readiness-status" role="status" aria-live="polite"></p>
+</section>
+<section class="panel" id="portfolio" aria-labelledby="portfolio-title">
+<h2 id="portfolio-title">ملف الأدلة العملية للمراجعة</h2>
+<p>بعد نجاح الامتحان، قدّم تقريرًا لكل مجال: بصمة ملف الأدلة المحلي، واستنتاجك، وحدود هذا الاستنتاج. يجري حساب SHA-256 داخل متصفحك دون رفع الملف نفسه إلى الموقع.</p>
+<p class="warning"><strong>لا ترسل أسرارًا أو عناوين خاصة أو بيانات شخصية.</strong> الملخصات تُرسل إلى Firebase للتقييم الإداري. بصمة الملف وكتابة التقرير يمكن تزويرهما؛ لذلك سيظل الملف «بانتظار مراجعة»، ولا يمنح اعتمادًا عمليًا بمجرد التسليم.</p>
+<form id="portfolio-form" hidden aria-label="تسليم ملف الأدلة">
+<div id="portfolio-fields"></div>
+<label class="consent"><input type="checkbox" id="portfolio-consent" required>
+أوافق على إرسال الملخصات والبصمات فقط إلى حسابي على خادم BLACKBOX لمراجعتها، مع علمي أن هذا لا يصدر شهادة.</label>
+<button id="portfolio-submit" type="submit">تسليم الملف للمراجعة</button>
+</form>
+<p id="portfolio-status" role="status" aria-live="polite">لن تظهر حقول التسليم قبل نجاح الامتحان النهائي الخادمي.</p>
+</section>
+<section class="panel reviewer" id="reviewer-console" hidden aria-labelledby="reviewer-title">
+<h2 id="reviewer-title">مركز مراجعة الأدلة — مخوّل فقط</h2>
+<p>يتطلب هذا الجزء مطالبة Firebase Admin مخصصة للمراجع. لن تستطيع واجهة المستخدم اعتماد شهادة أو توثيق تنفيذ Kali.</p>
+<form id="reviewer-lookup">
+<label>معرّف حساب المتدرّب الذي طلب المراجعة <input id="candidate-uid" type="text" maxlength="128" autocomplete="off" required></label>
+<button type="submit">فتح سجل الأدلة للمراجعة</button>
+</form>
+<pre id="reviewer-record" dir="rtl"></pre>
+<form id="reviewer-decision" hidden>
+<label>قرار المراجعة
+<select id="review-decision"><option value="needs-revision">يلزم تعديل التقرير</option><option value="reviewed-unverified">تمت مراجعة التقرير — التنفيذ غير موثّق</option></select>
+</label>
+<label>تعليل القرار (30–800 حرف)
+<textarea id="review-note" rows="5" minlength="30" maxlength="800" required></textarea></label>
+<button type="submit">حفظ قرار المراجعة في السجل</button>
+</form>
+<p id="reviewer-status" role="status" aria-live="polite"></p>
+</section>
+<section class="criteria"><h2>متى نصدر الشهادة الموثّقة؟</h2>
+<p>بعد وجود نتيجة خادمية صحيحة، وتحقق مستقل من تنفيذ التطبيق العملي، واعتماد سياسة مجموعة «التحليل الدفاعي والأدلة»، واختبار التحقق والإلغاء على Firebase. حتى ذلك الحين تبقى الشهادات الموثّقة **غير مفعّلة**.</p></section>
+</main>
+<footer><span>BLACKBOX · تعليم عملي مصرح به وبيانات تدريب اصطناعية</span><a href="./">الرئيسية</a></footer>
+<script type="module" src="./defense-final.js"></script>
+</body></html>

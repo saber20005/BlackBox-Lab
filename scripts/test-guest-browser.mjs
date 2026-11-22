@@ -508,6 +508,35 @@ try {
     report.staticGuideWithoutJavaScript = true;
     console.log('PASS readable training guide at 320px with JavaScript disabled');
   } finally { await staticGuideContext.close(); }
+  // Direct final-capstone route: no unexpected external calls or awards in
+  // the disabled production configuration, including narrow 320px phones.
+  for (const viewport of [{ width: 320, height: 740 }, { width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
+    const ctx = await browser.newContext({ viewport });
+    const blocked = [], errors = [];
+    await ctx.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.origin === origin) return route.continue();
+      blocked.push(url.hostname); return route.abort('blockedbyclient');
+    });
+    const page = await ctx.newPage();
+    activePage = page;
+    page.on('pageerror', error => errors.push(error.message));
+    try {
+      await navigate(page, '/defense-final.html');
+      await page.locator('#exam-status').waitFor({ state: 'visible' });
+      assert.match(await page.locator('#exam-status').innerText(), /غير مفعّل/);
+      assert.equal(await page.locator('#exam-start').isDisabled(), true);
+      assert.equal(await page.locator('#portfolio-form').isVisible(), false);
+      assert.equal(await page.locator('#reviewer-console').isVisible(), false);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false,
+        'the new final-capstone page fits narrow phones');
+      assert.deepEqual(errors, [], 'no JavaScript crashes in disabled final exam route');
+      assert.deepEqual(blocked, [], 'no external grading calls when disabled');
+    } finally { await ctx.close(); }
+  }
+  report.finalCapstonePhoneSafety = true;
+  console.log('PASS final capstone disabled safely at 320px, 390px and desktop without network calls');
+
   const lifecycle = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-training-plan-lifecycle.mjs')], {
     env: { ...process.env, BLACKBOX_TEST_URL: origin + '/?view=plan' }, timeout: 60000,
   });
