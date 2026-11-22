@@ -7,7 +7,7 @@ import { accountConfig } from './account-config.js';
 import { gradingAvailable, startVerifiedGrading, submitVerifiedAnswer } from './verified-grading-client.js';
 import { linkedSkillsPage } from './linked-skills-ui.js';
 import { trainingPlanPage, trainingPlanSummary } from './training-plan-ui.js';
-import {suiteJourneysPage} from './suite-learning-pathways-ui.js';
+import {suiteJourneysPage} from './assets/modules/training/suite-learning-pathways-ui.js';
 import { getRelatedCaseIds } from './training-plan.js';
 import { CASE_META } from './cybertrace-catalog.js';
 import { appendDocumentationTemplate, hasMeaningfulDocumentation } from './assets/modules/training/documentation-templates.js';
