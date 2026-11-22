@@ -66,22 +66,27 @@ export async function submitDefenseFinalExam(db,FieldValue,{uid,sessionId,respon
       typeof prior.passed!=='boolean'||prior.groupId!==DEFENSE_GROUP||
       prior.version!==FINAL_EXAM_VERSION||typeof prior.catalogDigest!=='string'))
       throw Error('invalid-final-history');
-    const keep=prior&&prior.passed===true&&prior.catalogDigest===session.catalogDigest;
-    const improved=!prior||(!keep&&score.score>prior.bestScore);
+    // A changed catalog invalidates the old score and pass, even when its
+    // version was accidentally not bumped. A stale pass must never survive.
+    const sameCatalog=prior?.catalogDigest===session.catalogDigest;
+    const priorScore=sameCatalog?prior.bestScore:-1;
+    const keepPass=Boolean(sameCatalog&&prior.passed===true);
+    const finalScore=Math.max(score.score,priorScore);
+    const finalPassed=score.passed||keepPass;
     tx.update(sessionRef(db,sessionId),{status:'consumed',consumedAt:FieldValue.serverTimestamp()});
-    if(!prior||improved||(score.passed&&!keep)){
+    if(!sameCatalog||score.score>priorScore||(finalPassed&&!keepPass)){
       tx.set(resultRef(db,uid),{
         schemaVersion:1,source:'server-final-knowledge-exam',uid,groupId:DEFENSE_GROUP,
         version:FINAL_EXAM_VERSION,catalogDigest:session.catalogDigest,
-        bestScore:Math.max(score.score,prior?.bestScore??0),
-        passed:score.passed||Boolean(keep),sessionId,
-        firstVerifiedAt:prior?.firstVerifiedAt||FieldValue.serverTimestamp(),
+        bestScore:finalScore,
+        passed:finalPassed,sessionId,
+        firstVerifiedAt:sameCatalog?prior.firstVerifiedAt:FieldValue.serverTimestamp(),
         updatedAt:FieldValue.serverTimestamp(),credentialEligible:false,
       });
     }
     return {groupId:DEFENSE_GROUP,verifiedByServer:true,
       score:score.score,maxScore:100,passed:score.passed,
-      bestScore:Math.max(score.score,prior?.bestScore??0),
+      bestScore:finalScore,
       credentialEligible:false,practicalEvidenceVerified:false};
   });
 }
@@ -90,10 +95,17 @@ export async function submitDefensePortfolio(db,FieldValue,{uid,artifacts,consen
   if(!validDefenseUid(uid))throw Error('unauthenticated');
   const normalized=validateDefensePortfolio({artifacts,consent});
   return db.runTransaction(async tx=>{
-    const [exam,old]=await Promise.all([tx.get(resultRef(db,uid)),tx.get(evidenceRef(db,uid))]);
+    const [exam,old,catalogSnap,rubricSnap]=await Promise.all([
+      tx.get(resultRef(db,uid)),tx.get(evidenceRef(db,uid)),
+      tx.get(catalogRef(db)),tx.get(rubricRef(db)),
+    ]);
     const verified=exam.exists?exam.data():null;
+    if(!catalogSnap.exists||!rubricSnap.exists)throw Error('final-exam-required');
+    const catalog=validateFinalCatalog(catalogSnap.data());
+    validateFinalRubric(rubricSnap.data(),catalog);
     if(!verified||verified.source!=='server-final-knowledge-exam'||verified.uid!==uid||
        verified.version!==FINAL_EXAM_VERSION||verified.passed!==true||
+       verified.catalogDigest!==finalCatalogDigest(catalog)||
        verified.credentialEligible!==false)throw Error('final-exam-required');
     const existing=old.exists?old.data():null;
     if(existing&&(!['needs-revision'].includes(existing.reviewStatus)||
@@ -115,12 +127,22 @@ export async function submitDefensePortfolio(db,FieldValue,{uid,artifacts,consen
 
 export async function getMyDefenseReadiness(db,uid){
   if(!validDefenseUid(uid))throw Error('unauthenticated');
-  const [exam,evidence]=await Promise.all([
+  const [exam,evidence,catalogSnap,rubricSnap]=await Promise.all([
     resultRef(db,uid).get(),evidenceRef(db,uid).get(),
+    catalogRef(db).get(),rubricRef(db).get(),
   ]);
   const e=exam.exists?exam.data():null;
   const p=evidence.exists?evidence.data():null;
-  const hasVerifiedFinal=Boolean(e&&e.uid===uid&&e.source==='server-final-knowledge-exam'&&e.version===FINAL_EXAM_VERSION&&e.passed===true);
+  let catalogCurrent=false;
+  try{
+    if(catalogSnap.exists&&rubricSnap.exists){
+      const catalog=validateFinalCatalog(catalogSnap.data());
+      validateFinalRubric(rubricSnap.data(),catalog);
+      catalogCurrent=e?.catalogDigest===finalCatalogDigest(catalog);
+    }
+  }catch{/* A disabled or changed rubric invalidates the pass display. */}
+  const hasVerifiedFinal=Boolean(catalogCurrent&&e&&e.uid===uid&&
+    e.source==='server-final-knowledge-exam'&&e.version===FINAL_EXAM_VERSION&&e.passed===true);
   return {groupId:DEFENSE_GROUP,knowledgeExamPassed:hasVerifiedFinal,
     knowledgeBestScore:Number.isSafeInteger(e?.bestScore)?e.bestScore:null,
     evidenceStatus:p&&p.uid===uid?p.reviewStatus:'not-submitted',
