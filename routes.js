@@ -3,7 +3,7 @@ import { tracks } from './data.js';
 export const SITE_ORIGIN = 'https://blackboxlab.dev';
 const HOME = `${SITE_ORIGIN}/`;
 const totalStages = tracks.reduce((sum, track) => sum + track.stages.length, 0);
-const VIEWS = new Set(['home', 'tracks', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'troubleshoot']);
+const VIEWS = new Set(['home', 'tracks', 'journeys', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'troubleshoot']);
 const CAMPAIGN_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 const trackById = id => tracks.find(track => track.id === id);
 const defaultTrack = id => trackById(id)?.id || tracks[0].id;
@@ -93,7 +93,7 @@ export function routeMetadata(route) {
     title: 'BLACKBOX | مساحة التدريب السيبراني',
     description: `مساحة تدريب عربية تضم ${tracks.length} مسارات و${totalStages} مرحلة للمختبر المحلي، مع حفظ الملاحظات والتقدم والنسخ الاحتياطية والتقارير.`,
     canonical: canonicalURL(route),
-    shouldIndex: !['exercise', 'progress', 'account', 'plan', 'skills', 'journal', 'backups'].includes(route?.view),
+    shouldIndex: !['exercise', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'journeys'].includes(route?.view),
   };
   if (route?.view === 'exercise' && track && stage) {
     return { ...base, title: `${stage.name} | ${track.name} | BLACKBOX`, description: stage.goal };
@@ -106,6 +106,7 @@ export function routeMetadata(route) {
   if (route?.view === 'troubleshoot') return { ...base, title: 'حلول أعطال المختبر | BLACKBOX', description: 'إرشادات عملية لحل أعطال المختبر المحلي والشبكة وأدوات التدريب، مع البحث في الحلول.' };
   if (route?.view === 'progress') return { ...base, title: 'تقدّمي | BLACKBOX', description: 'تقدّم التدريب، وسجل الملاحظات، والمهام وملف الأعمال في مكان واحد.' };
   if (route?.view === 'account') return { ...base, title: 'حسابي | BLACKBOX', description: 'إدارة الحساب وحالة الحفظ والنسخ الاحتياطية ومساعدة المختبر.' };
+  if (route?.view === 'journeys') return { ...base, title:'المسارات المشتركة | BLACKBOX', shouldIndex:false };
   if (route?.view === 'journal') return { ...base, title: 'سجل المختبر | BLACKBOX' };
   if (route?.view === 'plan') return { ...base, title: 'خطة جلستك | BLACKBOX', description: 'اقتراحات عملية لجلستك التالية حسب تقدّمك والوقت المتاح والمهارة التي تريد تدريبها.' };
   if (route?.view === 'skills') return { ...base, title: 'المهارات المترابطة | BLACKBOX', description: 'نتائج تحقيقات CyberTrace المرتبطة بحسابك، ونقاط التعلّم حسب المهارة.' };
@@ -115,6 +116,7 @@ export function routeMetadata(route) {
 
 // Secondary pages retain their own URLs while sharing four stable navigation groups.
 export function primaryView(view) {
+  if (view === 'journeys') return 'journeys';
   if (['tracks', 'exercise'].includes(view)) return 'tracks';
   if (['progress', 'plan', 'skills', 'journal'].includes(view)) return 'progress';
   if (['account', 'backups', 'troubleshoot'].includes(view)) return 'account';

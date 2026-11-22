@@ -7,6 +7,7 @@ import { accountConfig } from './account-config.js';
 import { gradingAvailable, startVerifiedGrading, submitVerifiedAnswer } from './verified-grading-client.js';
 import { linkedSkillsPage } from './linked-skills-ui.js';
 import { trainingPlanPage, trainingPlanSummary } from './training-plan-ui.js';
+import {suiteJourneysPage} from './suite-learning-pathways-ui.js';
 import { getRelatedCaseIds } from './training-plan.js';
 import { CASE_META } from './cybertrace-catalog.js';
 import { appendDocumentationTemplate, hasMeaningfulDocumentation } from './assets/modules/training/documentation-templates.js';
@@ -54,7 +55,7 @@ let importRequest = 0;
 let importMessage = '';
 let importError = false;
 let routeNotice = '';
-const titles = { home: 'تدريبي', tracks: 'المسارات', progress: 'تقدّمي', account: 'حسابي', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
+const titles = { home: 'تدريبي', tracks: 'المسارات', journeys: 'المسارات المشتركة', progress: 'تقدّمي', account: 'حسابي', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
 const content = document.getElementById('content');
 const stageKey = (trackId, index) => `${trackId}-${index}`;
 const trackById = id => tracks.find(track => track.id === id);
@@ -384,7 +385,7 @@ function render(focus = false) {
   const count = completedCount();
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
-  const pages = { home, progress: progressPage, account: accountPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
+  const pages = { journeys:()=>suiteJourneysPage(state,tracks), home, progress: progressPage, account: accountPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
   content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${sectionNavigation()}${pages[currentView]()}`;
   renderedContentScope = nextScope;
   // A same-owner account refresh must not close a guide while it is being used.

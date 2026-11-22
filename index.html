@@ -28,6 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link id="bb-fonts" rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="./assets/styles/styles.css">
+  <link rel="stylesheet" href="./assets/styles/suite-learning-pathways.css">
   <link rel="stylesheet" href="./assets/styles/workspace-shell.css">
   <link rel="stylesheet" href="./assets/styles/quick-dock.css">
   <link rel="stylesheet" href="./assets/styles/loading.css">
@@ -93,6 +94,7 @@
         <nav class="nav" id="nav" aria-label="أقسام التدريب الأساسية">
           <button type="button" data-view="home"><span class="ic" aria-hidden="true">◈</span><span>تدريبي</span></button>
           <button type="button" data-view="tracks"><span class="ic" aria-hidden="true">▤</span><span>المسارات</span></button>
+          <button type="button" data-view="journeys"><span class="ic" aria-hidden="true">⇄</span><span>المسارات المشتركة</span></button>
           <button type="button" data-view="progress"><span class="ic" aria-hidden="true">↗</span><span>تقدّمي</span></button>
           <button type="button" data-view="account"><span class="ic" aria-hidden="true">○</span><span>حسابي</span></button>
           <a class="bb-pro-sidebar" href="./pro.html" aria-label="خطط اشتراك Suite Pro — لم يبدأ البيع"><span class="ic" aria-hidden="true">✧</span><span>الاشتراك Pro</span><small>قريبًا</small></a>
@@ -106,7 +108,7 @@
     <main class="main" id="main-content" tabindex="-1">
       <header class="topbar">
         <div class="crumb"><span class="mono">BLACKBOX</span><span aria-hidden="true"> / </span><b id="crumb">تدريبي</b></div>
-        <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><a class="bb-pro-cta" href="./pro.html" aria-label="الاشتراك Suite Pro — قريبًا ولم يبدأ البيع">✧ الاشتراك Pro</a><details class="workspace-tools" id="workspace-tools"><summary>أدوات ومساعدة</summary><div class="workspace-tools-menu"><button type="button" class="secondary compact account-trigger" id="accountButton">سجّل لحفظ تقدّمك</button><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة احتياطية</button><a href="./?view=backups">النسخ والتقارير</a><a href="./training-guide.html">دليل التدريب</a><a href="./labs.html">دليل المختبرات المحلية</a><a href="./pro.html">الاشتراك Suite Pro — قريبًا</a><a href="./?view=troubleshoot">حلول الأعطال</a><button type="button" id="bb-whats-new-open">تعرّف على الميزات الجديدة</button></div></details></div>
+        <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><a class="bb-pro-cta" href="./pro.html" aria-label="الاشتراك Suite Pro — قريبًا ولم يبدأ البيع">✧ الاشتراك Pro</a><details class="workspace-tools" id="workspace-tools"><summary>أدوات ومساعدة</summary><div class="workspace-tools-menu"><button type="button" class="secondary compact account-trigger" id="accountButton">سجّل لحفظ تقدّمك</button><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة احتياطية</button><a href="./?view=backups">النسخ والتقارير</a><a href="./?view=journeys">المسارات المشتركة</a><a href="./training-guide.html">دليل التدريب</a><a href="./labs.html">دليل المختبرات المحلية</a><a href="./pro.html">الاشتراك Suite Pro — قريبًا</a><a href="./?view=troubleshoot">حلول الأعطال</a><button type="button" id="bb-whats-new-open">تعرّف على الميزات الجديدة</button></div></details></div>
       </header>
       <div id="storageNotice" class="storage-notice hidden" role="status"></div>
       <div id="accountSyncNotice" class="account-sync-notice hidden" role="status"><span id="accountSyncNoticeText"></span><button type="button" class="link-btn" id="reviewAccountSync">مراجعة الحساب</button></div>
