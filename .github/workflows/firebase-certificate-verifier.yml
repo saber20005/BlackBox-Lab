@@ -1,0 +1,42 @@
+name: Manual certificate verifier Firebase release
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type DEPLOY_VERIFIER_ONLY to deploy only the public read-only verification function'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-verifier:
+    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'DEPLOY_VERIFIER_ONLY'
+    runs-on: ubuntu-latest
+    environment: firebase-certificate-verifier
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run security regression tests before any cloud changes
+        run: node --test functions/tests/*.test.mjs
+      # Credentials come from a reviewed GitHub Environment using Google
+      # Workload Identity Federation, never from a service-account JSON file.
+      - name: Authenticate with reviewed workload identity
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      - name: Install dependencies without changing repository files
+        run: |
+          npm --prefix functions install --no-save --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund firebase-tools@latest
+      - name: Deploy ONLY read-only verifier, not issuance functions
+        run: npx firebase deploy --only functions:verifyIssuedCertificate --project black-box-lab --non-interactive
+      - name: Confirm healthy JSON 404 from live Cloud Function
+        run: node scripts/probe-certificate-function.mjs
