@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CERTIFICATE_MANIFESTS, requireCertificateGroup } from '../certificate-manifests.js';
+import { cybertraceClaimId } from '../cybertrace-identity-service.js';
 import { publicCertificateView } from '../certificate-registry.js';
 import {
   issueVerifiedGroupCertificate, revokeIssuedGroupCertificate,
@@ -21,7 +22,11 @@ const receipt=(caseId,overrides={})=>({
   schemaVersion:1,source:'server-grading',caseId,bestScore:70,
   rubricVersion:1,firstVerifiedAt:DATE,updatedAt:DATE,...overrides,
 });
+const linked=(uid)=>({schemaVersion:1,provider:'cybertrace-48ab0',status:'linked',
+  blackboxUid:uid,cybertraceUid:'cyber-'+uid,linkedAt:DATE});
 const dataset=(uid='alice')=>({
+  ['blackboxUsers/'+uid+'/identityLinks/cybertrace']:linked(uid),
+  ['cybertraceIdentityClaims/'+cybertraceClaimId('cyber-'+uid)]:linked(uid),
   ['certificatePolicies/'+key]:policy,
   ...Object.fromEntries(group.requiredIds.map(id=>[receiptPath(uid,id),receipt(id)])),
 });
@@ -119,7 +124,7 @@ test('missing receipt, legacy receipt, low score, disabled policy and other user
   const db=new MemoryDB(dataset('alice'));
   await assert.rejects(()=>issueVerifiedGroupCertificate(db,FieldValue,{
     uid:'bob',issuer:'cybertrace',groupId:'email',consent:true,
-  },()=>ID),/verified-assessments-incomplete/);
+  },()=>ID),/identity-link-required/);
   await assert.rejects(()=>issueVerifiedGroupCertificate(db,FieldValue,{
     uid:'alice',issuer:'blackbox',groupId:'network-foundations',consent:true,
   },()=>ID),/group-assessments-not-available/);
@@ -130,6 +135,22 @@ test('missing receipt, legacy receipt, low score, disabled policy and other user
     uid:'alice',issuer:'cybertrace',groupId:'email',consent:true,
   },()=>'predictable'),/invalid-certificate-id/);
   assert.deepEqual(db.operations,[]);
+});
+
+test('server-side issuer rejects absent, wrong or unpaired identity ownership before writes',async()=>{
+ for(const mutate of [
+   d=>{delete d['blackboxUsers/alice/identityLinks/cybertrace'];},
+   d=>{delete d['cybertraceIdentityClaims/'+cybertraceClaimId('cyber-alice')];},
+   d=>{d['blackboxUsers/alice/identityLinks/cybertrace'].blackboxUid='bob';},
+   d=>{d['cybertraceIdentityClaims/'+cybertraceClaimId('cyber-alice')].blackboxUid='bob';},
+ ]) {
+   const state=dataset();mutate(state);
+   const db=new MemoryDB(state);
+   await assert.rejects(()=>issueVerifiedGroupCertificate(db,FieldValue,{
+     uid:'alice',issuer:'cybertrace',groupId:'email',consent:true,
+   },()=>ID),/identity-link-required/);
+   assert.deepEqual(db.operations,[]);
+ }
 });
 
 test('admin-only revocation atomically invalidates registry and award; replay cannot reissue',async()=>{
