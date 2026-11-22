@@ -1,0 +1,63 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { tracks } from '../data.js';
+import { createInitialState } from '../progress.js';
+import { createTrainingReportHtml } from '../assets/modules/reports/training-report.js';
+
+test('standalone Arabic report has a viewport, printable format, correct sections and counts',()=>{
+ const state=createInitialState();
+ const all=tracks.reduce((sum,t)=>sum+t.stages.length,0);
+ const allChecks=tracks.reduce((sum,t)=>sum+t.stages.reduce((n,s)=>n+s.check.length,0),0);
+ state.completed['recon-0']='2026-11-09T08:00:00.000Z';
+ state.checks['recon-0']=[0,1,2];
+ state.results['recon-0']='دليل 0\n192.168.56.101 nmap';
+ state.notes['recon-0']='عنوان الهدف: مختبر Host-only';
+ state.devices.network='isolated';
+ const html=createTrainingReportHtml(state,tracks,{createdAt:'2026-11-22T18:47:53.245Z'});
+ assert.match(html,/<!DOCTYPE html>/i);
+ assert.match(html,/<html lang="ar" dir="rtl">/);
+ assert.match(html,/name="viewport"/);
+ assert.match(html,/content="default-src &#39;none&#39;|content="default-src 'none';/);
+ assert.match(html,/طباعة أو حفظ PDF/);
+ assert.match(html,/شبكة المختبر/);
+ assert.match(html,/إدخال يدوي/);
+ assert.match(html,new RegExp('1 / '+all));
+ assert.match(html,new RegExp('3 / '+allChecks));
+ assert.match(html,/دليل 0/);
+ assert.match(html,/white-space:pre-wrap/);
+ assert.match(html,/unicode-bidi:plaintext/);
+ const expectedDate = new Intl.DateTimeFormat('ar-JO',{dateStyle:'medium',timeStyle:'short'}).format(new Date('2026-11-09T08:00:00.000Z'));
+ assert(html.includes(expectedDate),'date must be formatted using the browser locale rather than raw ISO');
+ assert.equal((html.match(/<details class="stage"/g)||[]).length,all);
+ assert.equal((html.match(/<section class="track"/g)||[]).length,tracks.length);
+ assert.match(html,/لم تُسجّل ملاحظات/);
+});
+test('user notes and track content cannot inject markup, scripts or remote requests',()=>{
+ const state=createInitialState();
+ state.results['recon-0']='<img src="https://evil.test" onerror="alert(1)">';
+ state.notes['recon-0']='</div><script>fetch("https://evil.test")</script>\n0';
+ const html=createTrainingReportHtml(state,tracks);
+ assert.doesNotMatch(html,/<img src="https:\/\/evil.test"/);
+ assert.doesNotMatch(html,/<script>fetch\(/);
+ assert.match(html,/&lt;img src=&quot;https:\/\/evil.test&quot; onerror=/);
+ assert.match(html,/&lt;script&gt;fetch\(/);
+ assert.match(html,/default-src 'none'/);
+});
+test('the original saved state is never modified by report construction',()=>{
+ const state=createInitialState();
+ state.results['recon-0']='Line 1\nLine 2';
+ const before=JSON.stringify(state);
+ const html=createTrainingReportHtml(state,tracks);
+ assert.equal(JSON.stringify(state),before);
+ assert.match(html,/Line 1\nLine 2/);
+});
+test('report does not misrepresent completion or manual isolation as externally verified',()=>{
+ const state=createInitialState();
+ state.devices.network='isolated';
+ state.completed['recon-0']='2026-11-09T08:00:00.000Z';
+ const html=createTrainingReportHtml(state,tracks);
+ assert.match(html,/مكتملة حسب السجل/);
+ assert.match(html,/لم تُسجّل نتائج/);
+ assert.match(html,/لا تعني أن BLACKBOX فحص الأجهزة/);
+ assert.match(html,/ليس شهادة معتمدة/);
+});
