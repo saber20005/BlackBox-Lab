@@ -12,9 +12,9 @@ import { appendDocumentationTemplate } from '../assets/modules/training/document
 const root=join(dirname(fileURLToPath(import.meta.url)),'..');
 const source=p=>readFileSync(join(root,p),'utf8');
 test('relocated pure modules remain functional without changing any learning data',()=>{
-  assert.equal(labs.length,2);
-  assert.equal(filterLabs({category:'network'}).length,1);
-  assert.match(labStartURL(labs[0]),/track=webgoat/);
+  assert.equal(labs.length,7);
+  assert.equal(filterLabs({category:'network'}).length,2);
+  assert.match(labStartURL(labs.find(lab=>lab.id==='webgoat-local')),/track=webgoat/);
   assert.equal(summarizeUX({tasks:['success','partial','failed'],ease:3}).totalTasks,3);
   assert.equal(classifyRecaptchaFailure({code:'probe/empty-token'},'execute'),'empty-token');
   assert.equal(getStageHints('recon', 0).length, 3);
