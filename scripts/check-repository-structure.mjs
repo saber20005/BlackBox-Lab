@@ -31,7 +31,7 @@ const expectedCss = [
 // flat-root policy. New frontend files must be grouped or explicitly reviewed.
 const allowedRootJs = new Set([
   "account-config.js","account-sync.js","account-ui.js","analytics.js","app.js",
-  "certificates.js","certificates-page.js",
+  "certificates.js","certificates-page.js","certificate-verify-core.js","certificate-verify-page.js",
   "appcheck-diagnostic.js","cybertrace-catalog.js","data.js","defense-tracks.js",
   "evidence-workbench.js","firebase-client.js",
   "lab-intro.js","landing.js","linked-skills-ui.js","loading.js",
@@ -42,7 +42,7 @@ const allowedRootJs = new Set([
   "verified-grading-client.js","vm-report-ui.js","vm-report.js","whats-new.js",
 ]);
 const allowedRootHtml = new Set([
-  "appcheck-diagnostic.html","beginner-journey.html","certificates.html","index.html","labs.html",
+  "appcheck-diagnostic.html","beginner-journey.html","certificates.html","verify.html","index.html","labs.html",
   "mission-mode.html","portfolio.html","pro.html","recaptcha-independent-diagnostic.html",
   "training-guide.html","ux-test.html","vm-report.html",
 ]);

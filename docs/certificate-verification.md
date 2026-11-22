@@ -78,3 +78,10 @@ cannot satisfy these groups. CyberTrace credentials issued through this
 proposed path would be tied to a separately signed-in **BLACKBOX Firebase
 account**, not a CyberTrace native account or matching email. Do not claim the
 CyberTrace identity is linked without explicit proof of both accounts.
+
+
+## Public verification UI (separate gated PR)
+
+A read-only public view is staged at `/verify.html?id=<32 lower-case hex>`. This is **not an issuance page**; a browser cannot create an ID or mark any self-reported training record as server-assessed. It accepts only server responses with matching ID, issuer, group and evidence type, differentiates valid, revoked, unknown and service-unavailable states, and never assumes network failure means counterfeit. No progress access, account login or database writes are required.
+
+The page intentionally has no link from current legacy training PDFs and must not advertise true verified issuance until the Firebase Cloud Function is separately deployed, the service is tested, and independently evaluated group assessments are live. The production endpoint URL is `https://us-central1-black-box-lab.cloudfunctions.net/verifyIssuedCertificate` **only after** owner-controlled Firebase deployment; Vercel is unrelated to this function deployment.
