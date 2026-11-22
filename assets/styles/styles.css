@@ -708,3 +708,9 @@ progress::-moz-progress-bar { background: var(--green); border-radius: 8px; }
 @supports(content-visibility:auto) {
   .error-card {content-visibility:auto;contain-intrinsic-size:auto 160px;}
 }
+
+/* Journal reporting controls must wrap cleanly on narrow phones. */
+.journal-report-head{flex-wrap:wrap;align-items:center}
+.journal-report-head .report-actions{max-width:100%;min-width:0}
+.journal-report-head .report-actions button{max-width:100%;white-space:normal}
+@media(max-width:560px){.journal-report-head .report-actions{width:100%}.journal-report-head .report-actions button{flex:1 1 100%;width:100%}}
