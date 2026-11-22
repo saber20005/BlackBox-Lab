@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="مختبر BLACKBOX الدفاعي: تدريب عملي محلي على تحليل الأدلة وتقييم معرفي خادمي عند إتاحته.">
+<meta name="theme-color" content="#090f20">
+<title>مختبر الأدلة الدفاعية | BLACKBOX</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./assets/styles/evidence-labs.css">
+<script async src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">تجاوز إلى التدريب</a>
+<header class="bar"><a class="brand" href="./">BLACKBOX <span>LAB</span></a>
+<nav aria-label="تنقل المختبر"><a href="./labs.html">المختبرات</a><a href="./certificates.html">الشهادات</a><a href="./?view=account">حسابي</a></nav></header>
+<main id="main">
+<section class="hero"><span class="eyebrow">BLACKBOX / VERIFIED LEARNING PILOT</span>
+<h1>مختبر تحليل الأدلة الدفاعية</h1>
+<p>نفّذ مهام تحليل حقيقية على بيانات اصطناعية آمنة، وثّق ما رأيت، ثم اختبر معرفتك من خلال خادم BLACKBOX عندما يُفعّل المشرف الاختبارات الخاصة.</p>
+<p class="notice"><strong>ليس إصدارًا لشهادة:</strong> إنجاز الورشة وتأكيد خطواتها لا يثبت تنفيذها أمام الخادم، والتقييم المعرفي لا يكفي وحده لشهادة مهارة عملية.</p>
+<div class="hero-links"><a href="https://github.com/saber20005/BlackBox-Lab/tree/main/training-kit/blackbox-defense" target="_blank" rel="noopener noreferrer">تحميل حزمة الأدلة من GitHub</a><a href="./training-guide.html">دليل تحليل الحزمة</a></div>
+</section>
+<div class="layout">
+<section aria-labelledby="lab-list-title"><h2 id="lab-list-title">اختر ورشتك</h2><div id="lab-list" class="lab-list" role="group" aria-label="الورش التدريبية المتاحة"></div></section>
+<section class="work" aria-labelledby="work-title">
+<div class="work-head"><span class="eyebrow" id="work-category"></span><h2 id="work-title">تحميل الورش…</h2><p id="work-subtitle"></p></div>
+<div id="work-content"></div>
+<section class="assessment" aria-labelledby="assessment-title">
+<div class="assessment-heading"><span class="eyebrow">SERVER-GRADED ASSESSMENT</span><h3 id="assessment-title">اختبار معرفة مستقل</h3></div>
+<p>يتطلب جلسة مصادقة من BLACKBOX وApp Check وأسئلة ومفاتيح تصحيح معتمدة على الخادم. لا تُحفظ أي درجة تعتمد على اختيارك المحلي.</p>
+<p id="assessment-state" role="status" aria-live="polite">جارٍ التحقق من جاهزية الخدمة…</p>
+<button type="button" id="assessment-start" disabled>بدء التقييم الخادمي</button>
+<form id="assessment-form" hidden aria-label="أسئلة التقييم الخادمي"><div id="assessment-questions"></div><button type="submit" id="assessment-submit" disabled>إرسال الإجابات للتحقق الخادمي</button></form>
+<div id="assessment-result" hidden role="status" aria-live="polite"></div>
+</section>
+</section>
+</div>
+<section class="criteria"><h2>ما الذي يؤهل لاحقًا لشهادة موثّقة؟</h2>
+<ol><li>إتمام تدريب عملي ضمن نطاق مختبر معزول أو مجموعة أدلة اصطناعية.</li><li>اجتياز تقييم مستقل يصححه خادم BLACKBOX، وليس نقاط XP أو تأكيدًا يدويًا.</li><li>وجود دليل عملي مستقل يمكن مراجعته، ثم اكتمال جميع متطلبات المجموعة.</li><li>اعتماد سياسة الإصدار واختبار التحقق والإلغاء قبل فتح الشهادات.</li></ol>
+<p>حاليًا إصدار الشهادات الموثّقة معطّل. <a href="./certificates.html">تظل إفادات إتمام التدريب اليدوي منفصلة وغير موثّقة.</a></p></section>
+</main>
+<footer><span>تمارين محلية مصرح بها — لا تشغّل الأدوات على أهداف عامة</span><a href="./">BLACKBOX Lab</a></footer>
+<script type="module" src="./evidence-labs.js"></script>
+</body></html>

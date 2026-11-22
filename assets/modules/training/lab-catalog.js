@@ -1,6 +1,34 @@
 // Static metadata only. This module does not launch or connect to virtual machines.
 export const labs = Object.freeze([
   Object.freeze({
+    id:'defense-logs',trackId:'logs',title:'التحليل الجنائي لسجل جلسة مصادقة',difficulty:'intermediate',
+    category:'forensics',runtime:'local',network:'host-only',estimatedMinutes:30,
+    prerequisites:Object.freeze(['Python 3','حزمة blackbox-defense الاصطناعية','مجلد العمل محلي؛ لا توجد حاجة للشبكة']),
+    objectives:Object.freeze(['تحليل تسلسل login وMFA وتغير المصدر','تمييز دليل قابل للملاحظة عن فرضية','كتابة تقرير مختصر مع حدود الاستنتاج']),
+    status:'manual',
+  }),
+  Object.freeze({
+    id:'defense-integrity',trackId:'integrity',title:'كشف تغيّر إعدادات غير مصرح به',difficulty:'intermediate',
+    category:'forensics',runtime:'local',network:'host-only',estimatedMinutes:30,
+    prerequisites:Object.freeze(['Python 3','ملفات baseline/current في حزمة blackbox-defense','نسخة عمل منفصلة عن الأدلة الأصلية']),
+    objectives:Object.freeze(['مطابقة البصمة المحلية مع المرجع','حصر فروق الإعدادات','تقديم آلية إصلاح وإعادة تحقق']),
+    status:'manual',
+  }),
+  Object.freeze({
+    id:'defense-headers',trackId:'headers',title:'تدقيق ترويسات HTTP وخصائص الجلسة',difficulty:'intermediate',
+    category:'web',runtime:'local',network:'host-only',estimatedMinutes:25,
+    prerequisites:Object.freeze(['Python 3','ملفا headers/before.txt وheaders/after.txt','لا حاجة للاتصال بأي موقع']),
+    objectives:Object.freeze(['تفسير خصائص ملفات الارتباط','مقارنة CSP وHSTS وnosniff','تمييز التقرير النصي عن اختبار تطبيق فعلي']),
+    status:'manual',
+  }),
+  Object.freeze({
+    id:'defense-email',trackId:'email',title:'فرز بريد تصيد ضمن بيئة اصطناعية',difficulty:'intermediate',
+    category:'forensics',runtime:'local',network:'host-only',estimatedMinutes:25,
+    prerequisites:Object.freeze(['Python 3','ملفا email/*.eml من حزمة التدريب','لا تفتح روابط الرسائل']),
+    objectives:Object.freeze(['مقارنة From وReply-To','تفسير SPF وDKIM وDMARC','كتابة بلاغ فرز بتوصيات تحقق']),
+    status:'manual',
+  }),
+  Object.freeze({
     id: 'webgoat-local',
     trackId: 'webgoat',
     title: 'WebGoat — مختبر تطبيقات الويب',
