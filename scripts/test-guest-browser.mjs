@@ -537,6 +537,33 @@ try {
   report.finalCapstonePhoneSafety = true;
   console.log('PASS final capstone disabled safely at 320px, 390px and desktop without network calls');
 
+  // Inspect the new read-only suite page directly, including 320px phones.
+  for (const viewport of [{width:320,height:740},{width:390,height:844},{width:1440,height:1000}]) {
+    const suiteContext = await browser.newContext({viewport});
+    const suiteErrors=[],suiteExternal=[];
+    await suiteContext.route('**/*', route => {
+      if(new URL(route.request().url()).origin===origin) return route.continue();
+      suiteExternal.push(route.request().url()); return route.abort('blockedbyclient');
+    });
+    const suitePage = await suiteContext.newPage();
+    activePage=suitePage;
+    suitePage.on('pageerror',error=>suiteErrors.push(error.message));
+    try {
+      await navigate(suitePage,'/?view=journeys');
+      await suitePage.locator('.suite-card').first().waitFor({state:'visible'});
+      assert.equal(await suitePage.locator('.suite-card').count(),4,'suite page lists all four pathways');
+      assert.equal(await suitePage.locator('.suite-step').count(),16,'suite page links to sixteen actual steps');
+      assert.equal(await suitePage.locator('#nav [aria-current="page"]').getAttribute('data-view'),'tracks','suite is part of the training nav');
+      assert.equal(await suitePage.locator('.context-nav [data-nav="journeys"]').getAttribute('aria-current'),'page');
+      assert.equal(await suitePage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'suite steps fit narrow mobile screens');
+      assert.deepEqual(await suitePage.locator('.suite-step a').evaluateAll(links=>links.map(a=>new URL(a.href).origin).filter(x=>!['https://blackboxlab.dev','https://www.cybertracelab.dev'].includes(x))),[],'suite links use only the two known public origins');
+      assert.deepEqual(suiteErrors,[],'suite UI raises no uncaught errors');
+      assert.deepEqual(suiteExternal,[],'suite does not fetch the partner site or transmit user data');
+    } finally {await suiteContext.close();}
+  }
+  report.suiteJourneysMobileSafe=true;
+  console.log('PASS suite learning journeys: four paths and 16 safe links, mobile/desktop fit, zero cross-site requests');
+
   const lifecycle = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-training-plan-lifecycle.mjs')], {
     env: { ...process.env, BLACKBOX_TEST_URL: origin + '/?view=plan' }, timeout: 60000,
   });
