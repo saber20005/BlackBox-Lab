@@ -11,7 +11,7 @@ function validStage(stageKey){
   if(!['logs-0','integrity-0','headers-0','email-0'].includes(stageKey))throw Error('المختبر غير متاح للتقييم الموثق.');
   return stageKey;
 }
-async function caller(name) {
+export async function caller(name) {
   if(!verifiedAssessmentConfigured)throw Error('التقييم الخادمي غير مفعّل حتى الآن.');
   const [appSDK,authSDK]=await Promise.all([
     import(`https://www.gstatic.com/firebasejs/${SDK_VERSION}/firebase-app.js`),
