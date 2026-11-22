@@ -362,6 +362,9 @@ function render(focus = false) {
   const nextScope = JSON.stringify([currentView, currentTrack, currentStage, accountStatus.user?.uid ?? null]);
   const sameScope = nextScope === renderedContentScope;
   const openPanels = sameScope ? nativePanels.filter(selector => content.querySelector(selector)?.open) : [];
+  const expandedJourneys = sameScope && currentView === 'journeys'
+    ? new Set([...content.querySelectorAll('details.suite-card[open]')].map(node => node.dataset.journey))
+    : null;
   const focused = document.activeElement;
   const focusedPanel = sameScope ? nativePanels.find(selector => content.querySelector(selector)?.contains(focused)) : null;
   const panelFocus = focusedPanel ? focused.id ? { id: focused.id } : focused.tagName === 'SUMMARY' ? { selector: focusedPanel + ' > summary' } : null : null;
@@ -387,6 +390,9 @@ function render(focus = false) {
   document.getElementById('sideProgressBar').value = count;
   const pages = { journeys:()=>suiteJourneysPage(state,tracks), home, progress: progressPage, account: accountPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
   content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${sectionNavigation()}${pages[currentView]()}`;
+  if (expandedJourneys) content.querySelectorAll('details.suite-card').forEach(panel => {
+    panel.open = expandedJourneys.has(panel.dataset.journey);
+  });
   renderedContentScope = nextScope;
   // A same-owner account refresh must not close a guide while it is being used.
   // Route, stage and account changes deliberately start with folded panels.

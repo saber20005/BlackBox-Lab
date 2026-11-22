@@ -553,6 +553,16 @@ try {
       await suitePage.locator('.suite-card').first().waitFor({state:'visible'});
       assert.equal(await suitePage.locator('.suite-card').count(),4,'suite page lists all four pathways');
       assert.equal(await suitePage.locator('.suite-step').count(),16,'suite page links to sixteen actual steps');
+      const journeyPanels=suitePage.locator('details.suite-card');
+      assert.equal(await journeyPanels.count(),4,'all suite paths are native details');
+      assert.equal(await journeyPanels.first().evaluate(node=>node.open),true);
+      assert.equal(await journeyPanels.nth(1).evaluate(node=>node.open),false);
+      const secondSummary=journeyPanels.nth(1).locator('summary');
+      await secondSummary.focus();
+      await secondSummary.press('Enter');
+      assert.equal(await journeyPanels.nth(1).evaluate(node=>node.open),true,'keyboard opens journey');
+      await secondSummary.press('Enter');
+      assert.equal(await journeyPanels.nth(1).evaluate(node=>node.open),false,'keyboard closes journey');
       assert.equal(await suitePage.locator('#nav [aria-current="page"]').getAttribute('data-view'),'tracks','suite is part of the training nav');
       assert.equal(await suitePage.locator('.context-nav [data-nav="journeys"]').getAttribute('aria-current'),'page');
       assert.equal(await suitePage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'suite steps fit narrow mobile screens');
