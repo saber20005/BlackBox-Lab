@@ -1,7 +1,7 @@
 import {SUITE_PATHWAYS,suiteStepURL,localJourneyProgress} from './suite-learning-pathways.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function suiteJourneysPage(state,tracks){
- const done=id=>{const t=tracks.find(x=>x.id===id);return Boolean(t?.stages?.length)&&t.stages.every((_,i)=>state?.completed?.[id+'-'+i]===true);};
+ const done=id=>{const t=tracks.find(x=>x.id===id);return Boolean(t?.stages?.length)&&t.stages.every((_,i)=>Boolean(state?.completed?.[id+'-'+i]));};
  const cards=SUITE_PATHWAYS.map(path=>{
   const summary=localJourneyProgress(path,'blackbox',done);
   const steps=path.steps.map((step,i)=>{
