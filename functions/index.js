@@ -265,7 +265,7 @@ export const issueGroupCertificate = onCall({
       throw new HttpsError('invalid-argument','Unsupported request.');
     }
     if (['group-assessments-not-available','certificate-policy-disabled',
-        'verified-assessments-incomplete'].includes(error?.message)) {
+        'verified-assessments-incomplete','identity-link-required'].includes(error?.message)) {
       throw new HttpsError('failed-precondition','Server-graded requirements are not yet met.');
     }
     throw new HttpsError('unavailable','Certificate issuance could not be completed.');

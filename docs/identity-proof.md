@@ -32,3 +32,13 @@ project; if access is denied, fail closed and leave linking unavailable.
 Manual acceptance: reauthenticate each account; test same account, distinct
 emails, wrong Firebase token, expired/stale token, sign out/switch during
 request, third-party account claim, unlink, and two concurrent link attempts.
+
+## Proof check for each issuance
+
+The CyberTrace issuer branch now reads BOTH the BLACKBOX owner's link and the
+server-only hashed exclusive CyberTrace UID claim inside its existing Firestore
+issuance transaction. Missing, inconsistent, reassigned or removed claims
+cause `identity-link-required`, even on a repeated award request.
+This is separate from verified scoring. The global issuance hard gate remains
+disabled. Unlink does not silently revoke historical certificates; an
+administrator must review and revoke with the existing audit trail.

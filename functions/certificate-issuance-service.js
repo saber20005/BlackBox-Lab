@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { requireCertificateId, publicCertificateView } from './certificate-registry.js';
 import { requireCertificateGroup } from './certificate-manifests.js';
+import { cybertraceClaimId } from './cybertrace-identity-service.js';
 
 const validUid = uid => typeof uid === 'string' && uid.length>0 && uid.length<=128 && !uid.includes('/');
 const dateOf = value => value instanceof Date ? value : value?.toDate?.();
@@ -45,6 +46,22 @@ export async function issueVerifiedGroupCertificate(db, FieldValue,
   const awardRef=db.doc('blackboxUsers/'+uid+'/certificateAwards/'+key);
   const policyRef=db.doc('certificatePolicies/'+key);
   return db.runTransaction(async tx=>{
+    // Require two independently authenticated accounts with a matching
+    // server-owned claim; browser-reported grades and email cannot substitute.
+    const linkRef=db.doc('blackboxUsers/'+uid+'/identityLinks/cybertrace');
+    const linkSnap=await tx.get(linkRef);
+    const link=linkSnap.exists?linkSnap.data():null;
+    if(!link||link.schemaVersion!==1||link.status!=='linked'||
+       link.provider!=='cybertrace-48ab0'||link.blackboxUid!==uid||
+       typeof link.cybertraceUid!=='string')throw Error('identity-link-required');
+    let claimId;
+    try{claimId=cybertraceClaimId(link.cybertraceUid);}
+    catch{throw Error('identity-link-required');}
+    const claimSnap=await tx.get(db.doc('cybertraceIdentityClaims/'+claimId));
+    const claimed=claimSnap.exists?claimSnap.data():null;
+    if(!claimed||claimed.schemaVersion!==1||claimed.status!=='linked'||
+       claimed.provider!=='cybertrace-48ab0'||claimed.blackboxUid!==uid||
+       claimed.cybertraceUid!==link.cybertraceUid)throw Error('identity-link-required');
     const awardSnap=await tx.get(awardRef);
     if (awardSnap.exists) {
       // Idempotency also protects revoked awards from being reissued.
