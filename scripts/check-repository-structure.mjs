@@ -35,6 +35,9 @@ const allowedRootJs = new Set([
   "appcheck-diagnostic.js","cybertrace-catalog.js","data.js","defense-tracks.js",
   "evidence-workbench.js","firebase-client.js",
   "lab-intro.js","landing.js","linked-skills-ui.js","loading.js",
+  // Reviewed 2026-11-22: stand-alone guided certificate-training pilot and
+  // its fail-closed App Check/Functions assessment client (not issuance).
+  "evidence-labs.js","lab-assessment-client.js",
   "mission-mode.js","mission-page.js","onboarding.js","portfolio-page.js","portfolio.js",
   "progress-session.js","progress.js",
   "recaptcha-independent-diagnostic.js","routes.js",
@@ -45,6 +48,8 @@ const allowedRootHtml = new Set([
   "appcheck-diagnostic.html","beginner-journey.html","certificates.html","verify.html","index.html","labs.html",
   "mission-mode.html","portfolio.html","pro.html","recaptcha-independent-diagnostic.html",
   "training-guide.html","ux-test.html","vm-report.html",
+  // Reviewed 2026-11-22: public read-only training route, no trusted award API.
+  "evidence-labs.html",
 ]);
 for (const name of readdirSync(root)) {
   if (name.endsWith(".js") && !allowedRootJs.has(name))

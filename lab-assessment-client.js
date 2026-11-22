@@ -17,9 +17,14 @@ async function caller(name) {
     import(`https://www.gstatic.com/firebasejs/${SDK_VERSION}/firebase-app.js`),
     import(`https://www.gstatic.com/firebasejs/${SDK_VERSION}/firebase-auth.js`),
   ]);
-  const app=appSDK.getApps().find(a=>a.name==='blackbox-accounts');
-  if(!app||app.options.projectId!=='black-box-lab')throw Error('سجّل الدخول إلى BLACKBOX من صفحة الحساب ثم أعد المحاولة.');
-  const auth=authSDK.getAuth(app),uid=auth.currentUser?.uid;
+  const app=appSDK.getApps().find(a=>a.name==='blackbox-accounts') ??
+    appSDK.initializeApp(accountConfig.firebase,'blackbox-accounts');
+  if(app.options.projectId!=='black-box-lab')throw Error('حساب Firebase لا يطابق مشروع BLACKBOX.');
+  const auth=authSDK.getAuth(app);
+  // A standalone page has a new JS realm and must restore the existing
+  // persistent BLACKBOX session; getApps() is not shared between pages.
+  await auth.authStateReady();
+  const uid=auth.currentUser?.uid;
   if(!uid)throw Error('سجّل الدخول إلى BLACKBOX لإجراء تقييم موثّق.');
   const [checkSDK,functionsSDK]=await Promise.all([
     import(`https://www.gstatic.com/firebasejs/${SDK_VERSION}/firebase-app-check.js`),

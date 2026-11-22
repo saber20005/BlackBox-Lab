@@ -37,6 +37,8 @@ test('the new assessment client hard-fails closed until verified App Check and a
  const api=read('../lab-assessment-client.js');
  assert(api.includes('accountConfig.grading?.enabled === true'));
  assert(api.includes("app.options.projectId!=='black-box-lab'"));
+ assert(api.includes("appSDK.initializeApp(accountConfig.firebase,'blackbox-accounts')"));
+ assert(api.includes("await auth.authStateReady()"));
  assert(api.includes("ReCaptchaEnterpriseProvider"));
  assert(api.includes("httpsCallable"));
  assert(api.includes('out.verifiedByServer!==true'));
