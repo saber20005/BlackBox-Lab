@@ -5,7 +5,7 @@ const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 test('defensive final is discoverable, accessible RTL, and does not pretend to issue certificates',()=>{
   const html=read('../defense-final.html');
   for(const value of ['lang="ar"','dir="rtl"','id="exam-form"','id="portfolio-form"',
-    'id="reviewer-console" hidden','الامتحان النهائي','لا تُرسل الملفات الأصلية'])
+    'id="reviewer-console" hidden','الامتحان النهائي','دون رفع الملف نفسه'])
     assert(html.includes(value),value);
   assert(read('../evidence-labs.html').includes('defense-final.html'));
   assert(read('../certificates.html').includes('defense-final.html'));

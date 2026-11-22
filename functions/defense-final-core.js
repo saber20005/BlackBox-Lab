@@ -14,7 +14,7 @@ export const FINAL_EXAM_QUOTA_MS=24*60*60*1000;
 export const FINAL_EXAM_CREDENTIAL_ELIGIBLE=false;
 const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const exact=(x,keys)=>obj(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
-const validId=x=>typeof x==='string'&&/^[a-z][a-z0-9-]{1,39}$/.test(x);
+const validId=x=>typeof x==='string'&&/^[a-z][a-z0-9-]{0,39}$/.test(x);
 const validText=(x,min,max)=>typeof x==='string'&&x.trim().length>=min&&x.length<=max;
 const distinct=arr=>new Set(arr).size===arr.length;
 
