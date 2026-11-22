@@ -514,7 +514,7 @@ try {
     const ctx = await browser.newContext({ viewport });
     const blocked = [], errors = [];
     await ctx.route('**/*', route => {
-      const url = new URL(route.request().url);
+      const url = new URL(route.request().url());
       if (url.origin === origin) return route.continue();
       blocked.push(url.hostname); return route.abort('blockedbyclient');
     });
