@@ -1,4 +1,5 @@
 import { tracks, errors } from './data.js';
+import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPreferences } from './assets/modules/preferences/ui-preferences.js';
 import { parseRoute, routeURL, routeMetadata, primaryView } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';
@@ -7,6 +8,7 @@ import { accountConfig } from './account-config.js';
 import { gradingAvailable, startVerifiedGrading, submitVerifiedAnswer } from './verified-grading-client.js';
 import { linkedSkillsPage } from './linked-skills-ui.js';
 import { trainingPlanPage, trainingPlanSummary } from './training-plan-ui.js';
+import {suiteJourneysPage} from './assets/modules/training/suite-learning-pathways-ui.js';
 import { getRelatedCaseIds } from './training-plan.js';
 import { CASE_META } from './cybertrace-catalog.js';
 import { appendDocumentationTemplate, hasMeaningfulDocumentation } from './assets/modules/training/documentation-templates.js';
@@ -17,6 +19,7 @@ import {
 
 let storage;
 try { storage = window.localStorage; } catch { storage = undefined; }
+let displayPreferences = applyBbPreferences(readBbPreferences(storage));
 const loaded = loadProgress(storage);
 let state = loaded.state;
 let saveState = { ok: loaded.ok, message: loaded.message };
@@ -54,7 +57,7 @@ let importRequest = 0;
 let importMessage = '';
 let importError = false;
 let routeNotice = '';
-const titles = { home: 'تدريبي', tracks: 'المسارات', progress: 'تقدّمي', account: 'حسابي', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
+const titles = { home: 'تدريبي', tracks: 'المسارات', journeys: 'المسارات المشتركة', progress: 'تقدّمي', account: 'حسابي', settings: 'الإعدادات', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
 const content = document.getElementById('content');
 const stageKey = (trackId, index) => `${trackId}-${index}`;
 const trackById = id => tracks.find(track => track.id === id);
@@ -270,8 +273,8 @@ function home() {
 }
 function sectionNavigation() {
   const group = primaryView(currentView);
-  const items = group === 'progress' ? [['progress', 'نظرة عامة'], ['plan', 'خطة جلسة'], ['journal', 'سجلي'], ...(skillState.enabled ? [['skills', 'تحقيقات CyberTrace']] : [])] : group === 'account' ? [['account', 'الحساب'], ['backups', 'النسخ والتقارير'], ['troubleshoot', 'مساعدة المختبر']] : [];
-  return items.length ? `<nav class="context-nav" aria-label="${group === 'progress' ? 'أقسام تقدّمي' : 'أقسام حسابي'}">${items.map(([view, label]) => `<button type="button" class="${view === currentView ? 'active' : ''}" data-nav="${view}" ${view === currentView ? 'aria-current="page"' : ''}>${label}</button>`).join('')}</nav>` : '';
+  const items = group === 'tracks' ? [['tracks','مسارات BLACKBOX'],['journeys','المسارات المشتركة']] : group === 'progress' ? [['progress', 'نظرة عامة'], ['plan', 'خطة جلسة'], ['journal', 'سجلي'], ...(skillState.enabled ? [['skills', 'تحقيقات CyberTrace']] : [])] : group === 'account' ? [['account', 'الحساب'], ['backups', 'النسخ والتقارير'], ['troubleshoot', 'مساعدة المختبر']] : [];
+  return items.length ? `<nav class="context-nav" aria-label="${group === 'tracks' ? 'أقسام المسارات' : group === 'progress' ? 'أقسام تقدّمي' : 'أقسام حسابي'}">${items.map(([view, label]) => `<button type="button" class="${view === currentView ? 'active' : ''}" data-nav="${view}" ${view === currentView ? 'aria-current="page"' : ''}>${label}</button>`).join('')}</nav>` : '';
 }
 function progressPage() {
   return `${hero('تقدّمي', 'راجع تدريبك العملي، ثم اختر ما تريد توثيقه أو مشاركته.')} ${compactProgress()}<section class="section progress-tools" aria-label="أدوات متابعة التدريب"><a class="card destination-card" href="./mission-mode.html"><h2>المهام والمهارات</h2><p>اعرض المراحل التي أكّدتها ضمن مهام مترابطة وبصمة مهارات التدريب.</p><span>افتح مهامي ←</span></a><a class="card destination-card" href="./certificates.html"><h2>شهاداتي</h2><p>راجع المسارات المكتملة وأصدر إفادة إتمام تدريب غير موثقة قابلة للطباعة.</p><span>مركز الشهادات ←</span></a><a class="card destination-card" href="./portfolio.html"><h2>ملف أعمالي</h2><p>اختر المراحل التي تريد عرضها، وراجع محتواها قبل الطباعة أو حفظ PDF.</p><span>جهّز ملف الأعمال ←</span></a></section><section class="card section"><div class="section-head"><h2>آخر نشاط</h2><button type="button" class="link-btn" data-nav="journal">افتح سجلي ←</button></div>${recentActivity()}</section>`;
@@ -280,7 +283,26 @@ function accountSummary() {
   return accountStatus.message || (accountStatus.user ? 'راجع حالة الحفظ والمزامنة، وأدر تسجيل الدخول من نافذة الحساب.' : 'يمكنك التدريب كضيف، أو تسجيل الدخول لحفظ تقدمك في حسابك.');
 }
 function accountPage() {
-  return `${hero('حسابي', 'الحساب والحفظ ومساعدة التدريب في مكان واحد.')}<section class="card account-overview"><h2>${accountStatus.user ? 'حساب التدريب' : 'مساحتك متاحة كضيف'}</h2><p data-workspace-account-state role="status">${esc(accountSummary())}</p><button type="button" class="primary" data-open-account>${accountStatus.user ? 'إدارة حسابي' : 'تسجيل الدخول أو إنشاء حساب'}</button></section><details class="card section optional-panel" data-environment-settings><summary>إعداد بيئة التدريب المحلية</summary><p class="context-note">سجّل ما تحققت منه في مختبرك. التدريب على السجلات داخل المتصفح متاح دون آلة افتراضية.</p>${statusControls()}<a class="link-btn" id="localSetupGuideLink" href="./?intro=1#local-lab-setup">دليل تجهيز VirtualBox ←</a></details><section class="card section resource-links"><h2>أدلة التدريب</h2><a href="./training-guide.html">استخدام ملفات التدريب ←</a><a href="./labs.html">دليل المختبرات المحلية ←</a><a href="${esc(partnerURL())}" data-partner="account">CyberTrace للتحقيقات التفاعلية ←</a></section>`;
+  return `${hero('حسابي', 'الحساب والحفظ ومساعدة التدريب في مكان واحد.')}<section class="card account-overview"><h2>${accountStatus.user ? 'حساب التدريب' : 'مساحتك متاحة كضيف'}</h2><p data-workspace-account-state role="status">${esc(accountSummary())}</p><button type="button" class="primary" data-open-account>${accountStatus.user ? 'إدارة حسابي' : 'تسجيل الدخول أو إنشاء حساب'}</button></section><details class="card section optional-panel" data-environment-settings><summary>إعداد بيئة التدريب المحلية</summary><p class="context-note">سجّل ما تحققت منه في مختبرك. التدريب على السجلات داخل المتصفح متاح دون آلة افتراضية.</p>${statusControls()}<a class="link-btn" id="localSetupGuideLink" href="./?intro=1#local-lab-setup">دليل تجهيز VirtualBox ←</a></details><section class="card section bb-settings-link"><h2>تفضيلات الاستخدام</h2><p>مظهر ليلي أو فاتح، نص أكبر، تقليل الحركة، ومستوى التدريب الاختياري.</p><button type="button" class="secondary" data-nav="settings">فتح مركز الإعدادات ←</button></section><section class="card section resource-links"><h2>أدلة التدريب</h2><a href="./training-guide.html">استخدام ملفات التدريب ←</a><a href="./labs.html">دليل المختبرات المحلية ←</a><a href="${esc(partnerURL())}" data-partner="account">CyberTrace للتحقيقات التفاعلية ←</a></section>`;
+}
+function settingsPage() {
+  const options=(key,rows)=>rows.map(([value,label])=>`<option value="${value}"${displayPreferences[key]===value?' selected':''}>${label}</option>`).join('');
+  return `${hero('إعدادات العرض', 'اختر الطريقة الأنسب لك لاستخدام BLACKBOX، دون المساس بالملاحظات أو بيانات حسابك.', 'WORKSPACE / PREFERENCES')}
+  <div class="bb-settings-grid">
+    <section class="card bb-settings-panel" aria-labelledby="bb-settings-display">
+      <h2 id="bb-settings-display">المظهر وإمكانية الوصول</h2>
+      <label class="bb-settings-control"><span>المظهر</span><select data-bb-ui-key="theme">${options('theme',[['dark','ليلي — الأزرق الأصلي'],['light','فاتح — للقراءة']])}</select></label>
+      <label class="bb-settings-control"><span>حجم النص</span><select data-bb-ui-key="textSize">${options('textSize',[['normal','عادي'],['large','أكبر']])}</select></label>
+      <label class="bb-settings-control"><span>المؤثرات الحركية</span><select data-bb-ui-key="motion">${options('motion',[['system','حسب نظام الجهاز'],['reduce','تقليل الحركة']])}</select></label>
+    </section>
+    <section class="card bb-settings-panel" aria-labelledby="bb-settings-learning">
+      <h2 id="bb-settings-learning">مستوى التدريب — اختياري</h2>
+      <p>اختر مستواك لتفضيل طريقة التعلم مستقبلًا. هذا الاختيار لا يفتح مرحلة مغلقة، ولا يمنح شهادة أو صلاحية.</p>
+      <label class="bb-settings-control"><span>مستواي الحالي</span><select data-bb-ui-key="level">${options('level',[['unset','لم أحدد بعد'],['beginner','مبتدئ'],['hobbyist','هاوٍ'],['intermediate','متوسط'],['advanced','متقدم']])}</select></label>
+      <div class="bb-settings-privacy"><b>حفظ محلي فقط</b><p>تُحفظ تفضيلات العرض في هذا المتصفح على هذا الجهاز، ولا تتزامن مع Firebase أو CyberTrace. لن تتغير الملاحظات أو نتائج التدريب.</p></div>
+    </section>
+  </div>
+  <div class="bb-settings-actions"><p data-bb-ui-feedback role="status" aria-live="polite"></p><button type="button" class="secondary" data-bb-ui-reset>استعادة المظهر الافتراضي</button></div>`;
 }
 function recentActivity() {
   const recent = [...state.logs].reverse().slice(0, 3);
@@ -361,6 +383,9 @@ function render(focus = false) {
   const nextScope = JSON.stringify([currentView, currentTrack, currentStage, accountStatus.user?.uid ?? null]);
   const sameScope = nextScope === renderedContentScope;
   const openPanels = sameScope ? nativePanels.filter(selector => content.querySelector(selector)?.open) : [];
+  const expandedJourneys = sameScope && currentView === 'journeys'
+    ? new Set([...content.querySelectorAll('details.suite-card[open]')].map(node => node.dataset.journey))
+    : null;
   const focused = document.activeElement;
   const focusedPanel = sameScope ? nativePanels.find(selector => content.querySelector(selector)?.contains(focused)) : null;
   const panelFocus = focusedPanel ? focused.id ? { id: focused.id } : focused.tagName === 'SUMMARY' ? { selector: focusedPanel + ' > summary' } : null : null;
@@ -384,8 +409,11 @@ function render(focus = false) {
   const count = completedCount();
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
-  const pages = { home, progress: progressPage, account: accountPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
+  const pages = { journeys:()=>suiteJourneysPage(state,tracks), home, progress: progressPage, account: accountPage, settings: settingsPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
   content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${sectionNavigation()}${pages[currentView]()}`;
+  if (expandedJourneys) content.querySelectorAll('details.suite-card').forEach(panel => {
+    panel.open = expandedJourneys.has(panel.dataset.journey);
+  });
   renderedContentScope = nextScope;
   // A same-owner account refresh must not close a guide while it is being used.
   // Route, stage and account changes deliberately start with folded panels.
@@ -589,6 +617,22 @@ function refreshSearch(id, value, position) {
   if (typeof position === 'number' && input.type !== 'search') input.setSelectionRange(position, position);
 }
 function bind() {
+  // Settings are local device preferences, never saved into training progress.
+  content.querySelectorAll('[data-bb-ui-key]').forEach(select => select.addEventListener('change', () => {
+    const key=select.dataset.bbUiKey;
+    if(!Object.hasOwn(displayPreferences,key))return;
+    displayPreferences=applyBbPreferences(normalizeBbPreferences({...displayPreferences,[key]:select.value}));
+    const saved=saveBbPreferences(displayPreferences,storage);
+    const status=content.querySelector('[data-bb-ui-feedback]');
+    if(status)status.textContent=saved?'تم حفظ التفضيلات على هذا الجهاز.':'تعذّر الحفظ؛ سيبقى هذا العرض حتى تحديث الصفحة.';
+  }));
+  content.querySelector('[data-bb-ui-reset]')?.addEventListener('click', () => {
+    displayPreferences=applyBbPreferences(null);
+    const saved=saveBbPreferences(displayPreferences,storage);
+    render(false);
+    const status=content.querySelector('[data-bb-ui-feedback]');
+    if(status)status.textContent=saved?'استُعيد المظهر الافتراضي.':'استُعيد المظهر الافتراضي لهذه الجلسة فقط.';
+  });
   const gradingForm = document.getElementById('verifiedGradingForm');
   const startButton = document.getElementById('startVerifiedGrading');
   if (gradingForm && startButton) {

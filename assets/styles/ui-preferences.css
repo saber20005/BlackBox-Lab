@@ -1,0 +1,33 @@
+/* BLACKBOX preferences are local presentation only, not a Firestore document. */
+.bb-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px}
+.bb-settings-panel{min-width:0;padding:clamp(17px,3vw,28px);background:linear-gradient(150deg,var(--panel),var(--bg));border-color:var(--line)}
+.bb-settings-panel h2{font-size:20px;margin:0 0 19px}.bb-settings-panel p{font-size:13px;line-height:1.9;color:var(--muted)}
+.bb-settings-control{display:grid;gap:7px;margin:17px 0}.bb-settings-control span{font-weight:700;font-size:13px;color:var(--text)}
+.bb-settings-control select{font:inherit;min-height:48px;width:100%;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);padding:10px 13px}
+.bb-settings-privacy{border-right:3px solid var(--green);border-radius:9px;padding:14px;background:var(--panel2);margin-top:22px}.bb-settings-privacy b{color:var(--text);font-size:13px}.bb-settings-privacy p{font-size:12px;margin:8px 0 0}
+.bb-settings-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:21px}
+.bb-settings-actions [role=status]{color:var(--green);font-size:12px}
+.bb-settings-link{margin-top:16px}.bb-settings-link>p{color:var(--muted);font-size:13px;margin:9px 0 15px}
+.bb-settings-grid :is(button,select):focus-visible{outline:3px solid #80b3ff;outline-offset:3px}
+@media(max-width:700px){.bb-settings-grid{grid-template-columns:1fr}}
+html[data-bb-text="large"] body{font-size:16px}
+html[data-bb-text="large"] :is(.bb-settings-panel p,.bb-settings-control span,.hero p){font-size:1rem}
+html[data-bb-motion="reduce"] *,html[data-bb-motion="reduce"] *::before,html[data-bb-motion="reduce"] *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
+html[data-bb-theme="light"]{color-scheme:light;--bg:#f3f7fd;--panel:#fff;--panel2:#eaf1f9;--line:#a3b9d4;--text:#1b3352;--muted:#415675;--green:#145bb1;--green2:#135498;--blue:#2463b3;--shadow:0 18px 55px #7890b02b}
+html[data-bb-theme="light"] body{background:#f3f7fd;color:var(--text)}
+html[data-bb-theme="light"] :is(.app,.sidebar,.main,.card,.topbar){color:var(--text)}
+html[data-bb-theme="light"] .sidebar{background:#eaf0fa}
+html[data-bb-theme="light"] :is(.card,.datebox,.status-pill,.bb-settings-panel){background:#fff!important;border-color:var(--line)!important;color:var(--text)!important}
+html[data-bb-theme="light"] .nav button{color:#31577e}
+html[data-bb-theme="light"] .nav button.active{background:#d7e8fb;color:#145bb1;border-color:#98b5d6}
+html[data-bb-theme="light"] .hero p,html[data-bb-theme="light"] .card p{color:var(--muted)}
+html[data-bb-theme="light"] .account-dialog{background:linear-gradient(135deg,#fff,#e6f0ff);color:#1b3352}
+html[data-bb-theme="light"] .account-dialog :is(input,textarea){background:#fff;color:#1b3352;border-color:#8da9c8}
+html[data-bb-theme="light"] .account-visual{background:linear-gradient(140deg,#1c3c65,#183052);color:#fff}
+html[data-bb-theme="light"] .account-dialog .account-visual p{color:#dbebff}
+html[data-bb-theme="light"] .bb-settings-privacy{background:#ecf3fc}
+@supports(backdrop-filter:blur(1px)){
+  .account-dialog{background:linear-gradient(150deg,#121d31ed,#0a1524f0);backdrop-filter:blur(15px);box-shadow:0 28px 90px #0009,0 0 0 1px #6e9fd023}
+  .account-dialog::backdrop{backdrop-filter:blur(9px)}
+}
+@media(prefers-reduced-motion:reduce){.account-dialog *{transition:none!important;transform:none!important}}
