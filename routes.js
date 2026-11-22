@@ -116,7 +116,7 @@ export function routeMetadata(route) {
 
 // Secondary pages retain their own URLs while sharing four stable navigation groups.
 export function primaryView(view) {
-  if (view === 'journeys') return 'journeys';
+  if (view === 'journeys') return 'tracks';
   if (['tracks', 'exercise'].includes(view)) return 'tracks';
   if (['progress', 'plan', 'skills', 'journal'].includes(view)) return 'progress';
   if (['account', 'backups', 'troubleshoot'].includes(view)) return 'account';
