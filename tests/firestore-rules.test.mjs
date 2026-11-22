@@ -81,6 +81,42 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     await assertFails(setDoc(reference, snapshot(4, progress)));
   });
 
+  test('two devices resume one owner without losing stages; matching email is not authorization',async()=>{
+    const ownerId='suite-two-device-owner';
+    const deviceA=environment.authenticatedContext(ownerId,{email:'shared@example.test'}).firestore();
+    const deviceB=environment.authenticatedContext(ownerId,{email:'shared@example.test'}).firestore();
+    const differentUid=environment.authenticatedContext('suite-other-owner',{email:'shared@example.test'}).firestore();
+    const guest=environment.unauthenticatedContext().firestore();
+    const aRef=doc(deviceA,path(ownerId)),bRef=doc(deviceB,path(ownerId));
+    const first=progressFor(['recon-0']);
+    await assertSucceeds(setDoc(aRef,snapshot(1,first)));
+    const restored=(await assertSucceeds(getDoc(bRef))).data();
+    assert.equal(restored.revision,1);
+    assert.equal(restored.progress.completed['recon-0'],at);
+    assert.equal(restored.progress.notes['recon-0'],first.notes['recon-0']);
+    const second=structuredClone(restored.progress);
+    second.checks['nmap-0']=[0,1,2];
+    second.notes['nmap-0']='ملاحظة الجهاز الثاني';
+    second.results['nmap-0']='نتيجة مختبر الجهاز الثاني';
+    second.completed['nmap-0']=at;
+    second.stageUpdatedAt['nmap-0']=at;
+    second.lastActivity={trackId:'nmap',stageIndex:0,at};
+    await assertSucceeds(setDoc(bRef,snapshot(2,second)));
+    const latest=(await assertSucceeds(getDoc(aRef))).data();
+    assert.equal(latest.revision,2);
+    assert.equal(latest.progress.completed['recon-0'],at);
+    assert.equal(latest.progress.completed['nmap-0'],at);
+    assert.equal(latest.progress.notes['recon-0'],first.notes['recon-0']);
+    assert.equal(latest.progress.notes['nmap-0'],'ملاحظة الجهاز الثاني');
+    await assertFails(getDoc(doc(differentUid,path(ownerId))));
+    await assertFails(setDoc(doc(differentUid,path(ownerId)),snapshot(3,second)));
+    await assertFails(getDoc(doc(guest,path(ownerId))));
+    await assertFails(setDoc(doc(guest,path(ownerId)),snapshot(3,second)));
+    // Old devices cannot silently replay an already applied revision.
+    await assertFails(setDoc(aRef,snapshot(2,second)));
+    assert.equal((await getDoc(aRef)).data().revision,2);
+  });
+
   test('another signed-in user cannot read, overwrite or delete the owner document', async () => {
     const alice = environment.authenticatedContext('alice').firestore();
     await setDoc(doc(alice, path('alice')), snapshot());
