@@ -50,6 +50,13 @@ export function validateFinalRubric(raw,catalog){
 export function finalCatalogDigest(catalog){
   return createHash('sha256').update(JSON.stringify(catalog),'utf8').digest('hex');
 }
+// Only stored in private, server-owned exam sessions; never returned to client.
+// An administrative rubric edit during an exam invalidates the old session.
+export function finalRubricDigest(rubric,catalog){
+  validateFinalRubric(rubric,catalog);
+  const rows=catalog.tasks.map(t=>[t.id,rubric.answers[t.id]]);
+  return createHash('sha256').update(JSON.stringify(rows),'utf8').digest('hex');
+}
 export function selectFinalTasks(catalog,rng=randomInt){
   const selected=[];
   for(const domain of DEFENSE_DOMAINS){

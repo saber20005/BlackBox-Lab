@@ -1,7 +1,7 @@
 import {randomUUID,randomInt} from 'node:crypto';
 import {
   DEFENSE_GROUP,DEFENSE_DOMAINS,FINAL_EXAM_VERSION,FINAL_EXAM_TTL_MS,
-  validateFinalCatalog,validateFinalRubric,finalCatalogDigest,selectFinalTasks,
+  validateFinalCatalog,validateFinalRubric,finalCatalogDigest,finalRubricDigest,selectFinalTasks,
   publicFinalChallenge,gradeFinalExam,nextDefenseExamQuota,validateDefensePortfolio,
   validDefenseUid,validDefenseSession,
 } from './defense-final-core.js';
@@ -31,7 +31,9 @@ export async function beginDefenseFinalExam(db,FieldValue,uid,now=()=>Date.now()
     tx.set(quotaRef(db,uid),quota);
     tx.create(sessionRef(db,sessionId),{
       schemaVersion:1,uid,groupId:DEFENSE_GROUP,version:FINAL_EXAM_VERSION,
-      catalogDigest:finalCatalogDigest(catalog),selectedIds:selected.map(t=>t.id),
+      catalogDigest:finalCatalogDigest(catalog),
+      rubricDigest:finalRubricDigest(rubSnap.data(),catalog),
+      selectedIds:selected.map(t=>t.id),
       status:'open',createdAt:FieldValue.serverTimestamp(),expiresAtMs,
     });
     return {sessionId,expiresAtMs,challenge:publicFinalChallenge(catalog,selected)};
@@ -55,6 +57,8 @@ export async function submitDefenseFinalExam(db,FieldValue,{uid,sessionId,respon
     const catalog=validateFinalCatalog(cs.data());
     if(finalCatalogDigest(catalog)!==session.catalogDigest)throw Error('exam-catalog-changed');
     validateFinalRubric(rs.data(),catalog);
+    if(finalRubricDigest(rs.data(),catalog)!==session.rubricDigest)
+      throw Error('exam-rubric-changed');
     const pool=new Map(catalog.tasks.map(t=>[t.id,t]));
     const selected=session.selectedIds.map(id=>pool.get(id));
     if(selected.some(t=>!t)||new Set(session.selectedIds).size!==12||

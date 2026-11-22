@@ -79,3 +79,11 @@ no guest/user progress is upgraded or replaced.
   competence verified.
 - Unauthorized reviewer: denied by Firebase Auth custom claim.
 - Certificate issuance: existing server feature gate remains OFF.
+
+## Rubric rotation safety
+
+An open session now includes a PRIVATE cryptographic digest of the complete
+reviewed rubric answer vector (never returned to learners); any answer-key
+change during the attempt makes submission fail closed, even if an admin
+forgets to bump the rubric version. Preserve old assessment versions for
+historical audit and start a fresh attempt after re-review.

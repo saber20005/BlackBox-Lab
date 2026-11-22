@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {
   DEFENSE_GROUP,DEFENSE_DOMAINS,FINAL_EXAM_COUNT,FINAL_EXAM_TTL_MS,
-  validateFinalCatalog,validateFinalRubric,finalCatalogDigest,selectFinalTasks,
+  validateFinalCatalog,validateFinalRubric,finalCatalogDigest,finalRubricDigest,selectFinalTasks,
   publicFinalChallenge,gradeFinalExam,nextDefenseExamQuota,validateDefensePortfolio,
 } from '../defense-final-core.js';
 import {
@@ -91,6 +91,7 @@ test('public independent exam has 4 distinct domains, random selected subset, 12
   assert.equal(Object.hasOwn(pub.tasks[0],'reviewed'),false);
   assert(!serialized.includes('answerKey'));
   assert.match(finalCatalogDigest(c),/^[a-f0-9]{64}$/);
+  assert.match(finalRubricDigest(rubric(),c),/^[a-f0-9]{64}$/);
   assert.throws(()=>validateFinalCatalog({...catalog(),reviewed:false}),/exam-catalog-unavailable/);
   assert.throws(()=>validateFinalRubric({...rubric(),answers:{...rubric().answers,extra:'a'}},c),/invalid-final-rubric/);
 });
@@ -145,6 +146,16 @@ test('missing and disabled private rubrics, invalid quotas or catalog changes fa
   assert.throws(()=>nextDefenseExamQuota({windowStartMs:NOW,count:3},NOW+1000),/exam-quota-exceeded/);
   assert.deepEqual(nextDefenseExamQuota({windowStartMs:NOW,count:3},NOW+86400000),
     {windowStartMs:NOW+86400000,count:1});
+});
+test('a private rubric edited during an open exam invalidates the session without awarding any result',async()=>{
+  const db=new MemoryDB(data()),opened=await start(db);
+  const old=db.docs.get('defenseFinalRubrics/'+DEFENSE_GROUP);
+  db.docs.set('defenseFinalRubrics/'+DEFENSE_GROUP,{
+    ...old,answers:{...old.answers,[opened.challenge.tasks[0].id]:'c'},
+  });
+  await assert.rejects(()=>submit(db,opened,answers(opened.challenge.tasks)),/exam-rubric-changed/);
+  assert.equal(db.docs.get('defenseFinalSessions/'+ID).status,'open');
+  assert.equal(db.docs.has('blackboxUsers/'+UID+'/defenseFinalResults/defensive-analysis_v1'),false);
 });
 test('stale previously passed exam is NOT used for portfolio, even if catalog changes without version bump',async()=>{
   const db=new MemoryDB(data()),opened=await start(db);
