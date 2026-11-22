@@ -31,3 +31,86 @@ html[data-bb-theme="light"] .bb-settings-privacy{background:#ecf3fc}
   .account-dialog::backdrop{backdrop-filter:blur(9px)}
 }
 @media(prefers-reduced-motion:reduce){.account-dialog *{transition:none!important;transform:none!important}}
+
+/* V2 full-interface controls and a real-time, clearly marked simulated preview. */
+.bb-studio{--studio-accent:var(--green);--studio-panel:var(--panel);--studio-bg:var(--bg);--studio-text:var(--text);--studio-line:var(--line);--studio-muted:var(--muted);min-width:0}
+.bb-studio *{box-sizing:border-box}
+.bb-studio-header{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;margin:10px 0 26px}
+.bb-studio-kicker,.bb-studio-label{font:700 10px "IBM Plex Mono",monospace;letter-spacing:.1em;color:var(--studio-accent)}
+.bb-studio-header h1{font-size:clamp(27px,4vw,40px);margin:9px 0;line-height:1.4}
+.bb-studio-header p{max-width:740px;color:var(--studio-muted);line-height:1.85;margin:0}
+.bb-studio-tag{font-size:11px;padding:9px 13px;border:1px solid var(--studio-line);border-radius:99px;background:var(--studio-panel)}
+.bb-studio-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:17px;align-items:start}
+.bb-studio-sections{display:grid;gap:17px;min-width:0}
+.bb-studio-panel{min-width:0;border:1px solid var(--studio-line);border-radius:17px;background:linear-gradient(155deg,var(--studio-panel),var(--panel2));padding:22px}
+.bb-studio-panel h2{font-size:20px;margin:7px 0 20px}
+.bb-studio-presets,.bb-studio-themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.bb-studio-preset,.bb-studio-theme{display:flex;flex-direction:column;text-align:right;align-items:stretch;min-width:0;gap:5px;padding:10px;color:var(--studio-text);background:var(--studio-bg);border:1px solid var(--studio-line);border-radius:12px;position:relative;transition:transform .15s}
+.bb-studio-preset:hover,.bb-studio-theme:hover{transform:translateY(-2px)}
+.bb-studio-preset strong,.bb-studio-theme strong{font-size:12px}
+.bb-studio-preset small,.bb-studio-theme small{color:var(--studio-muted);font-size:10px;line-height:1.65}
+.bb-studio :is(.bb-studio-preset,.bb-studio-theme,.bb-studio-swatch)[aria-pressed="true"]{border-color:var(--studio-accent);box-shadow:0 0 0 1px var(--studio-accent)}
+.bb-studio-preset[aria-pressed="true"]:after,.bb-studio-theme[aria-pressed="true"]:after{position:absolute;inset-inline-start:9px;top:7px;content:"✓";color:var(--studio-accent)}
+.bb-studio-visual{height:66px;border-radius:8px;display:flex;align-items:end;gap:6px;padding:11px;background:linear-gradient(130deg,#1d3d62,#0a1222)}
+.bb-studio-visual.focus{background:linear-gradient(120deg,#163441,#080f18)}
+.bb-studio-visual.reading{background:linear-gradient(120deg,#bfd4ed,#f0f5fd)}
+.bb-studio-visual.stealth{background:linear-gradient(120deg,#15323b,#0a0f16)}
+.bb-studio-visual.light{background:linear-gradient(120deg,#bcd0eb,#edf4fe)}
+.bb-studio-visual i{display:block;width:20%;height:58%;background:var(--studio-accent);border-radius:3px}
+.bb-studio-visual i:nth-child(2){height:90%;opacity:.55}.bb-studio-visual i:nth-child(3){height:39%;opacity:.4}
+.bb-studio-accent-title{font-weight:700;font-size:13px;margin:20px 0 10px}
+.bb-studio-swatches{display:flex;gap:9px;flex-wrap:wrap}
+.bb-studio-swatch{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:8px 13px;border:1px solid var(--studio-line);border-radius:99px;color:var(--studio-text);background:var(--studio-bg);font-size:12px}
+.bb-studio-swatch span{height:16px;width:16px;border:1px solid #ffffff61;border-radius:50%}
+.bb-studio-options{display:grid;gap:14px}
+.bb-studio-option{display:grid;grid-template-columns:minmax(110px,.75fr) minmax(0,1.25fr);gap:9px;align-items:center}
+.bb-studio-option>span{font-weight:700;font-size:13px}
+.bb-studio-choice{display:flex;gap:4px;flex-wrap:wrap;background:var(--studio-bg);border:1px solid var(--studio-line);padding:4px;border-radius:10px}
+.bb-studio-choice button{flex:1 1 auto;border:1px solid transparent;background:transparent;color:var(--studio-muted);border-radius:7px;min-height:38px;padding:7px 9px;font-size:11px}
+.bb-studio-choice button[aria-pressed="true"]{background:var(--panel2);color:var(--studio-text);border-color:var(--studio-accent)}
+.bb-studio-level{display:grid;gap:8px;font-size:13px;font-weight:700}
+.bb-studio-level select{background:var(--studio-bg);color:var(--studio-text);border:1px solid var(--studio-line);padding:12px;border-radius:10px;min-height:47px}
+.bb-studio-note{font-size:12px;line-height:1.8;color:var(--studio-muted)}
+.bb-studio-preview-wrap{min-width:0}
+.bb-studio-preview-stick{position:sticky;top:16px;border:1px solid var(--studio-line);border-radius:17px;padding:17px;background:var(--studio-panel)}
+.bb-studio-preview-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 15px}
+.bb-studio-preview-head h2{font-size:17px;margin:5px 0}
+.bb-studio-preview-head small{color:#63d4af;font-size:11px}
+.bb-studio-preview{background:var(--studio-bg);border:1px solid var(--studio-line);border-radius:13px;overflow:hidden}
+.bb-studio-preview-top{display:flex;align-items:center;justify-content:space-between;gap:9px;background:var(--panel2);padding:13px;border-bottom:1px solid var(--studio-line)}
+.bb-studio-preview-top strong{font:700 13px "IBM Plex Mono",monospace}.bb-studio-preview-top small{font:700 9px "IBM Plex Mono",monospace;color:var(--studio-muted)}
+.bb-studio-preview-content{padding:20px}
+.bb-studio-preview-content h3{font-size:22px;margin:10px 0}
+.bb-studio-preview-content p{font-size:12px;line-height:1.8;color:var(--studio-muted)}
+.bb-studio-preview-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:20px 0}
+.bb-studio-preview-kpis>div{background:var(--studio-panel);border:1px solid var(--studio-line);border-radius:9px;padding:10px 8px}
+.bb-studio-preview-kpis small{display:block;color:var(--studio-muted);font-size:10px}
+.bb-studio-preview-kpis strong{display:block;color:var(--studio-accent);font-size:18px;overflow-wrap:anywhere}
+.bb-studio-preview-task{display:flex;align-items:center;gap:10px;border:1px solid var(--studio-line);border-radius:9px;padding:12px;background:var(--studio-panel)}
+.bb-studio-preview-task>span{color:var(--studio-accent);font-size:25px}
+.bb-studio-preview-task strong{display:block;font-size:13px}
+.bb-studio-preview-task small{display:block;font-size:10px;color:var(--studio-muted)}
+.bb-studio-preview-buttons{display:flex;gap:7px;margin-top:15px}
+.bb-studio-preview-buttons span{flex:1;text-align:center;border:1px solid var(--studio-line);border-radius:9px;padding:10px;font-size:11px}
+.bb-studio-preview-buttons span:first-child{background:var(--studio-accent);color:#101c2d;font-weight:800}
+.bb-studio-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:16px}
+.bb-studio-footer p{flex:1;font-size:12px;color:var(--studio-muted);line-height:1.7}
+.bb-studio-footer button{background:var(--studio-bg);color:var(--studio-text);border:1px solid var(--studio-line);padding:10px 12px;border-radius:10px;min-height:43px;font-size:12px}
+.bb-studio :is(button,select):focus-visible{outline:3px solid var(--studio-accent);outline-offset:3px}
+@media(max-width:1050px){.bb-studio-layout{grid-template-columns:1fr}.bb-studio-preview-stick{position:static}}
+@media(max-width:550px){.bb-studio-panel{padding:15px}.bb-studio-option{grid-template-columns:1fr}.bb-studio-presets,.bb-studio-themes{gap:7px}.bb-studio-preset,.bb-studio-theme{padding:8px}.bb-studio-visual{height:51px}.bb-studio-preview-content{padding:14px}}
+@media(max-width:360px){.bb-studio-presets{grid-template-columns:1fr}.bb-studio-preset{display:grid;grid-template-columns:75px minmax(0,1fr);align-items:center}.bb-studio-preset .bb-studio-visual{grid-row:span 2}}
+html[data-bb-theme="stealth"]{color-scheme:dark;--bg:#071019;--panel:#121c29;--panel2:#192736;--line:#344a5c;--text:#eaf6ff;--muted:#a8c3d5;--green:#36c4e8;--green2:#2199bd;--blue:#6de1f5}
+html[data-bb-theme="stealth"] body{background:#071019}
+html[data-bb-theme="stealth"] .sidebar{background:#0b151e}
+html[data-bb-theme="stealth"] .card{background:#101d2b}
+html[data-bb-accent="cyan"]{--green:#35c5e8;--green2:#22a2c5;--blue:#6cdcec}
+html[data-bb-accent="violet"]{--green:#a994fb;--green2:#795fe0;--blue:#c8b6ff}
+html[data-bb-theme="light"][data-bb-accent="cyan"]{--green:#136d81;--green2:#157387;--blue:#136d81}
+html[data-bb-theme="light"][data-bb-accent="violet"]{--green:#5e45a8;--green2:#5e45a8;--blue:#5e45a8}
+html[data-bb-density="compact"] .main :is(.card,.stat,.path){padding:11px!important}
+html[data-bb-density="compact"] .bb-studio :is(.bb-studio-panel,.bb-studio-preview-content){padding:12px!important}
+html[data-bb-text="xlarge"] body{font-size:17px}
+html[data-bb-contrast="high"]{--muted:var(--text);--line:var(--green)}
+html[data-bb-contrast="high"] :is(button,a,select,summary):focus-visible{outline:3px solid var(--green)!important;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.bb-studio *{transition:none!important;transform:none!important;animation:none!important}}

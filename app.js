@@ -1,5 +1,6 @@
 import { tracks, errors } from './data.js';
-import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPreferences } from './assets/modules/preferences/ui-preferences.js';
+import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPreferences, applyBbPreset, BB_UI_DEFAULTS } from './assets/modules/preferences/ui-preferences.js';
+import { renderBbStudio } from './assets/modules/preferences/ui-studio.js';
 import { parseRoute, routeURL, routeMetadata, primaryView } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';
@@ -285,25 +286,7 @@ function accountSummary() {
 function accountPage() {
   return `${hero('حسابي', 'الحساب والحفظ ومساعدة التدريب في مكان واحد.')}<section class="card account-overview"><h2>${accountStatus.user ? 'حساب التدريب' : 'مساحتك متاحة كضيف'}</h2><p data-workspace-account-state role="status">${esc(accountSummary())}</p><button type="button" class="primary" data-open-account>${accountStatus.user ? 'إدارة حسابي' : 'تسجيل الدخول أو إنشاء حساب'}</button></section><details class="card section optional-panel" data-environment-settings><summary>إعداد بيئة التدريب المحلية</summary><p class="context-note">سجّل ما تحققت منه في مختبرك. التدريب على السجلات داخل المتصفح متاح دون آلة افتراضية.</p>${statusControls()}<a class="link-btn" id="localSetupGuideLink" href="./?intro=1#local-lab-setup">دليل تجهيز VirtualBox ←</a></details><section class="card section bb-settings-link"><h2>تفضيلات الاستخدام</h2><p>مظهر ليلي أو فاتح، نص أكبر، تقليل الحركة، ومستوى التدريب الاختياري.</p><button type="button" class="secondary" data-nav="settings">فتح مركز الإعدادات ←</button></section><section class="card section resource-links"><h2>أدلة التدريب</h2><a href="./training-guide.html">استخدام ملفات التدريب ←</a><a href="./labs.html">دليل المختبرات المحلية ←</a><a href="${esc(partnerURL())}" data-partner="account">CyberTrace للتحقيقات التفاعلية ←</a></section>`;
 }
-function settingsPage() {
-  const options=(key,rows)=>rows.map(([value,label])=>`<option value="${value}"${displayPreferences[key]===value?' selected':''}>${label}</option>`).join('');
-  return `${hero('إعدادات العرض', 'اختر الطريقة الأنسب لك لاستخدام BLACKBOX، دون المساس بالملاحظات أو بيانات حسابك.', 'WORKSPACE / PREFERENCES')}
-  <div class="bb-settings-grid">
-    <section class="card bb-settings-panel" aria-labelledby="bb-settings-display">
-      <h2 id="bb-settings-display">المظهر وإمكانية الوصول</h2>
-      <label class="bb-settings-control"><span>المظهر</span><select data-bb-ui-key="theme">${options('theme',[['dark','ليلي — الأزرق الأصلي'],['light','فاتح — للقراءة']])}</select></label>
-      <label class="bb-settings-control"><span>حجم النص</span><select data-bb-ui-key="textSize">${options('textSize',[['normal','عادي'],['large','أكبر']])}</select></label>
-      <label class="bb-settings-control"><span>المؤثرات الحركية</span><select data-bb-ui-key="motion">${options('motion',[['system','حسب نظام الجهاز'],['reduce','تقليل الحركة']])}</select></label>
-    </section>
-    <section class="card bb-settings-panel" aria-labelledby="bb-settings-learning">
-      <h2 id="bb-settings-learning">مستوى التدريب — اختياري</h2>
-      <p>اختر مستواك لتفضيل طريقة التعلم مستقبلًا. هذا الاختيار لا يفتح مرحلة مغلقة، ولا يمنح شهادة أو صلاحية.</p>
-      <label class="bb-settings-control"><span>مستواي الحالي</span><select data-bb-ui-key="level">${options('level',[['unset','لم أحدد بعد'],['beginner','مبتدئ'],['hobbyist','هاوٍ'],['intermediate','متوسط'],['advanced','متقدم']])}</select></label>
-      <div class="bb-settings-privacy"><b>حفظ محلي فقط</b><p>تُحفظ تفضيلات العرض في هذا المتصفح على هذا الجهاز، ولا تتزامن مع Firebase أو CyberTrace. لن تتغير الملاحظات أو نتائج التدريب.</p></div>
-    </section>
-  </div>
-  <div class="bb-settings-actions"><p data-bb-ui-feedback role="status" aria-live="polite"></p><button type="button" class="secondary" data-bb-ui-reset>استعادة المظهر الافتراضي</button></div>`;
-}
+function settingsPage() { return renderBbStudio(displayPreferences); }
 function recentActivity() {
   const recent = [...state.logs].reverse().slice(0, 3);
   return recent.length ? `<ol class="activity-list">${recent.map(item => `<li><span>${esc(item.msg)}</span><time datetime="${esc(item.at)}">${esc(dateLabel(item.at))}</time></li>`).join('')}</ol>` : '<p class="muted">ستظهر هنا المراحل التي تؤكّد إنجازها والتغييرات التي تسجّلها.</p>';
@@ -617,21 +600,34 @@ function refreshSearch(id, value, position) {
   if (typeof position === 'number' && input.type !== 'search') input.setSelectionRange(position, position);
 }
 function bind() {
-  // Settings are local device preferences, never saved into training progress.
-  content.querySelectorAll('[data-bb-ui-key]').forEach(select => select.addEventListener('change', () => {
-    const key=select.dataset.bbUiKey;
-    if(!Object.hasOwn(displayPreferences,key))return;
-    displayPreferences=applyBbPreferences(normalizeBbPreferences({...displayPreferences,[key]:select.value}));
-    const saved=saveBbPreferences(displayPreferences,storage);
-    const status=content.querySelector('[data-bb-ui-feedback]');
-    if(status)status.textContent=saved?'تم حفظ التفضيلات على هذا الجهاز.':'تعذّر الحفظ؛ سيبقى هذا العرض حتى تحديث الصفحة.';
-  }));
-  content.querySelector('[data-bb-ui-reset]')?.addEventListener('click', () => {
-    displayPreferences=applyBbPreferences(null);
-    const saved=saveBbPreferences(displayPreferences,storage);
+  // Presentation-only studio, scoped to the current page and preference allowlist.
+  function updateStudio(next, message, focusSelector) {
+    displayPreferences=applyBbPreferences(next);
+    const stored=saveBbPreferences(displayPreferences,storage);
     render(false);
     const status=content.querySelector('[data-bb-ui-feedback]');
-    if(status)status.textContent=saved?'استُعيد المظهر الافتراضي.':'استُعيد المظهر الافتراضي لهذه الجلسة فقط.';
+    if(status) status.textContent=stored?message:'التغيير يعمل الآن، لكن المتصفح رفض حفظه.';
+    if(focusSelector) content.querySelector(focusSelector)?.focus({preventScroll:true});
+  }
+  content.querySelectorAll('[data-bb-choice-key]').forEach(button=>button.addEventListener('click',()=>{
+    const key=button.dataset.bbChoiceKey;
+    const value=button.dataset.bbChoiceValue;
+    if(!Object.hasOwn(displayPreferences,key)) return;
+    const next=normalizeBbPreferences({...displayPreferences,[key]:value});
+    if(next[key]!==value) return;
+    updateStudio(next,'تم تطبيق التغيير وحفظه محليًا.','[data-bb-choice-key="'+key+'"][data-bb-choice-value="'+value+'"]');
+  }));
+  content.querySelectorAll('[data-bb-preset]').forEach(button=>button.addEventListener('click',()=>{
+    const id=button.dataset.bbPreset;
+    updateStudio(applyBbPreset(displayPreferences,id),'تم تطبيق نمط العمل.','[data-bb-preset="'+id+'"]');
+  }));
+  content.querySelectorAll('[data-bb-ui-key]').forEach(select=>select.addEventListener('change',()=>{
+    const key=select.dataset.bbUiKey;
+    if(!Object.hasOwn(displayPreferences,key)) return;
+    updateStudio(normalizeBbPreferences({...displayPreferences,[key]:select.value}),'تم تحديث المستوى الاختياري.','[data-bb-ui-key="'+key+'"]');
+  }));
+  content.querySelector('[data-bb-ui-reset]')?.addEventListener('click',()=>{
+    updateStudio(BB_UI_DEFAULTS,'استُعيدت إعدادات BLACKBOX الأصلية.','[data-bb-ui-reset]');
   });
   const gradingForm = document.getElementById('verifiedGradingForm');
   const startButton = document.getElementById('startVerifiedGrading');

@@ -574,6 +574,52 @@ try {
   report.suiteJourneysMobileSafe=true;
   console.log('PASS suite learning journeys: four paths and 16 safe links, mobile/desktop fit, zero cross-site requests');
 
+  // Experience Studio V2: controls must really work, persist and fit phones.
+  for(const viewport of [{width:320,height:740},{width:390,height:844},{width:1440,height:1000}]){
+    const studioContext=await browser.newContext({viewport});
+    const studioErrors=[];
+    await studioContext.route('**/*',route=>{
+      const uri=new URL(route.request().url());
+      return uri.origin===origin?route.continue():route.abort('blockedbyclient');
+    });
+    const page=await studioContext.newPage();
+    activePage=page;
+    page.on('pageerror',error=>studioErrors.push(error.message));
+    try{
+      await navigate(page,'/?view=settings');
+      await page.locator('.bb-studio-preview').waitFor({state:'visible'});
+      assert.equal(await page.locator('.bb-studio-preset').count(),3);
+      assert.equal(await page.locator('.bb-studio-theme').count(),3);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'studio fits '+viewport.width+'px');
+      const original=await page.locator('.bb-studio-preview').evaluate(el=>getComputedStyle(el).backgroundColor);
+      await page.locator('[data-bb-choice-key="theme"][data-bb-choice-value="stealth"]').click();
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbTheme),'stealth');
+      const updated=await page.locator('.bb-studio-preview').evaluate(el=>getComputedStyle(el).backgroundColor);
+      assert.notEqual(updated,original,'preview theme responds to live selection');
+      await page.locator('[data-bb-choice-key="accent"][data-bb-choice-value="violet"]').click();
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbAccent),'violet');
+      await page.locator('[data-bb-preset="reading"]').click();
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbTheme),'light');
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbContrast),'high');
+      await page.locator('[data-bb-ui-key="level"]').selectOption('advanced');
+      await page.locator('[data-bb-preset="focus"]').click();
+      assert.equal(await page.locator('[data-bb-ui-key="level"]').inputValue(),'advanced','presets preserve self-reported level');
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbMotion),'reduce');
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbDensity),'compact');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'focused studio remains phone-safe');
+      await page.reload({waitUntil:'domcontentloaded'});
+      await page.locator('.bb-studio-preview').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbTheme),'stealth','theme survives reload');
+      assert.equal(await page.locator('[data-bb-ui-key="level"]').inputValue(),'advanced');
+      await page.locator('[data-bb-ui-reset]').click();
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbTheme),'dark');
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.bbAccent),'brand');
+      assert.deepEqual(studioErrors,[],'no unexpected studio browser exceptions');
+    } finally {await studioContext.close();}
+  }
+  report.experienceStudioMobileSafe=true;
+  console.log('PASS experience studio: live controls, presets, persistence, account-state isolation, 320/390/1440 fit');
+
   const lifecycle = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-training-plan-lifecycle.mjs')], {
     env: { ...process.env, BLACKBOX_TEST_URL: origin + '/?view=plan' }, timeout: 60000,
   });
