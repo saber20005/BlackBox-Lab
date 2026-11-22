@@ -165,6 +165,16 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Strong dual-account identity linkage: never let clients forge, enumerate
+    // or replace link/claim documents. Authenticated read is owner-scoped.
+    match /blackboxUsers/{uid}/identityLinks/{provider} {
+      allow get: if isOwner(uid) && provider == 'cybertrace';
+      allow list, create, update, delete: if false;
+    }
+    match /cybertraceIdentityClaims/{claimId} {
+      allow read, write: if false;
+    }
+
     // Reserved server-owned suite membership records. Admin SDK only; never grant client access.
     match /suiteMemberships/{uid} {
       allow read, write: if false;

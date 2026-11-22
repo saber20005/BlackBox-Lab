@@ -7,6 +7,9 @@ import { lookupPublicCertificate, requireCertificateId } from './certificate-reg
 import { issueVerifiedGroupCertificate } from './certificate-issuance-service.js';
 import { requireCaseId } from './grading-core.js';
 import { membershipForClient } from './suite-membership.js';
+import { getAuth } from 'firebase-admin/auth';
+import { getApps, initializeApp as initializeSecondaryApp } from 'firebase-admin/app';
+import { linkCyberTraceIdentity, currentCyberTraceLink, unlinkCyberTraceIdentity } from './cybertrace-identity-service.js';
 import { startVerifiedSocSession, submitVerifiedSocSession } from './soc-verified-service.js';
 import { requireVerifiedSocId } from './soc-verified-core.js';
 
@@ -49,6 +52,65 @@ export const submitGradingAnswer = onCall({ region: REGION, enforceAppCheck: tru
     if (error instanceof HttpsError) throw error;
     throw invalid();
   }
+});
+
+// Cross-project identity proof: BLACKBOX Auth and App Check authenticate this
+// call; a second, independently verified CyberTrace ID token proves possession
+// of the other account. No email matching or client-provided UID is trusted.
+const CYBERTRACE_PROJECT_ID = 'cybertrace-48ab0';
+const cybertraceVerifier = () => {
+  const app = getApps().find(value => value.name === 'cybertrace-token-verifier') ??
+    initializeSecondaryApp({projectId:CYBERTRACE_PROJECT_ID},'cybertrace-token-verifier');
+  return getAuth(app);
+};
+export const linkVerifiedCyberTraceAccount = onCall({
+  region: REGION, enforceAppCheck: true, maxInstances: 5,
+}, async request => {
+  const uid=authUid(request), data=request.data;
+  if (!data || typeof data !== 'object' || Array.isArray(data) ||
+      Object.keys(data).length !== 2 || typeof data.cybertraceIdToken !== 'string' ||
+      data.cybertraceIdToken.length > 8192 || data.consent !== true) {
+    throw new HttpsError('invalid-argument','Explicit dual-account consent and a CyberTrace token are required.');
+  }
+  let claims;
+  try {
+    claims = await cybertraceVerifier().verifyIdToken(data.cybertraceIdToken,true);
+  } catch {
+    throw new HttpsError('unauthenticated','CyberTrace authentication must be refreshed.');
+  }
+  try {
+    return await linkCyberTraceIdentity(db,FieldValue,{
+      blackboxUid:uid,blackboxClaims:request.auth.token,cybertraceClaims:claims,consent:true,
+    });
+  } catch (error) {
+    if (error.message === 'recent-login-required') {
+      throw new HttpsError('failed-precondition','Sign in again to both accounts before linking.');
+    }
+    if (error.message === 'identity-already-linked') {
+      throw new HttpsError('already-exists','One of these accounts is already linked to a different identity.');
+    }
+    throw new HttpsError('failed-precondition','Unable to verify account ownership.');
+  }
+});
+
+export const getVerifiedCyberTraceLink = onCall({
+  region: REGION, enforceAppCheck: true, maxInstances: 5,
+}, async request => {
+  const uid=authUid(request);
+  if (request.data && Object.keys(request.data).length) throw new HttpsError('invalid-argument','Unexpected parameters.');
+  try { return await currentCyberTraceLink(db,uid); }
+  catch { throw new HttpsError('unavailable','Cannot read account link right now.'); }
+});
+
+export const unlinkVerifiedCyberTraceAccount = onCall({
+  region: REGION, enforceAppCheck: true, maxInstances: 5,
+}, async request => {
+  const uid=authUid(request);
+  if (!request.data || Object.keys(request.data).length !== 1 || request.data.consent !== true) {
+    throw new HttpsError('invalid-argument','Explicit unlink confirmation is required.');
+  }
+  try { return await unlinkCyberTraceIdentity(db,uid); }
+  catch { throw new HttpsError('failed-precondition','Unable to unlink; contact support.'); }
 });
 
 // Read-only membership endpoint. This cannot grant Pro access or process payments.
