@@ -10,7 +10,7 @@ test('catalog contains distinct valid manual isolated labs', () => {
   for (const lab of labs) assert.equal(validateLab(lab), true);
 });
 test('filter by category and difficulty', () => {
-  assert.equal(filterLabs({ category: 'network' }).length, 1);
+  assert.equal(filterLabs({ category: 'network' }).length, 2);
   assert.equal(filterLabs({ difficulty: 'advanced' }).length, 0);
 });
 test('rejects unsafe network and automated execution claims', () => {

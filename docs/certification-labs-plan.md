@@ -57,3 +57,12 @@
   https://csrc.nist.gov/pubs/sp/800/115/final
 - OWASP WSTG: خطة اختبار الويب والتحقق ضمن حدود النطاق
   https://wstg.owasp.org/latest/03-The_OWASP_Testing_Framework/0-The_Web_Security_Testing_Framework/
+
+## مختبر Nmap مضبوظ يدويًا داخل Host-Only
+
+أُضيف إلى الفهرس مختبر `nmap-controlled-target`، مع خدمة HTTP ثابتة
+للقراءة فقط في `training-kit/blackbox-network/target_service.py`، دليل
+التشغيل والإيقاف `README-ar.md`، واختبارات Python على loopback.
+يرفض السيرفر الربط بـ `0.0.0.0` والعناوين العامة، ويطلب تأكيدًا صريحًا
+على محول Host-Only عند استخدام RFC1918؛ **التأكيد لا يفحص VirtualBox بنفسه**.
+لا تُقبل ملفات المخرجات المكتوبة بواسطة المتعلم وحدها كدليل تنفيذ موثق.
