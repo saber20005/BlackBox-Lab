@@ -26,7 +26,7 @@ const expectedCss = [
   "training-hints.css", "whats-new.css", "workspace-shell.css",
 ];
 
-// Reviewed /certificates.html and /verify.html public routes, including the\n// new read-only certificate verification scripts, are explicitly allowlisted.
+// Reviewed new /certificates.html route and its read-only scripts are explicitly allowlisted.
 // Existing public JS/HTML entry points are documented exceptions to the
 // flat-root policy. New frontend files must be grouped or explicitly reviewed.
 const allowedRootJs = new Set([

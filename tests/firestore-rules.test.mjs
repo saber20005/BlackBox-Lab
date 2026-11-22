@@ -393,4 +393,42 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     }
   });
 
+  test('certificate policy, award pointers and revocation audit never accept client forgery', async () => {
+    const aid='cybertrace_email_v1',cid='0123456789abcdef0123456789abcdef';
+    const awardPath='blackboxUsers/alice/certificateAwards/'+aid;
+    const policyPath='certificatePolicies/'+aid;
+    const auditPath='certificateRevocationAudit/'+cid;
+    await environment.withSecurityRulesDisabled(async context=>{
+      const admin=context.firestore();
+      await setDoc(doc(admin,awardPath),{schemaVersion:1,certificateId:cid,status:'active',uid:'alice'});
+      await setDoc(doc(admin,policyPath),{enabled:true,reviewed:true,minimumScore:70});
+      await setDoc(doc(admin,auditPath),{schemaVersion:1,actor:'admin'});
+    });
+    const alice=environment.authenticatedContext('alice').firestore();
+    const bob=environment.authenticatedContext('bob').firestore();
+    const guest=environment.unauthenticatedContext().firestore();
+    assert.equal((await assertSucceeds(getDoc(doc(alice,awardPath)))).data().certificateId,cid);
+    await assertSucceeds(getDocs(collection(alice,'blackboxUsers/alice/certificateAwards')));
+    for (const db of [bob,guest]){
+      await assertFails(getDoc(doc(db,awardPath)));
+      await assertFails(getDocs(collection(db,'blackboxUsers/alice/certificateAwards')));
+    }
+    for (const db of [alice,bob,guest]){
+      for(const path of [policyPath,auditPath]){
+        const ref=doc(db,path);
+        await assertFails(getDoc(ref));
+        await assertFails(setDoc(ref,{enabled:true}));
+        await assertFails(updateDoc(ref,{enabled:false}));
+        await assertFails(deleteDoc(ref));
+      }
+      const ownerAward=doc(db,awardPath);
+      await assertFails(setDoc(ownerAward,{status:'active'}));
+      await assertFails(updateDoc(ownerAward,{status:'revoked'}));
+      await assertFails(deleteDoc(ownerAward));
+      await assertFails(setDoc(doc(db,'blackboxUsers/alice/certificateAwards/cybertrace_web_v1'),{
+        certificateId:'ffffffffffffffffffffffffffffffff',status:'active',
+      }));
+    }
+  });
+
 }

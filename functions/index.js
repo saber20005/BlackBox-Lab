@@ -4,6 +4,7 @@ import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
 import { lookupPublicCertificate, requireCertificateId } from './certificate-registry.js';
+import { issueVerifiedGroupCertificate } from './certificate-issuance-service.js';
 import { requireCaseId } from './grading-core.js';
 import { membershipForClient } from './suite-membership.js';
 import { startVerifiedSocSession, submitVerifiedSocSession } from './soc-verified-service.js';
@@ -137,5 +138,39 @@ export const verifyIssuedCertificate = onRequest({
     response.status(200).json(record);
   } catch {
     response.status(503).json({ status: 'unavailable', valid: false });
+  }
+});
+
+// No group certificate may be issued from production before per-group verified
+// rubrics, review, Auth/App Check configuration, and owner approval are complete.
+// Changing this gate is a SEPARATE security-reviewed release, not a database toggle.
+const CERTIFICATE_ISSUANCE_ENABLED = false;
+export const issueGroupCertificate = onCall({
+  region: REGION, enforceAppCheck: true, maxInstances: 5,
+}, async request => {
+  const uid=authUid(request);
+  if (!CERTIFICATE_ISSUANCE_ENABLED) {
+    throw new HttpsError('failed-precondition', 'Verified certificate issuance is not enabled.');
+  }
+  const data=request.data;
+  if (!data || typeof data!=='object' || Array.isArray(data) ||
+      Object.keys(data).length!==3 ||
+      !Object.hasOwn(data,'issuer') || !Object.hasOwn(data,'groupId') ||
+      data.consent!==true) {
+    throw new HttpsError('invalid-argument','Invalid certificate request.');
+  }
+  try {
+    return await issueVerifiedGroupCertificate(db,FieldValue,{
+      uid,issuer:data.issuer,groupId:data.groupId,consent:true,
+    });
+  } catch (error) {
+    if (['unsupported-certificate-group','consent-required'].includes(error?.message)) {
+      throw new HttpsError('invalid-argument','Unsupported request.');
+    }
+    if (['group-assessments-not-available','certificate-policy-disabled',
+        'verified-assessments-incomplete'].includes(error?.message)) {
+      throw new HttpsError('failed-precondition','Server-graded requirements are not yet met.');
+    }
+    throw new HttpsError('unavailable','Certificate issuance could not be completed.');
   }
 });

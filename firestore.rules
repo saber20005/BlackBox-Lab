@@ -176,6 +176,20 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Private policy and revocation audit are NEVER exposed to clients.
+    // Owner may only read their issued certificate pointer, never create or
+    // update awards. The source-of-truth registry remains server-only.
+    match /certificatePolicies/{policyId} {
+      allow read, write: if false;
+    }
+    match /blackboxUsers/{uid}/certificateAwards/{awardId} {
+      allow get, list: if isOwner(uid);
+      allow create, update, delete: if false;
+    }
+    match /certificateRevocationAudit/{certificateId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
