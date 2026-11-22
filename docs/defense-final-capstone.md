@@ -87,3 +87,12 @@ reviewed rubric answer vector (never returned to learners); any answer-key
 change during the attempt makes submission fail closed, even if an admin
 forgets to bump the rubric version. Preserve old assessment versions for
 historical audit and start a fresh attempt after re-review.
+
+## Old receipts and private rubric rotation
+
+Every passing result now records *both* catalog and PRIVATE rubric digests.
+Before exposing a passed readiness state or accepting an evidence portfolio,
+the server checks both against the currently reviewed, enabled versions.
+A private answer-key change thus invalidates previous exam passes and their
+portfolio eligibility, even if the administrator forgot to increase version.
+No SHA hash of answers is returned to a learner.

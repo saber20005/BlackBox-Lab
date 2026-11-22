@@ -72,19 +72,21 @@ export async function submitDefenseFinalExam(db,FieldValue,{uid,sessionId,respon
       throw Error('invalid-final-history');
     // A changed catalog invalidates the old score and pass, even when its
     // version was accidentally not bumped. A stale pass must never survive.
-    const sameCatalog=prior?.catalogDigest===session.catalogDigest;
-    const priorScore=sameCatalog?prior.bestScore:-1;
-    const keepPass=Boolean(sameCatalog&&prior.passed===true);
+    const sameExam=prior?.catalogDigest===session.catalogDigest &&
+      prior?.rubricDigest===session.rubricDigest;
+    const priorScore=sameExam?prior.bestScore:-1;
+    const keepPass=Boolean(sameExam&&prior.passed===true);
     const finalScore=Math.max(score.score,priorScore);
     const finalPassed=score.passed||keepPass;
     tx.update(sessionRef(db,sessionId),{status:'consumed',consumedAt:FieldValue.serverTimestamp()});
-    if(!sameCatalog||score.score>priorScore||(finalPassed&&!keepPass)){
+    if(!sameExam||score.score>priorScore||(finalPassed&&!keepPass)){
       tx.set(resultRef(db,uid),{
         schemaVersion:1,source:'server-final-knowledge-exam',uid,groupId:DEFENSE_GROUP,
         version:FINAL_EXAM_VERSION,catalogDigest:session.catalogDigest,
+        rubricDigest:session.rubricDigest,
         bestScore:finalScore,
         passed:finalPassed,sessionId,
-        firstVerifiedAt:sameCatalog?prior.firstVerifiedAt:FieldValue.serverTimestamp(),
+        firstVerifiedAt:sameExam?prior.firstVerifiedAt:FieldValue.serverTimestamp(),
         updatedAt:FieldValue.serverTimestamp(),credentialEligible:false,
       });
     }
@@ -110,6 +112,7 @@ export async function submitDefensePortfolio(db,FieldValue,{uid,artifacts,consen
     if(!verified||verified.source!=='server-final-knowledge-exam'||verified.uid!==uid||
        verified.version!==FINAL_EXAM_VERSION||verified.passed!==true||
        verified.catalogDigest!==finalCatalogDigest(catalog)||
+       verified.rubricDigest!==finalRubricDigest(rubricSnap.data(),catalog)||
        verified.credentialEligible!==false)throw Error('final-exam-required');
     const existing=old.exists?old.data():null;
     if(existing&&(!['needs-revision'].includes(existing.reviewStatus)||
@@ -142,13 +145,14 @@ export async function getMyDefenseReadiness(db,uid){
     if(catalogSnap.exists&&rubricSnap.exists){
       const catalog=validateFinalCatalog(catalogSnap.data());
       validateFinalRubric(rubricSnap.data(),catalog);
-      catalogCurrent=e?.catalogDigest===finalCatalogDigest(catalog);
+      catalogCurrent=e?.catalogDigest===finalCatalogDigest(catalog)&&
+        e?.rubricDigest===finalRubricDigest(rubricSnap.data(),catalog);
     }
   }catch{/* A disabled or changed rubric invalidates the pass display. */}
   const hasVerifiedFinal=Boolean(catalogCurrent&&e&&e.uid===uid&&
     e.source==='server-final-knowledge-exam'&&e.version===FINAL_EXAM_VERSION&&e.passed===true);
   return {groupId:DEFENSE_GROUP,knowledgeExamPassed:hasVerifiedFinal,
-    knowledgeBestScore:Number.isSafeInteger(e?.bestScore)?e.bestScore:null,
+    knowledgeBestScore:catalogCurrent&&Number.isSafeInteger(e?.bestScore)?e.bestScore:null,
     evidenceStatus:p&&p.uid===uid?p.reviewStatus:'not-submitted',
     credentialEligible:false,practicalEvidenceVerified:false,
     certificateIssuanceEnabled:false};

@@ -157,6 +157,21 @@ test('a private rubric edited during an open exam invalidates the session withou
   assert.equal(db.docs.get('defenseFinalSessions/'+ID).status,'open');
   assert.equal(db.docs.has('blackboxUsers/'+UID+'/defenseFinalResults/defensive-analysis_v1'),false);
 });
+test('a previously passing exam cannot qualify a portfolio after private rubric rotation',async()=>{
+  const db=new MemoryDB(data()),opened=await start(db);
+  await submit(db,opened,answers(opened.challenge.tasks));
+  assert.equal((await getMyDefenseReadiness(db,UID)).knowledgeExamPassed,true);
+  const old=db.docs.get('defenseFinalRubrics/'+DEFENSE_GROUP);
+  db.docs.set('defenseFinalRubrics/'+DEFENSE_GROUP,{
+    ...old,answers:{...old.answers,[opened.challenge.tasks[0].id]:'c'},
+  });
+  const readiness=await getMyDefenseReadiness(db,UID);
+  assert.equal(readiness.knowledgeExamPassed,false);
+  assert.equal(readiness.knowledgeBestScore,null);
+  await assert.rejects(()=>submitDefensePortfolio(db,FieldValue,{
+    uid:UID,consent:true,artifacts:evidence(),
+  }),/final-exam-required/);
+});
 test('stale previously passed exam is NOT used for portfolio, even if catalog changes without version bump',async()=>{
   const db=new MemoryDB(data()),opened=await start(db);
   await submit(db,opened,answers(opened.challenge.tasks));
