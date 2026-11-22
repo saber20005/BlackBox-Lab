@@ -165,6 +165,17 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Server-owned staged lab knowledge assessment, fully separate from
+    // client-checkable progress. The certificate issuance gate is still OFF.
+    match /labStageCatalog/{stageKey} { allow read, write: if false; }
+    match /labStageRubrics/{stageKey} { allow read, write: if false; }
+    match /labStageSessions/{sessionId} { allow read, write: if false; }
+    match /labStageQuotas/{uid} { allow read, write: if false; }
+    match /blackboxUsers/{uid}/verifiedLabStages/{stageKey} {
+      allow get, list: if isOwner(uid);
+      allow create, update, delete: if false;
+    }
+
     // Strong dual-account identity linkage: never let clients forge, enumerate
     // or replace link/claim documents. Authenticated read is owner-scoped.
     match /blackboxUsers/{uid}/identityLinks/{provider} {
