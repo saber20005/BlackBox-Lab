@@ -620,6 +620,55 @@ try {
   report.experienceStudioMobileSafe=true;
   console.log('PASS experience studio: live controls, presets, persistence, account-state isolation, 320/390/1440 fit');
 
+  // Download the exact user-facing HTML report, then open it offline at phone sizes.
+  // Markdown remains available separately; do not infer display fidelity from a raw .md viewer.
+  for(const viewport of [{width:320,height:740},{width:390,height:844},{width:1440,height:1000}]){
+    const reportContext=await browser.newContext({viewport,acceptDownloads:true});
+    const outside=[],pageErrors=[];
+    await reportContext.route('**/*',route=>{
+      const target=new URL(route.request().url());
+      if(target.origin===origin || target.protocol==='about:')return route.continue();
+      outside.push(route.request().url());return route.abort('blockedbyclient');
+    });
+    const appPage=await reportContext.newPage();
+    activePage=appPage;
+    appPage.on('pageerror',error=>pageErrors.push(error.message));
+    try{
+      await navigate(appPage,'/?view=backups');
+      const defaultAction=appPage.locator('[data-report]').first();
+      await defaultAction.waitFor({state:'visible'});
+      assert.match(await defaultAction.innerText(),/HTML/,'the default format is browser-readable');
+      const [htmlFile]=await Promise.all([appPage.waitForEvent('download'),defaultAction.click()]);
+      assert.match(htmlFile.suggestedFilename(),/^blackbox-report-\d{4}-\d{2}-\d{2}\.html$/);
+      const html=await readFile(await htmlFile.path(),'utf8');
+      assert.match(html,/<html lang="ar" dir="rtl">/);
+      assert.match(html,/طباعة أو حفظ PDF/);
+      assert.equal((html.match(/<details class="stage"/g)||[]).length,stageCount,'all original stages exported');
+      assert.match(html,/لم تُسجّل نتائج لهذه المرحلة/);
+      const reportPage=await reportContext.newPage();
+      activePage=reportPage;
+      reportPage.on('pageerror',error=>pageErrors.push(error.message));
+      await reportPage.setContent(html,{waitUntil:'domcontentloaded'});
+      assert.equal(await reportPage.locator('h1').innerText(),'تقرير التدريب');
+      assert.equal(await reportPage.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,
+        'exported report must fit '+viewport.width+'px without horizontal scroll');
+      assert.equal(await reportPage.locator('.stage').count(),stageCount);
+      const initialOpen=await reportPage.locator('.stage[open]').count();
+      await reportPage.evaluate(()=>window.dispatchEvent(new Event('beforeprint')));
+      assert.equal(await reportPage.locator('.stage[open]').count(),stageCount,'print shows every stage');
+      await reportPage.evaluate(()=>window.dispatchEvent(new Event('afterprint')));
+      assert.equal(await reportPage.locator('.stage[open]').count(),initialOpen,'print restores previous section state');
+      await reportPage.evaluate(()=>{window.print=()=>{document.body.dataset.printRequested='yes';};});
+      await reportPage.locator('#printReport').click();
+      assert.equal(await reportPage.locator('body').getAttribute('data-print-requested'),'yes',
+        'Save PDF action invokes browser print rather than a fake export');
+      assert.deepEqual(pageErrors,[],'no application or standalone report errors');
+      assert.deepEqual(outside,[],'the standalone report never fetches external content');
+    }finally{await reportContext.close();}
+  }
+  report.mobileReportExportVerified=true;
+  console.log('PASS standalone RTL report: real HTML download, offline viewing, print all sections, 320/390/1440 fit');
+
   const lifecycle = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-training-plan-lifecycle.mjs')], {
     env: { ...process.env, BLACKBOX_TEST_URL: origin + '/?view=plan' }, timeout: 60000,
   });
