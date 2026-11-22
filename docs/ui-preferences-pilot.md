@@ -6,3 +6,4 @@
 - The login dialog receives only a subtle glass visual refinement; Google/email authentication, persistence, password reset and cloud synchronization are not changed.
 - Malformed or unavailable browser storage defaults safely; text shows if persistence failed.
 - Rollout: do not merge until Node tests, mobile browser journeys, Firebase rules emulator and callable emulator are green. Preview visual contrast for 320px/390px, both themes. Do not publish repeatedly to Vercel.
+\n- Preference utilities live in grouped `assets/modules/preferences/` (no unreviewed new root entry).

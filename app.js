@@ -1,5 +1,5 @@
 import { tracks, errors } from './data.js';
-import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPreferences } from './ui-preferences.js';
+import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPreferences } from './assets/modules/preferences/ui-preferences.js';
 import { parseRoute, routeURL, routeMetadata, primaryView } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';

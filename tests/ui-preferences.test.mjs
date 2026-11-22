@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseRoute, routeURL, primaryView } from '../routes.js';
-import { BB_UI_PREFERENCES_KEY, BB_UI_DEFAULTS, normalizeBbPreferences, readBbPreferences, saveBbPreferences, applyBbPreferences } from '../ui-preferences.js';
+import { BB_UI_PREFERENCES_KEY, BB_UI_DEFAULTS, normalizeBbPreferences, readBbPreferences, saveBbPreferences, applyBbPreferences } from '../assets/modules/preferences/ui-preferences.js';
 const mock=()=>{const map=new Map();return {getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v),keys:()=>[...map.keys()]};};
 test('settings route is account-neighbor not a training stage',()=>{
   const route=parseRoute('https://blackboxlab.dev/?view=settings');
