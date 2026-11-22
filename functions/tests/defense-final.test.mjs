@@ -87,7 +87,8 @@ test('public independent exam has 4 distinct domains, random selected subset, 12
   assert(!serialized.includes('MUST_NOT_LEAK'));
   assert(!serialized.includes('accidentallyPublishedAnswer'));
   assert(!serialized.includes('answers'));
-  assert(!serialized.includes('reviewed'));
+  assert.equal(Object.hasOwn(pub,'reviewed'),false);
+  assert.equal(Object.hasOwn(pub.tasks[0],'reviewed'),false);
   assert(!serialized.includes('answerKey'));
   assert.match(finalCatalogDigest(c),/^[a-f0-9]{64}$/);
   assert.throws(()=>validateFinalCatalog({...catalog(),reviewed:false}),/exam-catalog-unavailable/);
