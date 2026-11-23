@@ -750,7 +750,7 @@ try {
       await tourPage.locator('.bb-tour-progress [data-bb-tour-step="5"]').click();
       assert.match(await tourPage.locator('.bb-mission-debrief-score').innerText(),/0 \/ 3/,'replay starts clean, no persisted mission attempts');
       await tourPage.locator('.bb-tour-progress [data-bb-tour-step="0"]').click();
-      assert.equal(await tourPage.locator('#bb-tour-main-title').innerText(),'ابدأ رحلتك داخل BLACKBOX');
+      assert.equal(await tourPage.locator('#bb-tour-main-title').innerText(),'مهمتك الأولى تبدأ هنا');
       await tourPage.locator('[data-bb-tour-skip]').click();
       await tourPage.locator('[data-training-home]').waitFor({state:'visible'});
       await navigate(tourPage,'/?view=welcome');
