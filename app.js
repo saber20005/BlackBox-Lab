@@ -213,6 +213,17 @@ function leaveWelcome(destination = 'home') {
   // This writes only a separate device-local discovery marker, never training progress.
   finishBbTour();
   document.dispatchEvent(new Event('blackbox:welcome-completed'));
+  // Replace rather than retain the one-time tour in browser history. Back should
+  // never reopen onboarding after the visitor has finished or skipped it.
+  if (destination === 'home') {
+    closeWorkspaceTools();
+    routeNotice = '';
+    currentView = 'home';
+    syncRoute(true);
+    render(true);
+    return;
+  }
+  window.history.replaceState(null, '', routeURL({ view: 'home' }, window.location.href));
   if (destination === 'lab') {
     window.location.assign('./?intro=1#local-lab-setup');
     return;
@@ -221,7 +232,7 @@ function leaveWelcome(destination = 'home') {
     openStage('logs', 0);
     return;
   }
-  navigate(['home', 'tracks', 'progress', 'settings', 'backups', 'account', 'journeys'].includes(destination) ? destination : 'home');
+  navigate(['tracks', 'progress', 'settings', 'backups', 'account', 'journeys'].includes(destination) ? destination : 'home');
 }
 function openTrack(trackId) {
   if (!trackById(trackId)) return;
