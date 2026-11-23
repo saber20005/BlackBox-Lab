@@ -4,7 +4,7 @@ import { renderBbStudio } from './assets/modules/preferences/ui-studio.js';
 import { createTrainingReportHtml } from './assets/modules/reports/training-report.js';
 import { shouldStartBbTour, finishBbTour } from './assets/modules/onboarding/first-visit.js';
 import { BB_TOUR_STEPS, renderBbWelcome } from './assets/modules/onboarding/welcome-page.js';
-import { createBbMission, bbConfigureAdapter, bbToggleSnapshot, bbSimulateCommand, bbCaptureEvidence, bbSubmitFinding } from './assets/modules/onboarding/mission-simulator.js';
+import { createBbMission, bbConfigureAdapter, bbToggleSnapshot, bbSelectScenario, bbSimulateCommand, bbCaptureEvidence, bbSubmitFinding } from './assets/modules/onboarding/mission-simulator.js';
 import { parseRoute, routeURL, routeMetadata, primaryView } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';
@@ -679,6 +679,11 @@ function bind() {
       welcomeMission = bbToggleSnapshot(welcomeMission, event.currentTarget.checked);
       refreshMission('[data-bb-mission-snapshot]');
     });
+    content.querySelectorAll('[data-bb-mission-scenario]').forEach(button => button.addEventListener('click', () => {
+      const scenario = button.dataset.bbMissionScenario;
+      welcomeMission = bbSelectScenario(welcomeMission, scenario);
+      refreshMission('[data-bb-mission-scenario="' + scenario + '"]');
+    }));
     content.querySelectorAll('[data-bb-mission-fill]').forEach(button => button.addEventListener('click', () => {
       const input = content.querySelector('#bb-mission-command');
       if (input) { input.value = button.dataset.bbMissionFill; input.focus({ preventScroll: true }); }
