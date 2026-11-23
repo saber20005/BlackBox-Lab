@@ -791,7 +791,7 @@ try {
         await spotPage.locator('.sidebar [data-view="tracks"]').click();
         await spotPage.getByText('راجع تقدّمك',{exact:true}).waitFor();
         await spotPage.locator('.sidebar [data-view="progress"]').click();
-        await spotPage.getByText('أدوات ومساعدة',{exact:true}).waitFor();
+        await spotPage.locator('#bb-sp-title').filter({hasText:'أدوات ومساعدة'}).waitFor();
         await spotPage.locator('#workspace-tools > summary').click();
       }
       await spotPage.getByText('عرفت طريقك داخل BLACKBOX').waitFor({state:'visible'});
