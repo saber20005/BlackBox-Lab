@@ -779,6 +779,15 @@ try {
       await spotPage.goto(origin+'/?view=home&spotlight-preview=1',{waitUntil:'load'});
       await spotPage.locator('.bb-sp-preview:not([hidden]) .bb-sp-panel').waitFor({state:'visible'});
       assert.match(await spotPage.locator('#bb-sp-title').innerText(),viewport.width<850?/اختصاراتك/:/المسارات/);
+      await spotPage.locator('.bb-sp-lamp').waitFor({state:'visible'});
+      await spotPage.locator('.bb-sp-beam').waitFor({state:'visible'});
+      const torch=await spotPage.locator('.bb-sp-lamp').evaluate(el=>({
+        width:el.getBoundingClientRect().width,head:el.querySelector('.bb-sp-lamp-head')!==null,
+        beam:getComputedStyle(document.querySelector('.bb-sp-beam')).clipPath
+      }));
+      assert.equal(torch.head,true,'real lamp head is rendered');
+      assert.ok(torch.width>18,'physical lamp is visible on screen');
+      assert.match(torch.beam,/polygon/,'directional light cone is visible');
       if(viewport.width<850){
         await spotPage.locator('#bb-quick-dock > summary').click();
         await spotPage.getByText('افتح المسارات',{exact:true}).waitFor();
