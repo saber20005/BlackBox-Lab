@@ -7,7 +7,12 @@ const reopen = document.getElementById('welcome-reopen');
 const tips = [...document.querySelectorAll('[data-guide-tip]')];
 const show = () => { section.hidden = false; reopen.hidden = true; };
 const hide = () => { section.hidden = true; reopen.hidden = false; try { localStorage.setItem(key, '1'); } catch {} };
-try { if (localStorage.getItem(key) === '1') hide(); } catch {}
+// After finishing the full first-visit tour, suppress the old duplicate welcome
+// panel. It can still be reopened explicitly via the existing help controls.
+try {
+  if (localStorage.getItem(key) === '1' || localStorage.getItem('blackbox.first-visit-tour.v1') === 'done') hide();
+} catch {}
+document.addEventListener('blackbox:welcome-completed', hide);
 close?.addEventListener('click', hide);
 reopen?.addEventListener('click', show);
 for (const tip of tips) {
