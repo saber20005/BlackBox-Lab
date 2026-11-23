@@ -47,7 +47,8 @@ test('welcome preview has six actionable steps and practice examples never write
   assert.match(html,/data-bb-first-visit/);
   assert.match(html,/data-bb-tour-skip/);
   assert.match(html,/data-bb-tour-prev/);
-  assert.equal((html.match(/data-bb-tour-step=/g)||[]).length,6);
+  const progressOnly=html.match(/<nav class="bb-tour-progress"[\s\S]*?<\/nav>/)?.[0]??'';
+  assert.equal((progressOnly.match(/data-bb-tour-step=/g)||[]).length,6);
   assert.match(html,/لم يتم تشغيل أي أداة/);
  }
  assert.match(renderBbWelcome(5),/data-bb-tour-go="logs"/);
