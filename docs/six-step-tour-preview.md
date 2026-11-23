@@ -1,10 +1,16 @@
-# Six-stage BLACKBOX onboarding (Vercel preview ONLY)
-The published production tour has five steps. This draft branch offers a six-step BLUE tour with a safe Nmap decision simulation. It is a functional website preview and does not change the main domain until the owner confirms it.
+# BLACKBOX interactive Mission Zero — draft preview PR #88 (third design)
 
-1. Welcome 2. Choose paths 3. VirtualBox network safety 4. Mock Nmap exercise 5. Evidence & documentation 6. Open a real training path.
+This is no longer a multiple-choice onboarding. The user carries out an entirely **in-memory simulated lab workflow** on the real BLACKBOX website, with six stages:
 
-The sample uses a fictitious authorized Host-only machine at 192.168.56.10. It neither executes Nmap nor scans any system. Quiz decisions modify UI feedback only; no XP/progress is written.
+1. Enter Mission Zero, select a destination.
+2. Review a browser-only versus virtual-machine training path.
+3. Configure a **virtual** VirtualBox adapter between Bridged / NAT / Host-only and confirm a **simulated** Snapshot. The readiness check requires both Host-only and Snapshot.
+4. Type commands into a **closed synthetic terminal**. Exact allowlisted commands are `help`, `ip a`, `nmap -sV 192.168.56.10`, `report`, and `clear`. No shell or network execution is possible from the simulator. Nmap prints static synthetic data only if virtual configuration is ready. Incorrect or unknown commands show an explicit not-executed message.
+5. Collect the synthetic SSH/HTTP port evidence and type an analyst's report. Input is validated for presence/length and kept in memory only.
+6. See 0-3 **demo milestones** and choose a real lab path to begin afterward.
 
-The footer links to the existing five-step production tour. The draft should be checked at 320px, 390px and 1440px with the real guest browser CI before considering deployment.
+Unlike the former design, there are **no multiple-choice quiz buttons**. The network builder, command prompt, evidence capture and report submission each respond to real user actions.
 
-A preview deployment is a full copy of the application. Only the tour decisions are inert; if a tester clicks into real labs, normal progress data can still persist locally. Avoid saving genuine notes in the preview.
+**Boundaries:** This feature does not connect to the host, Kali, VirtualBox, or a network. It does not start Nmap. No user input passes to a shell, Firebase, account APIs, grading/XP, or persistent progress. The app's existing first-visit completion flag remains distinct from training progress. The preview includes the existing real training site; navigating beyond the tour may use normal progress persistence, so do not save genuine user notes on the preview.
+
+**Release:** Keep PR #88 draft; don't merge until user reviews visuals and interaction. CI quality gates must pass at 320px/390px/1440px, plus Firebase emulators and local agent tests. Vercel preview is separate from the production BLACKBOX domain.
