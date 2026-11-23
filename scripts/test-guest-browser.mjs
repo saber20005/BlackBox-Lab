@@ -769,6 +769,52 @@ try {
       assert.deepEqual(outside,[],'no API or third party requests caused by intro');
     }finally{await tourContext.close();}
   }
+  // Opt-in Spotlight preview must guide real navigation, including the phone dock.
+  for (const viewport of [{width:320,height:740},{width:390,height:844},{width:1440,height:900}]) {
+    const spotContext=await browser.newContext({viewport});
+    const spotPage=await spotContext.newPage();
+    const errors=[];
+    spotPage.on('pageerror',error=>errors.push(error.message));
+    try {
+      await spotPage.goto(origin+'/?view=home&spotlight-preview=1',{waitUntil:'load'});
+      await spotPage.locator('.bb-sp-preview:not([hidden]) .bb-sp-panel').waitFor({state:'visible'});
+      assert.match(await spotPage.locator('#bb-sp-title').innerText(),viewport.width<850?/اختصاراتك/:/المسارات/);
+      await spotPage.locator('.bb-sp-lamp').waitFor({state:'visible'});
+      await spotPage.locator('.bb-sp-beam').waitFor({state:'visible'});
+      const torch=await spotPage.locator('.bb-sp-lamp').evaluate(el=>({
+        width:el.getBoundingClientRect().width,head:el.querySelector('.bb-sp-lamp-head')!==null,
+        beam:getComputedStyle(document.querySelector('.bb-sp-beam')).clipPath
+      }));
+      assert.equal(torch.head,true,'real lamp head is rendered');
+      assert.ok(torch.width>18,'physical lamp is visible on screen');
+      assert.match(torch.beam,/polygon/,'directional light cone is visible');
+      if(viewport.width<850){
+        await spotPage.locator('#bb-quick-dock > summary').click();
+        await spotPage.getByText('افتح المسارات',{exact:true}).waitFor();
+        await spotPage.locator('#bb-quick-dock [data-bb-dock-view="tracks"]').click();
+        await spotPage.getByText('اختصاراتك موجودة دائمًا').waitFor();
+        await spotPage.locator('#bb-quick-dock > summary').click();
+        await spotPage.getByText('راجع تقدّمك',{exact:true}).waitFor();
+        await spotPage.locator('#bb-quick-dock [data-bb-dock-view="progress"]').click();
+      } else {
+        await spotPage.locator('.sidebar [data-view="tracks"]').click();
+        await spotPage.getByText('راجع تقدّمك',{exact:true}).waitFor();
+        await spotPage.locator('.sidebar [data-view="progress"]').click();
+        await spotPage.locator('#bb-sp-title').filter({hasText:'أدوات ومساعدة'}).waitFor();
+        await spotPage.locator('#workspace-tools > summary').click();
+      }
+      await spotPage.getByText('عرفت طريقك داخل BLACKBOX').waitFor({state:'visible'});
+      assert.equal(await spotPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'spotlight fits '+viewport.width+'px');
+      await spotPage.locator('.bb-sp-next').click();
+      assert.equal(await spotPage.locator('.bb-sp-preview:not([hidden])').count(),0,'closing does not reload workspace');
+      await spotPage.locator('.bb-sp-replay').click();
+      await spotPage.locator('.bb-sp-preview:not([hidden])').waitFor();
+      await spotPage.locator('.bb-sp-skip').click();
+      assert.equal(await spotPage.locator('.bb-sp-preview:not([hidden])').count(),0);
+      assert.deepEqual(errors,[],'no spotlight JavaScript errors');
+      console.log('PASS BLACKBOX spotlight '+viewport.width+'px: real navigation, finish, replay, skip');
+    } finally {await spotContext.close();}
+  }
   report.interactiveOnboardingVerified=true;
   console.log('PASS BLACKBOX first-visit mission simulation: VM network, allowlisted terminal, synthetic Nmap report, evidence, fresh replay, mobile 320/390/1440');
   const lifecycle = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-training-plan-lifecycle.mjs')], {

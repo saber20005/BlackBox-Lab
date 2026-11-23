@@ -163,3 +163,15 @@ test('initial mission starts fresh in RAM and does not persist answers or points
  assert.match(app,/bbCaptureEvidence\(welcomeMission, port\)/);
  assert.doesNotMatch(readFileSync(new URL('../assets/modules/onboarding/mission-simulator.js',import.meta.url),'utf8'),/fetch\(|XMLHttpRequest|WebSocket|child_process|firebase|localStorage|eval\(/);
 });
+
+test('spotlight preview is explicit, uses real navigation targets and never persists scores',()=>{
+ const js=readFileSync(new URL('../assets/modules/onboarding/spotlight-preview.js',import.meta.url),'utf8');
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const css=readFileSync(new URL('../assets/styles/spotlight-preview.css',import.meta.url),'utf8');
+ assert.match(js,/spotlight-preview/);
+ for(const selector of ['data-view="tracks"','data-view="progress"','bb-quick-dock','workspace-tools'])assert.ok(js.includes(selector));
+ assert.match(js,/stopImmediatePropagation/);
+ assert.match(html,/spotlight-preview\.js/);
+ assert.match(css,/prefers-reduced-motion/);
+ assert.doesNotMatch(js,/localStorage|sessionStorage|firebase|fetch\(|XMLHttpRequest|WebSocket|eval\(/);
+});
