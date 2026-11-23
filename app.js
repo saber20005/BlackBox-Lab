@@ -3,7 +3,8 @@ import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPr
 import { renderBbStudio } from './assets/modules/preferences/ui-studio.js';
 import { createTrainingReportHtml } from './assets/modules/reports/training-report.js';
 import { shouldStartBbTour, finishBbTour } from './assets/modules/onboarding/first-visit.js';
-import { BB_TOUR_STEPS, BB_TOUR_DEMOS, renderBbWelcome } from './assets/modules/onboarding/welcome-page.js';
+import { BB_TOUR_STEPS, renderBbWelcome } from './assets/modules/onboarding/welcome-page.js';
+import { createBbMission, bbConfigureAdapter, bbToggleSnapshot, bbSimulateCommand, bbCaptureEvidence, bbSubmitFinding } from './assets/modules/onboarding/mission-simulator.js';
 import { parseRoute, routeURL, routeMetadata, primaryView } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';
@@ -30,6 +31,7 @@ let state = loaded.state;
 // Existing accounts with locally recorded work and all deep links remain untouched.
 let autoStartWelcome = shouldStartBbTour(window.location.href, parseRoute(window.location.href), state, storage);
 let welcomeStep = 0;
+let welcomeMission = createBbMission();
 let saveState = { ok: loaded.ok, message: loaded.message };
 let accountStatus = { phase: 'guest', user: null, configured: false, pending: false, syncing: false, conflict: false, message: '', error: null };
 let accountController;
@@ -203,6 +205,7 @@ function navigate(view, focus = true) {
   currentView = titles[view] ? view : 'home';
   if (currentView === 'welcome') {
     welcomeStep = 0;
+    welcomeMission = createBbMission();
     document.dispatchEvent(new Event('blackbox:stop-tour'));
   }
   if (currentView === 'tracks') trackEvent('track_open', { track_id: currentTrack });
@@ -430,7 +433,7 @@ function render(focus = false) {
   const count = completedCount();
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
-  const pages = { journeys:()=>suiteJourneysPage(state,tracks), welcome:()=>renderBbWelcome(welcomeStep), home, progress: progressPage, account: accountPage, settings: settingsPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
+  const pages = { journeys:()=>suiteJourneysPage(state,tracks), welcome:()=>renderBbWelcome(welcomeStep,welcomeMission), home, progress: progressPage, account: accountPage, settings: settingsPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
   content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${sectionNavigation()}${pages[currentView]()}`;
   if (expandedJourneys) content.querySelectorAll('details.suite-card').forEach(panel => {
     panel.open = expandedJourneys.has(panel.dataset.journey);
@@ -662,23 +665,43 @@ function bind() {
     content.querySelectorAll('[data-bb-tour-step]').forEach(button => button.addEventListener('click', () => {
       changeWelcomeStep(Number(button.dataset.bbTourStep));
     }));
-    content.querySelectorAll('[data-bb-tour-answer]').forEach(button => button.addEventListener('click', () => {
-      const id = BB_TOUR_STEPS[welcomeStep]?.id;
-      const picked = BB_TOUR_DEMOS[id]?.find(choice => choice.id === button.dataset.bbTourAnswer);
-      if (!picked) return;
-      content.querySelectorAll('[data-bb-tour-answer]').forEach(choice => {
-        choice.setAttribute('aria-pressed', String(choice === button));
-      });
-      if (id === 'nmap') {
-        const sample = content.querySelector('[data-bb-tour-nmap-output]');
-        if (sample) sample.hidden = !picked.correct;
-      }
-      const feedback = content.querySelector('[data-bb-tour-feedback]');
-      if (feedback) {
-        feedback.dataset.correct = String(picked.correct);
-        feedback.textContent = (picked.correct ? 'قرار مناسب. ' : 'تحتاج مراجعة. ') + picked.reply;
-      }
+    // Mission state exists in RAM only; these are display updates, never Firebase or XP writes.
+    const refreshMission = selector => {
+      render(false);
+      if (selector) content.querySelector(selector)?.focus({ preventScroll: true });
+    };
+    content.querySelectorAll('[data-bb-mission-adapter]').forEach(button => button.addEventListener('click', () => {
+      const adapter = button.dataset.bbMissionAdapter;
+      welcomeMission = bbConfigureAdapter(welcomeMission, adapter);
+      refreshMission('[data-bb-mission-adapter="' + adapter + '"]');
     }));
+    content.querySelector('[data-bb-mission-snapshot]')?.addEventListener('change', event => {
+      welcomeMission = bbToggleSnapshot(welcomeMission, event.currentTarget.checked);
+      refreshMission('[data-bb-mission-snapshot]');
+    });
+    content.querySelectorAll('[data-bb-mission-fill]').forEach(button => button.addEventListener('click', () => {
+      const input = content.querySelector('#bb-mission-command');
+      if (input) { input.value = button.dataset.bbMissionFill; input.focus({ preventScroll: true }); }
+    }));
+    content.querySelector('[data-bb-mission-terminal]')?.addEventListener('submit', event => {
+      event.preventDefault();
+      const command = event.currentTarget.elements.namedItem('command')?.value ?? '';
+      welcomeMission = bbSimulateCommand(welcomeMission, command);
+      refreshMission('#bb-mission-command');
+      const output = content.querySelector('[data-bb-mission-console]');
+      if (output) output.scrollTop = output.scrollHeight;
+    });
+    content.querySelectorAll('[data-bb-mission-capture]').forEach(button => button.addEventListener('click', () => {
+      const port = button.dataset.bbMissionCapture;
+      welcomeMission = bbCaptureEvidence(welcomeMission, port);
+      refreshMission('[data-bb-mission-capture="' + port + '"]');
+    }));
+    content.querySelector('[data-bb-mission-report]')?.addEventListener('submit', event => {
+      event.preventDefault();
+      const finding = event.currentTarget.elements.namedItem('finding')?.value ?? '';
+      welcomeMission = bbSubmitFinding(welcomeMission, finding);
+      refreshMission('#bb-mission-finding');
+    });
     content.querySelectorAll('[data-bb-tour-go]').forEach(button => button.addEventListener('click', () => {
       leaveWelcome(button.dataset.bbTourGo);
     }));
