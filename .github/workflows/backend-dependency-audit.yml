@@ -31,4 +31,9 @@ jobs:
             console.error('npm audit unavailable: '+JSON.stringify(result.error).slice(0,300));
             process.exitCode=1;
           }
+          const counts=result.metadata?.vulnerabilities??{};
+          if((counts.high??0)+(counts.critical??0)>0){
+            console.error('High/critical backend dependencies detected; fail the security gate.');
+            process.exitCode=1;
+          }
           JS
