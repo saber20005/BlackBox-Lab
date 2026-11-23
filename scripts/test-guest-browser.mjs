@@ -405,6 +405,7 @@ async function runViewport(viewport) {
     await page.locator('[data-training-guide]').click();
     const guide = await openedGuide;
     guide.on('pageerror', error => errors.push(error.message));
+    await guide.waitForURL(new URL('/training-guide.html', origin).href);
     await guide.waitForLoadState('domcontentloaded');
     assert.equal(new URL(guide.url()).pathname, '/training-guide.html', 'the learner link opens a rendered guide instead of raw Markdown');
     await guide.locator('main h1').waitFor({ state: 'visible' });

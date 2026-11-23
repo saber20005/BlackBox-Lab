@@ -1,67 +1,34 @@
 
-/* Accessible, optional quick dock from the supplied reference; no hover-only actions. */
-.bb-quick-dock {
-  position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:45;
-  transform:translateX(-50%);color:#eaf1ff;direction:rtl;max-width:calc(100vw - 24px);
-}
-.bb-quick-dock>summary {
-  width:max-content;margin:auto;min-height:44px;display:flex;align-items:center;justify-content:center;
-  gap:8px;padding:9px 18px;border:1px solid #6ba6ff;border-radius:999px;
-  background:linear-gradient(145deg,#172943,#0a1528);box-shadow:0 12px 32px #0009;
-  cursor:pointer;list-style:none;font-size:13px;font-weight:700;
-}
-.bb-quick-dock>summary::-webkit-details-marker {display:none}
-.bb-quick-dock-items {
-  margin-bottom:10px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;
-  padding:9px;border:1px solid #496d9f;border-radius:20px;background:#0c1629;
-  box-shadow:0 18px 48px #000b;
-}
-.bb-quick-dock:not([open]) .bb-quick-dock-items {display:none}
-.bb-quick-dock-items button {
-  min-width:68px;min-height:60px;border:1px solid #355279;border-radius:13px;
-  background:#15253d;color:#bfdbff;padding:8px 7px;display:grid;place-items:center;
-  gap:2px;cursor:pointer;transition:transform .18s ease,background-color .18s ease;
-}
-.bb-quick-dock-items button span {font-size:21px;line-height:1.3}
-.bb-quick-dock-items button small {font-size:10px;font-weight:700;white-space:nowrap}
-.bb-quick-dock-items button[aria-current="page"]{border-color:#87b6ff;background:#1b3961}
-.bb-quick-dock :is(summary,button):focus-visible {outline:3px solid #87b6ff;outline-offset:3px}
+/* Accessible, optional quick dock from the supplied reference;no hover-only actions. */
+.bb-quick-dock { position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:45;transform:none;color:var(--muted);direction:rtl;max-width:calc(100vw - 24px);}
+.bb-quick-dock>summary { width:max-content;margin:auto;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 18px;border:1px solid var(--line);border-radius:999px;background:var(--panel);box-shadow:none;cursor:pointer;list-style:none;font-size:0.875rem;font-weight:700;}
+.bb-quick-dock>summary::-webkit-details-marker { display:none;}
+.bb-quick-dock-items { margin-bottom:10px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:9px;border:1px solid var(--line);border-radius:20px;background:var(--panel);box-shadow:none;}
+.bb-quick-dock:not([open]) .bb-quick-dock-items { display:none;}
+.bb-quick-dock-items button { min-width:68px;min-height:60px;border:1px solid var(--line);border-radius:13px;background:var(--panel);color:var(--muted);padding:8px 7px;display:grid;place-items:center;gap:2px;cursor:pointer;transition:transform .18s ease,background-color .18s ease;}
+.bb-quick-dock-items button span { font-size:1.3125rem;line-height:1.3;}
+.bb-quick-dock-items button small { font-size:0.875rem;font-weight:700;white-space:nowrap;}
+.bb-quick-dock-items button[aria-current="page"]{ border-color:var(--line);background:var(--panel);}
+.bb-quick-dock :is(summary,button):focus-visible { outline:3px solid var(--green);outline-offset:3px;}
 @media(hover:hover) and (prefers-reduced-motion:no-preference) {
-  .bb-quick-dock-items button:hover {transform:translateY(-3px) scale(1.045);background:#24466f}
+  .bb-quick-dock-items button:hover { transform:translateY(-3px) scale(1.045);background:var(--panel);}
 }
 @media(max-width:420px){
-  .bb-quick-dock-items{padding:6px;gap:5px}
-  .bb-quick-dock-items button{min-width:58px;min-height:58px;padding:5px}
-  .bb-quick-dock-items button small{font-size:9px}
+  .bb-quick-dock-items{ padding:6px;gap:5px;}
+  .bb-quick-dock-items button{ min-width:58px;min-height:58px;padding:5px;}
+  .bb-quick-dock-items button small{ font-size:0.875rem;}
 }
-@media(prefers-reduced-motion:reduce){.bb-quick-dock *{transition:none!important;animation:none!important}}
-@media print {.bb-quick-dock{display:none!important}}
+@media(prefers-reduced-motion:reduce){.bb-quick-dock *{ transition:none!important;animation:none!important;}}
+@media print {.bb-quick-dock{ display:none!important;}}
 
-/* Phone dock: two columns keep Arabic labels legible; the closed control
+/* Phone dock:two columns keep Arabic labels legible;the closed control
    stays compact and sits at the edge rather than blocking the main cards. */
 @media (max-width:640px) {
-  .bb-quick-dock {
-    left:max(12px,env(safe-area-inset-left,0px));right:auto;
-    bottom:calc(14px + env(safe-area-inset-bottom,0px));
-    transform:none;max-width:calc(100vw - 24px);
-  }
+  .bb-quick-dock { left:max(12px,env(safe-area-inset-left,0px));right:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:none;max-width:calc(100vw - 24px);}
   .bb-quick-dock:not([open]) {width:max-content}
   .bb-quick-dock[open] {width:min(274px,calc(100vw - 24px))}
-  .bb-quick-dock>summary {
-    width:max-content;min-height:44px;margin-left:0;margin-right:auto;
-    padding:9px 14px;
-  }
-  .bb-quick-dock-items {
-    box-sizing:border-box;width:100%;min-width:0;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:8px;padding:9px;border-radius:16px;
-  }
-  .bb-quick-dock-items button {
-    box-sizing:border-box;width:100%;min-width:0;
-    min-height:66px;padding:7px 6px;gap:3px;
-  }
-  .bb-quick-dock-items button small {
-    display:block;width:100%;min-width:0;line-height:1.4;
-    font-size:12px;white-space:normal;overflow-wrap:anywhere;text-align:center;
-  }
+  .bb-quick-dock>summary { width:max-content;min-height:44px;margin-left:0;margin-right:auto;padding:9px 14px;}
+  .bb-quick-dock-items { box-sizing:border-box;width:100%;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:9px;border-radius:16px;}
+  .bb-quick-dock-items button { box-sizing:border-box;width:100%;min-width:0;min-height:66px;padding:7px 6px;gap:3px;}
+  .bb-quick-dock-items button small { display:block;width:100%;min-width:0;line-height:1.4;font-size:0.875rem;white-space:normal;overflow-wrap:anywhere;text-align:center;}
 }

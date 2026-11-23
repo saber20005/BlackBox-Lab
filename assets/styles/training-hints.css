@@ -1,13 +1,13 @@
 .training-hints { min-width: 0; margin: 10px 0; color: var(--text, #eaf1ff); line-height: 1.8; }
-.training-hints h2 { margin: 0 0 10px; font-size: clamp(19px, 3vw, 24px); }
-.training-hints > p { color: #bdcce3; font-size: 16px; }
+.training-hints h2 { margin: 0 0 10px; font-size: clamp(1.1875rem, 3vw, 1.5rem); }
+.training-hints > p { color: var(--muted); font-size: 1rem; }
 .training-hint-list { display: grid; gap: 12px; margin: 14px 0; }
-.training-hint-card { min-width: 0; border: 1px solid #405e87; border-inline-start: 3px solid #7eb5ff; border-radius: 10px; padding: 14px; background: #12213a; overflow-wrap: anywhere; }
-.training-hint-card h3 { margin: 0 0 8px; font-size: 17px; color: #d9e9ff; }
-.training-hint-card p { margin: 0; font-size: 16px; color: #c6d5ec; white-space: pre-wrap; }
+.training-hint-card { min-width: 0; border: 1px solid var(--line); border-inline-start: 3px solid var(--line); border-radius: 10px; padding: 14px; background: var(--panel); overflow-wrap: anywhere; }
+.training-hint-card h3 { margin: 0 0 8px; font-size: 1.0625rem; color: var(--text); }
+.training-hint-card p { margin: 0; font-size: 1rem; color: var(--muted); white-space: pre-wrap; }
 .training-hint-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.training-hint-actions button { padding: 10px 14px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.training-hint-actions button { padding: 10px 14px; min-height: 44px; font-size: 0.9375rem; cursor: pointer; }
 .training-hint-actions button:disabled { cursor: not-allowed; opacity: .55; }
-.training-hint-actions button:focus-visible { outline: 3px solid #a9d1ff; outline-offset: 3px; }
-.training-hint-status { min-height: 1.8em; color: #bdcce3; }
+.training-hint-actions button:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+.training-hint-status { min-height: 1.8em; color: var(--muted); }
 @media (max-width: 480px) { .training-hint-actions { flex-direction: column; } .training-hint-actions button { width: 100%; } }

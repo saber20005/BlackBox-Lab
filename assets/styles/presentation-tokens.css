@@ -1,0 +1,83 @@
+/* Shared presentation only. The legacy --green name remains the brand accent. */
+:root {
+  color-scheme: dark;
+  --font-sans: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --bg: #0a1220;
+  --sidebar-bg: #0d1726;
+  --panel: #111e2e;
+  --panel2: #172638;
+  --line: #2b3d52;
+  --text: #edf3fc;
+  --muted: #a7b8ce;
+  --green: #74adff;
+  --green2: #a0c8ff;
+  --blue: #9bc4ff;
+  --on-accent: #08182d;
+  --accent-soft: #193457;
+  --success: #71d4b1;
+  --warning: #edc182;
+  --danger: #ffa99e;
+  --orange: var(--warning);
+  --red: var(--danger);
+  --warning-bg: #2a2319;
+  --danger-bg: #30201f;
+  --shadow: 0 14px 38px #0003;
+  --radius: .875rem;
+  --content-width: 76rem;
+  --content-max: 72.5rem;
+  --panel-padding: 1.5rem;
+}
+html { font-size: 100%; }
+html[data-bb-text="large"] { font-size: 112.5%; }
+html[data-bb-text="xlarge"] { font-size: 125%; }
+html[data-bb-density="compact"] { --panel-padding: 1.0625rem; }
+html[data-bb-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f7fb;
+  --sidebar-bg: #fff;
+  --panel: #fff;
+  --panel2: #edf2f8;
+  --line: #c5d1e0;
+  --text: #172b46;
+  --muted: #52657c;
+  --green: #2367c6;
+  --green2: #174d99;
+  --blue: #225cab;
+  --on-accent: #fff;
+  --accent-soft: #e4eefc;
+  --success: #14765b;
+  --warning: #83551a;
+  --danger: #b43932;
+  --warning-bg: #fff5e5;
+  --danger-bg: #fff0ed;
+  --shadow: 0 14px 38px #23395312;
+}
+html[data-bb-theme="stealth"] {
+  --bg: #091519;
+  --sidebar-bg: #0d1a21;
+  --panel: #12222b;
+  --panel2: #192e38;
+  --line: #35505b;
+  --text: #edf8fc;
+  --muted: #abc4d0;
+  --green: #72cde8;
+  --green2: #9de4f5;
+  --blue: #9de4f5;
+  --accent-soft: #153d4b;
+}
+html[data-bb-accent="cyan"] { --green: #72d3e8; --green2: #a4e6f3; --blue: #a4e6f3; --accent-soft: #173b48; }
+html[data-bb-accent="violet"] { --green: #b5a3ff; --green2: #d0c5ff; --blue: #d0c5ff; --accent-soft: #30294d; }
+html[data-bb-theme="light"][data-bb-accent="cyan"] { --green: #146e85; --green2: #0e5366; --blue: #146e85; --accent-soft: #e0f2f6; }
+html[data-bb-theme="light"][data-bb-accent="violet"] { --green: #6548ae; --green2: #4c318d; --blue: #6548ae; --accent-soft: #eee8fb; }
+html[data-bb-contrast="high"] { --muted: var(--text); --line: var(--green); }
+html[data-bb-motion="reduce"] *,
+html[data-bb-motion="reduce"] *::before,
+html[data-bb-motion="reduce"] *::after {
+  scroll-behavior: auto !important;
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+}
