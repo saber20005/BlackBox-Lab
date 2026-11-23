@@ -99,6 +99,34 @@ test('restricted terminal is an exact allowlist and never executes user text',()
  assert.equal(s.terminal.length,0);
  assert.equal(s.scanned,true,"screen clear is not a rerun of the simulated scan");
 });
+test('Mission Zero synthetic targets change ports and invalidate stale evidence and reports',async()=>{
+ const {BB_MISSION_SCENARIOS,bbSelectScenario,bbMissionPorts,bbMissionReview}=await import('../assets/modules/onboarding/mission-simulator.js');
+ assert.equal(BB_MISSION_SCENARIOS.length,2);
+ let s=bbToggleSnapshot(bbConfigureAdapter(createBbMission(),'host-only'),true);
+ s=bbSimulateCommand(s,BB_DEMO_COMMAND);
+ assert.deepEqual(bbMissionPorts(s),['22/tcp','80/tcp']);
+ assert.match(s.terminal.at(-1).output,/80\/tcp/);
+ s=bbCaptureEvidence(s,'22/tcp');
+ s=bbSubmitFinding(s,'التحقق من SSH وخدمة الويب بعد مراجعة السجلات في المختبر.');
+ assert.equal(s.documented,true);
+ s=bbSelectScenario(s,'hardened');
+ assert.equal(s.scanned,false);
+ assert.equal(s.documented,false);
+ assert.deepEqual(s.evidence,[]);
+ s=bbSimulateCommand(s,BB_DEMO_COMMAND);
+ assert.deepEqual(bbMissionPorts(s),['22/tcp','443/tcp']);
+ assert.match(s.terminal.at(-1).output,/443\/tcp/);
+ assert.doesNotMatch(s.terminal.at(-1).output,/80\/tcp/);
+ s=bbCaptureEvidence(s,'80/tcp');
+ assert.deepEqual(s.evidence,[],'old evidence is not accepted');
+ s=bbCaptureEvidence(s,'443/tcp');
+ assert.deepEqual(s.evidence,['443/tcp']);
+ assert.match(bbMissionReview(s).next,/تفسير/);
+ assert.match(renderBbWelcome(4,s),/data-bb-mission-capture="443\/tcp"/);
+ assert.match(renderBbWelcome(5,s),/سيناريو الهدف/);
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ assert.match(app,/data-bb-mission-scenario/);
+});
 test('evidence collection and report work only after the synthetic scan',()=>{
  let s=createBbMission();
  s=bbCaptureEvidence(s,'22/tcp');
