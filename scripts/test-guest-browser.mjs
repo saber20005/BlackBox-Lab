@@ -688,6 +688,9 @@ try {
       assert.equal(await tourPage.locator('#landing-page').isVisible(),false,'old landing is not layered under new guide');
       assert.equal(await tourPage.locator('.bb-tour-progress button').count(),6);
       assert.equal(await tourPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'intro fits '+viewport.width+'px');
+      assert.equal(await tourPage.locator('.bb-tour-logo img[src="./favicon.svg"]').count(),1);
+      assert.equal(await tourPage.locator('.bb-tour-console').count(),1,'meaningful lab console per step');
+      assert.equal(await tourPage.locator('.bb-tour-entry button[data-bb-tour-step]').count(),2,'first choice can guide visitor');
       const title=tourPage.locator('#bb-tour-main-title');
       await tourPage.locator('[data-bb-tour-next]').click();
       assert.match(await title.innerText(),/اختر المسار/);
@@ -698,7 +701,9 @@ try {
       await tourPage.locator('[data-bb-tour-answer="bridged"]').click();
       assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/لا تستخدم Bridged/);
       await tourPage.locator('[data-bb-tour-step="3"]').click();
+      assert.equal(await tourPage.locator('[data-bb-tour-nmap-output]').isVisible(),false,'demo output gated behind safe answer');
       await tourPage.locator('[data-bb-tour-answer="safe"]').click();
+      assert.equal(await tourPage.locator('[data-bb-tour-nmap-output]').isVisible(),true,'synthetic port output reveals only after allowed choice');
       assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/اختيار مناسب لمختبر/);
       assert.equal(await tourPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Nmap step fits mobile');
       await tourPage.locator('[data-bb-tour-step="4"]').click();

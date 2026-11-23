@@ -63,8 +63,22 @@ test('Nmap preview remains a network-free interactive simulation',()=>{
  assert.match(html,/Nmap/);
  assert.match(html,/192\.168\.56\.10/);
  assert.match(html,/data-bb-tour-answer="safe"/);
- assert.match(html,/SAMPLE ONLY/);
- assert.match(html,/معاينة تجريبية/);
+ assert.match(html,/SAMPLE ONLY|NO NETWORK SCAN/);
+ assert.match(html,/DESIGN PREVIEW/);
  assert.match(html,/blackboxlab\.dev\/\?view=welcome/);
  assert.equal(BB_TOUR_DEMOS.nmap.filter(item=>item.correct).length,1);
+});
+
+test('redesigned onboarding presents real logo, meaningful console, keyboard-accessible entry shortcuts and hidden Nmap output',()=>{
+ const first=renderBbWelcome(0);
+ assert.match(first,/src="\.\/favicon\.svg"/);
+ assert.match(first,/data-bb-tour-step="1"/);
+ assert.match(first,/data-bb-tour-step="2"/);
+ assert.match(first,/BLACKBOX \/ SIMULATION/);
+ const nmap=renderBbWelcome(3);
+ assert.match(nmap,/data-bb-tour-nmap-output hidden/);
+ assert.match(nmap,/22\/tcp/);
+ assert.match(nmap,/قيم اصطناعية/);
+ const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
+ assert.match(app,/sample\.hidden = !picked\.correct/);
 });

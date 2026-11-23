@@ -101,3 +101,127 @@ body.bb-welcome-active #content{width:100%;max-width:none!important;padding:0!im
 @media(max-width:700px){.bb-tour-preview-flag{order:3;flex-basis:100%;max-width:max-content;padding:4px 9px;font-size:10px}
  .bb-tour-progress button small{font-size:9px}.bb-tour-header{gap:8px}}
 @media(max-width:365px){.bb-tour-progress{gap:3px}.bb-tour-progress button small{font-size:7px}}
+
+/* V2 mission-control redesign. Visual hierarchy before decoration. */
+.bb-first-visit{
+ --tour-bg:#080f1e;--tour-panel:#0c192c;--tour-soft:#132a45;--tour-line:#23415f;
+ --tour-ink:#f1f7ff;--tour-muted:#a8bdd7;--tour-blue:#4d9aff;
+ background:
+  radial-gradient(ellipse at 88% 8%,rgba(39,98,198,.19),transparent 45%),
+  linear-gradient(115deg,rgba(15,33,59,.5) 1px,transparent 1px),
+  #080f1e;
+ background-size:auto,52px 52px,auto;
+}
+.bb-tour-header{background:#091323;border-bottom-color:#284665;padding:13px clamp(15px,3vw,48px)}
+.bb-tour-logo{gap:11px}.bb-tour-logo img{width:44px;height:44px;border-radius:12px;border:1px solid #294d74}
+.bb-tour-logo strong{color:#f0f6ff;font-size:17px}
+.bb-tour-logo em{font-style:normal;color:#66b5ff}
+.bb-tour-logo small{color:#759bbd}
+.bb-tour-preview-flag{background:#102b4c;border-color:#2c74a7;color:#b9deff;font:700 10px system-ui,sans-serif;letter-spacing:.05em}
+.bb-tour-skip{border-color:#315778;background:#101c2e;color:#cde2fb;border-radius:12px;font-weight:700}
+.bb-tour-skip:hover{background:#1b334f}
+.bb-tour-shell{max-width:1280px;padding:clamp(18px,2.6vw,30px) clamp(14px,3vw,36px)}
+.bb-tour-overview{align-items:center;margin-bottom:16px;font-size:12px;color:#9cb7d6}
+.bb-tour-overview>span{display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bb-tour-overview-tag{display:inline-flex;background:#12365d;border:1px solid #316eaf;border-radius:7px;padding:6px 9px;font:800 10px system-ui,sans-serif;color:#9ed6ff;letter-spacing:.1em}
+.bb-tour-overview>b{font-size:15px;color:#9ed6ff}
+.bb-tour-progress{margin-bottom:clamp(25px,3vw,36px);gap:7px}
+.bb-tour-progress button{border:1px solid #1c3654;border-radius:11px;background:#0e1a2c;padding:10px 9px;min-height:61px;gap:9px;transition:background .16s,border-color .16s}
+.bb-tour-progress button.selected{background:#142b49;border-color:#458dcb;color:#f2f8ff}
+.bb-tour-progress button.visited{border-color:#2e5d8d}
+.bb-tour-progress button:hover{border-color:#458dcb}
+.bb-tour-progress-bar{height:4px!important;background:#1e3856!important}
+.bb-tour-progress button.selected .bb-tour-progress-bar,
+.bb-tour-progress button.visited .bb-tour-progress-bar{background:#64b2ff!important}
+.bb-tour-progress button small{font-size:11px;font-weight:700;color:#c4d8ee}
+.bb-tour-progress button small b{font:800 10px system-ui,sans-serif;margin-inline-end:6px;color:#62adf7}
+.bb-tour-stage{gap:clamp(20px,4vw,56px);align-items:start;grid-template-columns:minmax(0,1fr) minmax(330px,.88fr)}
+.bb-tour-copy{padding-block:10px}
+.bb-tour-kicker{display:inline-flex;align-items:center;min-height:29px;padding:5px 11px;border:1px solid #356ba0;border-radius:99px;background:#0f2642;color:#88c8ff;letter-spacing:.13em}
+.bb-tour-copy h1{font-size:clamp(30px,3.7vw,50px);line-height:1.36;margin:14px 0}
+.bb-tour-lead{max-width:590px;font-size:clamp(13px,1.3vw,15px);line-height:1.92;margin-bottom:21px}
+.bb-tour-entry{border:1px solid #24456b;border-radius:17px;background:#0c1b2f;padding:17px}
+.bb-tour-entry-label{display:block;color:#90b9df;margin-bottom:13px;font-size:12px;font-weight:700}
+.bb-tour-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.bb-tour-entry button{position:relative;min-width:0;text-align:right;border:1px solid #305173;border-radius:13px;background:#102641;color:#f0f7ff;min-height:136px;padding:14px;display:flex;align-items:flex-start;flex-direction:column;gap:7px}
+.bb-tour-entry button:hover,.bb-tour-entry button:focus-visible{background:#173858;border-color:#5aa9ee}
+.bb-tour-entry button span{color:#6cb9ff;font:800 12px system-ui,sans-serif}
+.bb-tour-entry button strong{font-size:14px;line-height:1.6}
+.bb-tour-entry button small{font-size:11px;line-height:1.55;color:#a2c0e1}
+.bb-tour-entry button b{position:absolute;left:12px;top:12px;color:#82c9ff}
+.bb-tour-demo{background:#0c1b2f;border-color:#28486b;padding:clamp(15px,2vw,22px)}
+.bb-tour-demo-eyebrow{color:#7dbbff}
+.bb-tour-demo h2{font-size:17px;margin:10px 0 15px;line-height:1.72;color:#ebf5ff}
+.bb-tour-demo-choices button{position:relative;min-height:58px;background:#0a1527;border-color:#294565;border-radius:11px;transition:background .15s,border-color .15s}
+.bb-tour-demo-choices button:hover{border-color:#579bd8;background:#152c45}
+.bb-tour-demo-choices button[aria-pressed="true"]{background:#12395e;border-color:#68b6ff;box-shadow:inset 3px 0 #4aa8ff}
+.bb-tour-demo-choices button span{background:#173150;color:#90cbfa}
+.bb-tour-demo [data-bb-tour-feedback]{margin-top:14px;padding:13px 14px;min-height:52px;background:#10223b;border:1px solid #31506d;border-radius:10px;line-height:1.8}
+.bb-tour-demo [data-bb-tour-feedback][data-correct="true"]{border-color:#3989c7;color:#dbf1ff;background:#133253}
+.bb-tour-command-example{background:#071320;border-color:#2a5071}
+.bb-tour-links{gap:10px}
+.bb-tour-links button{min-height:88px;background:#0e223a;border-color:#2e5376;border-radius:13px;padding:13px 14px}
+.bb-tour-links button:hover{border-color:#7fc3ff;background:#143150}
+.bb-tour-links strong{font-size:13px}.bb-tour-links small{color:#a9c5df}
+.bb-tour-simulator{padding:0}
+.bb-tour-screen{background:#081626;border-color:#335879;border-radius:18px;box-shadow:0 24px 60px #0008,0 0 0 1px #142a43}
+.bb-tour-screen-top{height:46px;background:#0d1c2e;border-color:#2b455e}
+.bb-tour-terminal-dots{font-size:12px;letter-spacing:.21em;color:#5fb5ff}
+.bb-tour-screen-top b{font-size:10px;color:#a3c5e4;letter-spacing:.13em}
+.bb-tour-screen-top small{font-size:9px;color:#85c8ff}
+.bb-tour-screen-body{padding:clamp(17px,2.1vw,24px)}
+.bb-tour-console-header{display:flex;align-items:center;justify-content:space-between;gap:9px;border-bottom:1px solid #2b4b6b;padding-bottom:14px;color:#82c7ff;font:800 11px system-ui,sans-serif;letter-spacing:.06em}
+.bb-tour-console-index{color:#8ea9c4;font-size:10px}
+.bb-tour-console{margin:0;padding:19px 0 14px;background:transparent!important;border:0!important;color:#d2e9fc;min-height:220px;max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left}
+.bb-tour-console code{font:500 clamp(10px,1.05vw,13px)/1.8 "IBM Plex Mono",monospace;white-space:pre-wrap;color:#b8d9f3}
+.bb-tour-console-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid #2b4b6b;color:#79c5ff;font:700 10px system-ui,sans-serif}
+.bb-tour-nmap-output{background:#10223a;border:1px solid #3b83bb;border-radius:11px;padding:13px;margin:0 0 16px}
+.bb-tour-nmap-output[hidden]{display:none!important}
+.bb-tour-nmap-output>span{font:800 9px system-ui,sans-serif;color:#83cfff;letter-spacing:.07em}
+.bb-tour-nmap-output pre{margin:10px 0;color:#e5f5ff;white-space:pre-wrap;font:600 11px/1.7 "IBM Plex Mono",monospace}
+.bb-tour-nmap-output small{color:#aec9e1;line-height:1.7;font-size:10px}
+.bb-tour-simulator>p{color:#8fabcb;line-height:1.8}
+.bb-tour-footer{margin-top:24px;border-color:#25435f;align-items:center}
+.bb-tour-buttons{gap:9px}
+.bb-tour-buttons button{border-radius:11px;padding:12px 22px;min-height:46px}
+.bb-tour-next{background:#388bf6;color:white;border:1px solid #5dacf9;box-shadow:0 7px 24px #1666d145}
+.bb-tour-next:hover{background:#2d7de4}
+.bb-tour-previous{background:#10233b;border-color:#305275}
+.bb-tour-footer p{max-width:370px;color:#a9bed9}
+.bb-tour-production-link{color:#89c9ff}
+@media(max-width:950px){
+ .bb-tour-stage{grid-template-columns:minmax(0,1fr)}
+ .bb-tour-copy{padding:0}
+ .bb-tour-simulator{width:100%;max-width:none}
+ .bb-tour-console{min-height:170px}
+}
+@media(max-width:600px){
+ .bb-tour-header{padding:9px 13px}
+ .bb-tour-logo img{width:37px;height:37px}
+ .bb-tour-logo strong{font-size:14px}
+ .bb-tour-preview-flag{padding:6px 9px;font-size:8px}
+ .bb-tour-shell{padding:15px 13px}
+ .bb-tour-progress{gap:4px;margin-bottom:20px}
+ .bb-tour-progress button{min-height:46px;border-radius:8px;padding:9px 4px}
+ .bb-tour-progress button small{display:none}
+ .bb-tour-progress button.selected small{display:block;white-space:nowrap;text-align:center;font-size:9px}
+ .bb-tour-progress button.selected small b{display:none}
+ .bb-tour-progress-bar{height:4px!important}
+ .bb-tour-copy h1{font-size:clamp(28px,7.5vw,36px);line-height:1.4}
+ .bb-tour-lead{margin-bottom:16px;font-size:13px;line-height:1.82}
+ .bb-tour-entry{padding:12px}
+ .bb-tour-entry-grid{grid-template-columns:minmax(0,1fr)}
+ .bb-tour-entry button{min-height:91px;padding:12px 13px}
+ .bb-tour-entry button strong{font-size:13px}
+ .bb-tour-entry button small{font-size:10px}
+ .bb-tour-demo{padding:13px}
+ .bb-tour-demo h2{font-size:15px}
+ .bb-tour-demo-choices button{padding:11px 9px;line-height:1.65}
+ .bb-tour-console{min-height:0;padding:14px 0}
+ .bb-tour-console code{font-size:11px}
+ .bb-tour-footer{gap:12px}
+ .bb-tour-buttons{width:100%;justify-content:space-between}
+ .bb-tour-footer p{width:100%}
+}
+@media(max-width:350px){.bb-tour-progress button.selected small{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.bb-tour-demo-choices button,.bb-tour-progress button{transition:none!important}}

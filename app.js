@@ -669,6 +669,10 @@ function bind() {
       content.querySelectorAll('[data-bb-tour-answer]').forEach(choice => {
         choice.setAttribute('aria-pressed', String(choice === button));
       });
+      if (id === 'nmap') {
+        const sample = content.querySelector('[data-bb-tour-nmap-output]');
+        if (sample) sample.hidden = !picked.correct;
+      }
       const feedback = content.querySelector('[data-bb-tour-feedback]');
       if (feedback) {
         feedback.dataset.correct = String(picked.correct);
