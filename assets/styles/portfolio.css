@@ -1,8 +1,8 @@
 .portfolio-intro{max-width:80ch;margin-block:1rem 1.5rem}
-.portfolio-intro h1{font-size:clamp(26px,4vw,38px);line-height:1.3;margin-block:.4rem .75rem}
+.portfolio-intro h1{font-size:clamp(1.875rem,3vw,2.625rem);line-height:1.3;margin-block:.4rem .75rem}
 .portfolio-intro p{color:var(--muted)}
 .manual-notice{font-size:.85rem;border-inline-start:2px solid var(--line);padding-inline-start:.85rem}
-.source-panel,.portfolio-controls{border:1px solid var(--line);border-radius:13px;background:linear-gradient(150deg,#0f1218,#0b0e12);padding:1.1rem}
+.source-panel,.portfolio-controls{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:var(--panel-padding)}
 .source-panel{margin-block:1.5rem}
 .source-panel p:last-child{margin-bottom:0}
 .action-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
@@ -20,7 +20,7 @@
 .print-button{width:100%}
 .print-help{margin-top:.85rem}
 .portfolio-page .print-help,.portfolio-page .muted{color:var(--muted)}
-.empty-preview{padding:2rem 1.5rem;border:1px dashed var(--line);border-radius:13px;text-align:center;color:var(--muted)}
+.empty-preview{padding:2rem 1.5rem;border:1px dashed var(--line);border-radius:var(--radius);text-align:center;color:var(--muted)}
 #portfolio-report{padding:clamp(1rem,3vw,2rem);border-radius:.75rem;border:1px solid #b7c5d5;background:white;color:#172234;overflow-wrap:anywhere;font-size:1rem;line-height:1.8}
 #portfolio-report .report-title{font-size:1.8rem;line-height:1.5;margin-block:0 1rem}
 .report-source,.report-disclaimer{color:#253d58;border-inline-start:3px solid #496d93;padding-inline-start:.85rem}
