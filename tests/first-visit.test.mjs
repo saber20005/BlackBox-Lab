@@ -50,7 +50,11 @@ test('the six-stage tour provides working controls, avoids any quiz buttons or c
  assert.match(renderBbWelcome(2),/data-bb-mission-adapter="host-only"/);
  assert.match(renderBbWelcome(2),/data-bb-mission-snapshot/);
  assert.match(renderBbWelcome(3),/data-bb-mission-terminal/);
- assert.match(renderBbWelcome(4),/data-bb-mission-capture="22\/tcp"/);
+ assert.match(renderBbWelcome(4),/data-bb-tour-step="3"/,"evidence requires a completed scan");
+ let ready=createBbMission();
+ ready=bbToggleSnapshot(bbConfigureAdapter(ready,'host-only'),true);
+ ready=bbSimulateCommand(ready,BB_DEMO_COMMAND);
+ assert.match(renderBbWelcome(4,ready),/data-bb-mission-capture="22\/tcp"/);
  assert.match(renderBbWelcome(5),/data-bb-tour-go="logs"/);
  assert.doesNotMatch(readFileSync(new URL('../assets/modules/onboarding/welcome-page.js',import.meta.url),'utf8'),/localStorage|fetch\(|firebase|eval\(/);
 });
