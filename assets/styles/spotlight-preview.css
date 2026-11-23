@@ -2,7 +2,7 @@
 .bb-sp-preview[hidden]{display:none!important}
 .bb-sp-preview{--bb-sp-blue:#5aafff;position:fixed;inset:0;z-index:2147482000;pointer-events:none;font-family:"IBM Plex Sans Arabic",system-ui,sans-serif}
 .bb-sp-hole{position:fixed;z-index:1;border:2px solid var(--bb-sp-blue);border-radius:13px;box-shadow:0 0 0 9999px rgba(3,9,22,.76),0 0 26px 5px rgba(76,160,255,.5),inset 0 0 14px rgba(76,160,255,.17);pointer-events:none;transition:left .45s cubic-bezier(.2,.85,.2,1),top .45s cubic-bezier(.2,.85,.2,1),width .45s,height .45s,opacity .25s}
-.bb-sp-panel{position:fixed;z-index:2;box-sizing:border-box;width:min(335px,calc(100vw - 24px));max-height:min(75dvh,410px);overflow-y:auto;padding:20px;border:1px solid #4b91d8;border-radius:18px;background:linear-gradient(155deg,#142843,#0a152a 85%);color:#f0f7ff;box-shadow:0 22px 70px rgba(0,0,0,.65),0 0 26px rgba(63,150,255,.18);pointer-events:auto;direction:rtl;text-align:right}
+.bb-sp-panel{position:fixed;z-index:4;box-sizing:border-box;width:min(335px,calc(100vw - 24px));max-height:min(75dvh,410px);overflow-y:auto;padding:20px;border:1px solid #4b91d8;border-radius:18px;background:linear-gradient(155deg,#142843,#0a152a 85%);color:#f0f7ff;box-shadow:0 22px 70px rgba(0,0,0,.65),0 0 26px rgba(63,150,255,.18);pointer-events:auto;direction:rtl;text-align:right}
 .bb-sp-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font:700 10px/1.6 system-ui,sans-serif;letter-spacing:.06em;color:#86c3ff}
 .bb-sp-count{white-space:nowrap;font-variant-numeric:tabular-nums}
 .bb-sp-meter{height:3px;background:#2e4565;border-radius:4px;margin:12px 0 16px;overflow:hidden}
@@ -20,3 +20,22 @@
 @media(max-width:720px){.bb-sp-panel{max-height:52dvh;padding:15px}.bb-sp-panel h2{font-size:18px}.bb-sp-desc{font-size:12px}.bb-sp-replay{max-width:150px}}
 @media(prefers-reduced-motion:reduce){.bb-sp-preview *{transition:none!important;animation:none!important}}
 @media print{.bb-sp-preview,.bb-sp-replay{display:none!important}}
+
+/* Actual moving projector inspired by the supplied reference, not a border-only highlight. */
+.bb-sp-beam[hidden],.bb-sp-lamp[hidden]{display:none!important}
+.bb-sp-beam{position:fixed;z-index:2;pointer-events:none;transform-origin:0 50%;
+  background:linear-gradient(90deg,rgba(101,206,255,.56) 0%,rgba(65,161,249,.36) 35%,rgba(47,141,232,.1) 100%);
+  clip-path:polygon(0 45%,0 55%,100% 0,100% 100%);filter:blur(2.5px);
+  mix-blend-mode:screen;transition:left .48s ease,top .48s ease,width .48s ease,height .48s ease,transform .48s ease}
+.bb-sp-lamp{position:fixed;z-index:3;pointer-events:none;width:60px;height:32px;
+  transform-origin:50% 50%;filter:drop-shadow(0 3px 12px rgba(92,200,255,.64));
+  transition:left .48s ease,top .48s ease,transform .48s ease}
+.bb-sp-lamp-grip{position:absolute;display:block;left:0;top:8px;width:43px;height:16px;
+  border:1px solid #4e89c9;border-radius:5px 1px 1px 5px;
+  background:linear-gradient(180deg,#29527b,#112b4e);box-shadow:inset 0 2px 4px #bcecff2e}
+.bb-sp-lamp-head{position:absolute;display:block;left:39px;top:3px;width:21px;height:26px;
+  border-radius:5px;background:linear-gradient(90deg,#328ee5,#bbf5ff 68%,#edffff);
+  box-shadow:0 0 15px rgba(124,217,255,.94),inset -4px 0 5px #ffffff78}
+@media(max-width:720px){.bb-sp-lamp{scale:.85}.bb-sp-beam{opacity:.8}}
+@media(prefers-reduced-motion:reduce){.bb-sp-lamp,.bb-sp-beam{transition:none!important}}
+@media print{.bb-sp-lamp,.bb-sp-beam{display:none!important}}
