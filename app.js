@@ -2,6 +2,8 @@ import { tracks, errors } from './data.js';
 import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPreferences, applyBbPreset, BB_UI_DEFAULTS } from './assets/modules/preferences/ui-preferences.js';
 import { renderBbStudio } from './assets/modules/preferences/ui-studio.js';
 import { createTrainingReportHtml } from './assets/modules/reports/training-report.js';
+import { shouldStartBbTour, finishBbTour } from './assets/modules/onboarding/first-visit.js';
+import { BB_TOUR_STEPS, BB_TOUR_DEMOS, renderBbWelcome } from './assets/modules/onboarding/welcome-page.js';
 import { parseRoute, routeURL, routeMetadata, primaryView } from './routes.js';
 import { trackEvent, trackPageView } from './analytics.js';
 import { createAccountSync } from './account-sync.js';
@@ -24,6 +26,10 @@ try { storage = window.localStorage; } catch { storage = undefined; }
 let displayPreferences = applyBbPreferences(readBbPreferences(storage));
 const loaded = loadProgress(storage);
 let state = loaded.state;
+// Only a completely new, plain-home guest visit starts the welcome automatically.
+// Existing accounts with locally recorded work and all deep links remain untouched.
+let autoStartWelcome = shouldStartBbTour(window.location.href, parseRoute(window.location.href), state, storage);
+let welcomeStep = 0;
 let saveState = { ok: loaded.ok, message: loaded.message };
 let accountStatus = { phase: 'guest', user: null, configured: false, pending: false, syncing: false, conflict: false, message: '', error: null };
 let accountController;
@@ -59,7 +65,7 @@ let importRequest = 0;
 let importMessage = '';
 let importError = false;
 let routeNotice = '';
-const titles = { home: 'تدريبي', tracks: 'المسارات', journeys: 'المسارات المشتركة', progress: 'تقدّمي', account: 'حسابي', settings: 'الإعدادات', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
+const titles = { home: 'تدريبي', welcome: 'الجولة التعريفية', tracks: 'المسارات', journeys: 'المسارات المشتركة', progress: 'تقدّمي', account: 'حسابي', settings: 'الإعدادات', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
 const content = document.getElementById('content');
 const stageKey = (trackId, index) => `${trackId}-${index}`;
 const trackById = id => tracks.find(track => track.id === id);
@@ -173,7 +179,8 @@ function applyLocation() {
   closeWorkspaceTools();
   flushDraft();
   const route = parseRoute(window.location.href, currentTrack);
-  currentView = route.view;
+  currentView = autoStartWelcome && route.view === 'home' ? 'welcome' : route.view;
+  autoStartWelcome = false;
   currentTrack = route.trackId;
   currentStage = route.stageIndex;
   routeNotice = route.invalid ? 'الرابط غير مكتمل أو غير صالح. يمكنك اختيار مسار متاح من هنا.' : '';
@@ -194,9 +201,26 @@ function navigate(view, focus = true) {
   flushDraft();
   routeNotice = '';
   currentView = titles[view] ? view : 'home';
+  if (currentView === 'welcome') {
+    welcomeStep = 0;
+    document.dispatchEvent(new Event('blackbox:stop-tour'));
+  }
   if (currentView === 'tracks') trackEvent('track_open', { track_id: currentTrack });
   syncRoute();
   render(focus);
+}
+function leaveWelcome(destination = 'home') {
+  // This writes only a separate device-local discovery marker, never training progress.
+  finishBbTour();
+  if (destination === 'lab') {
+    window.location.assign('./?intro=1#local-lab-setup');
+    return;
+  }
+  if (destination === 'logs') {
+    openStage('logs', 0);
+    return;
+  }
+  navigate(['home', 'tracks', 'progress', 'settings', 'backups', 'account', 'journeys'].includes(destination) ? destination : 'home');
 }
 function openTrack(trackId) {
   if (!trackById(trackId)) return;
@@ -364,6 +388,7 @@ function troublePage() {
   return `${hero('حلّ العائق، وواصل التدريب', 'إرشادات عملية للأعطال الشائعة في بيئتك المحلية وأدوات المختبر.')}<div class="section-head"><h2>دليل حلول الأعطال</h2><div class="field"><label for="errorSearch">ابحث عن المشكلة</label><input type="search" class="search" id="errorSearch" placeholder="مثل WebGoat أو عنوان IP…" value="${esc(errorQuery)}"></div></div><div class="error-grid">${list.map(([title, description]) => `<article class="error-card"><h3>${esc(title)}</h3><p>${esc(description)}</p></article>`).join('') || '<div class="card empty"><h2>لم نجد نتيجة مطابقة</h2><p>جرّب اسم الأداة أو وصفًا أقصر للمشكلة.</p></div>'}</div>`;
 }
 function render(focus = false) {
+  document.body.classList.toggle('bb-welcome-active', currentView === 'welcome');
   const nextScope = JSON.stringify([currentView, currentTrack, currentStage, accountStatus.user?.uid ?? null]);
   const sameScope = nextScope === renderedContentScope;
   const openPanels = sameScope ? nativePanels.filter(selector => content.querySelector(selector)?.open) : [];
@@ -393,7 +418,7 @@ function render(focus = false) {
   const count = completedCount();
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
-  const pages = { journeys:()=>suiteJourneysPage(state,tracks), home, progress: progressPage, account: accountPage, settings: settingsPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
+  const pages = { journeys:()=>suiteJourneysPage(state,tracks), welcome:()=>renderBbWelcome(welcomeStep), home, progress: progressPage, account: accountPage, settings: settingsPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
   content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${sectionNavigation()}${pages[currentView]()}`;
   if (expandedJourneys) content.querySelectorAll('details.suite-card').forEach(panel => {
     panel.open = expandedJourneys.has(panel.dataset.journey);
@@ -612,6 +637,36 @@ function refreshSearch(id, value, position) {
   if (typeof position === 'number' && input.type !== 'search') input.setSelectionRange(position, position);
 }
 function bind() {
+  // All welcome interactions are simulations, without stage/user/account mutations.
+  if (currentView === 'welcome') {
+    const changeWelcomeStep = next => {
+      welcomeStep = Math.max(0, Math.min(BB_TOUR_STEPS.length - 1, next));
+      render(true);
+      content.querySelector('#bb-tour-main-title')?.focus({ preventScroll: true });
+    };
+    content.querySelector('[data-bb-tour-skip]')?.addEventListener('click', () => leaveWelcome('home'));
+    content.querySelector('[data-bb-tour-prev]')?.addEventListener('click', () => changeWelcomeStep(welcomeStep - 1));
+    content.querySelector('[data-bb-tour-next]')?.addEventListener('click', () => changeWelcomeStep(welcomeStep + 1));
+    content.querySelectorAll('[data-bb-tour-step]').forEach(button => button.addEventListener('click', () => {
+      changeWelcomeStep(Number(button.dataset.bbTourStep));
+    }));
+    content.querySelectorAll('[data-bb-tour-answer]').forEach(button => button.addEventListener('click', () => {
+      const id = BB_TOUR_STEPS[welcomeStep]?.id;
+      const picked = BB_TOUR_DEMOS[id]?.find(choice => choice.id === button.dataset.bbTourAnswer);
+      if (!picked) return;
+      content.querySelectorAll('[data-bb-tour-answer]').forEach(choice => {
+        choice.setAttribute('aria-pressed', String(choice === button));
+      });
+      const feedback = content.querySelector('[data-bb-tour-feedback]');
+      if (feedback) {
+        feedback.dataset.correct = String(picked.correct);
+        feedback.textContent = (picked.correct ? 'قرار مناسب. ' : 'تحتاج مراجعة. ') + picked.reply;
+      }
+    }));
+    content.querySelectorAll('[data-bb-tour-go]').forEach(button => button.addEventListener('click', () => {
+      leaveWelcome(button.dataset.bbTourGo);
+    }));
+  }
   // Presentation-only studio, scoped to the current page and preference allowlist.
   function updateStudio(next, message, focusSelector) {
     displayPreferences=applyBbPreferences(next);
@@ -782,6 +837,7 @@ function bind() {
 }
 
 document.getElementById('quickBackup').addEventListener('click', exportBackup);
+document.getElementById('bb-replay-tour')?.addEventListener('click', () => navigate('welcome'));
 // Keyboard/touch-friendly native disclosure; only existing navigation targets.
 const quickDock = document.getElementById('bb-quick-dock');
 quickDock?.addEventListener('click', event => {

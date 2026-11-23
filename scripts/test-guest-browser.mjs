@@ -200,7 +200,7 @@ async function runViewport(viewport) {
   const result = { width: viewport.width, height: viewport.height };
   report.activeViewport = result;
   try {
-    await navigate(page, '/');
+    await navigate(page, '/?intro=1');
     await page.locator('#landing-start-tour').click();
     assert.equal(await page.locator('#bb-tour-overlay').isVisible(), true);
     assert.equal(await page.locator('#bb-whats-new').evaluate(el => el.open), false, 'new-features modal must not open automatically over onboarding');
