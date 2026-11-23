@@ -74,5 +74,5 @@ export function bbSubmitFinding(s,raw){
  const finding=String(raw??"").trim().slice(0,600);
  if(!s.scanned||!s.evidence.length)return {...s,feedback:"التقط دليلًا من تقرير الفحص التجريبي أولًا."};
  if(finding.length<18)return {...s,finding,documented:false,feedback:"اكتب استنتاجًا من 18 حرفًا على الأقل، يوضح الدليل والخطوة القادمة."};
- return {...s,finding,documented:true,feedback:"اكتمل التقرير التدريبي. هذه ليست درجة أو شهادة؛ البيانات لا تغادر المتصفح."};
+ return {...s,finding,documented:true,feedback:"اكتمل تقرير المهمة التجريبية. هذه ليست درجة أو شهادة؛ البيانات لا تغادر المتصفح."};
 }
