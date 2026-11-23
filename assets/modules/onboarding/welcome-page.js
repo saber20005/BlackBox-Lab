@@ -1,4 +1,4 @@
-import {BB_DEMO_COMMAND,BB_DEMO_TARGET,bbMissionChecks,bbMissionReady,bbMissionScore,createBbMission} from "./mission-simulator.js";
+import {BB_DEMO_COMMAND,BB_DEMO_TARGET,BB_MISSION_SCENARIOS,bbMissionScenario,bbMissionPorts,bbMissionChecks,bbMissionReady,bbMissionScore,bbMissionReview,createBbMission} from "./mission-simulator.js";
 
 // Six short stages; user performs actions instead of selecting a multiple-choice answer.
 // All terminal and evidence data is generated locally, and discarded on leaving onboarding.
@@ -31,7 +31,11 @@ function mockTask(index,s){
  if(index===3)return `<section class="bb-mission-panel bb-mission-terminal-form">
  <span class="bb-mission-eyebrow">BLACKBOX / RESTRICTED TERMINAL</span>
  <h2>نفّذ محاكاة أمر بنفسك</h2>
- <p class="bb-mission-hint">اكتب أمرًا أو اضغط المثال لوضعه داخل الحقل. الطرفية لا تتصل بأي نظام.</p>
+ <p class="bb-mission-hint">غيّر حالة الهدف لتغيّر المنافذ التي يعرضها التقرير. جميع النتائج مُولّدة داخل المتصفح فقط.</p>
+ <div class="bb-mission-scenarios" role="group" aria-label="سيناريو الهدف التجريبي">
+ ${BB_MISSION_SCENARIOS.map(item=>`<button type="button" data-bb-mission-scenario="${item.id}" aria-pressed="${bbMissionScenario(s).id===item.id}"><strong>${fmt(item.label)}</strong><small>${fmt(item.note)}</small></button>`).join("")}
+ </div>
+ <p class="bb-mission-context" aria-live="polite">الهدف الحالي: <strong>${fmt(bbMissionScenario(s).label)}</strong> · التغيير يبطل الفحص القديم ويستلزم تحليلًا جديدًا.</p>
  <form data-bb-mission-terminal><label for="bb-mission-command">أمر التدريب</label><div class="bb-mission-command-row"><span aria-hidden="true">$</span><input id="bb-mission-command" name="command" dir="ltr" inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false" maxlength="120" placeholder="help" required><button type="submit">تشغيل محاكاة ↵</button></div></form>
  <div class="bb-mission-chips" role="group" aria-label="أمثلة أوامر آمنة">${["help","ip a",BB_DEMO_COMMAND,"report","clear"].map(cmd=>`<button type="button" data-bb-mission-fill="${fmt(cmd)}" dir="ltr">${fmt(cmd)}</button>`).join("")}</div>
  <p class="bb-mission-feedback" role="status" aria-live="polite">${fmt(s.feedback||"ابدأ بـ help. عند جاهزية المحاكاة سيظهر تقرير فحص اصطناعي.")}</p>
@@ -39,7 +43,7 @@ function mockTask(index,s){
  if(index===4)return `<section class="bb-mission-panel">
  <span class="bb-mission-eyebrow">CASE FILE / LAB-001</span>
  <h2>ملف الأدلة الافتراضي</h2>
- ${s.scanned?`<div class="bb-mission-evidence-list">${[["22/tcp","SSH service","منفذ جلسة تحكم"],["80/tcp","HTTP service","منفذ خدمة ويب"]].map(([port,name,desc])=>`<div><div><strong dir="ltr">${port} · ${name}</strong><small>${desc}</small></div><button type="button" data-bb-mission-capture="${port}" ${s.evidence.includes(port)?"disabled":""}>${s.evidence.includes(port)?"✓ ضمن الأدلة":"أضف كدليل +"}</button></div>`).join("")}</div>
+ ${s.scanned?`<div class="bb-mission-evidence-list">${bbMissionPorts(s).map(port=>`<div><div><strong dir="ltr">${port} · ${port==="22/tcp"?"SSH":port==="80/tcp"?"HTTP":"HTTPS"} service</strong><small>${port==="22/tcp"?"مراجعة الوصول":port==="80/tcp"?"تحليل خدمة الويب":"التحقق من TLS"}</small></div><button type="button" data-bb-mission-capture="${port}" ${s.evidence.includes(port)?"disabled":""}>${s.evidence.includes(port)?"✓ ضمن الأدلة":"أضف كدليل +"}</button></div>`).join("")}</div>
  <form data-bb-mission-report><label for="bb-mission-finding">اكتب استنتاجك والخطوة التالية</label>
  <textarea id="bb-mission-finding" name="finding" rows="3" maxlength="600" placeholder="مثال: ظهور SSH وHTTP على الهدف المختبري يستدعي التحقق من تهيئتهما...">${fmt(s.finding)}</textarea>
  <button type="submit">وثّق النتيجة التجريبية ←</button></form>`:
@@ -47,7 +51,12 @@ function mockTask(index,s){
  <p class="bb-mission-feedback" role="status" aria-live="polite">${fmt(s.feedback||"اختر دليلًا من التقرير ثم اكتب تفسيرًا. لا تُحفظ هذه البيانات خارج الجولة.")}</p>
  ${mark(s.documented,"تقرير تجريبي مُكتمل")} </section>`;
  return `<div class="bb-mission-debrief"><div class="bb-mission-debrief-score"><strong>${bbMissionScore(s)} / 3</strong><span>مهام تجريبية مُنجزة</span></div>
- <div class="bb-mission-debrief-checks">${mark(bbMissionChecks(s).isolated,"تأكيد العزل وSnapshot")}${mark(s.scanned,"تشغيل أمر Nmap في المحاكاة")}${mark(s.documented,"توثيق أدلة المخرجات")}</div></div>
+ <div class="bb-mission-debrief-checks">${mark(bbMissionChecks(s).isolated,"تأكيد العزل وSnapshot")}${mark(s.scanned,"تشغيل أمر Nmap في المحاكاة")}${mark(s.documented,"توثيق أدلة المخرجات")}</div>
+ <section class="bb-mission-review" aria-label="مراجعة مهمة التدريب"><strong>${fmt(bbMissionReview(s).status)}</strong>
+ <p>${fmt(bbMissionReview(s).next)}</p>
+ <dl><div><dt>سيناريو الهدف</dt><dd>${fmt(bbMissionScenario(s).label)}</dd></div><div><dt>نتيجة الفحص الافتراضية</dt><dd dir="ltr">${fmt(s.scanned?bbMissionReview(s).summary:"NOT RUN")}</dd></div><div><dt>الأدلة المسجّلة</dt><dd>${bbMissionReview(s).evidence.length}</dd></div></dl>
+ ${s.documented?`<blockquote>${fmt(s.finding)}</blockquote>`:""}
+ <small>ملخص المحاكاة فقط — لا يُصدر شهادة، ولا يُحفظ في حسابك.</small></section></div>
  <div class="bb-tour-links">
  <button type="button" data-bb-tour-go="logs"><strong>▦ ابدأ بتحليل سجلات حقيقية التدريب</strong><small>الملفات التدريبية داخل المتصفح</small></button>
  <button type="button" data-bb-tour-go="tracks"><strong>◇ تصفح المسارات</strong><small>10 مسارات / 30 مرحلة</small></button>
@@ -70,7 +79,7 @@ function liveConsole(index,s){
  }
  if(index===4)return `<div class="bb-mission-case-preview">
  <span>INVESTIGATION / TRAINING ONLY</span>
- <pre dir="ltr"><code>PORT    SERVICE   STATE\n22/tcp  ssh       open\n80/tcp  http      open\n\nSTATUS: ${s.scanned?"SIMULATED REPORT READY":"AWAITING SCAN"}</code></pre>
+ <pre dir="ltr"><code>${fmt("SCENARIO: "+bbMissionScenario(s).label+"\nPORT    SERVICE   STATE\n"+(s.scanned?bbMissionPorts(s).map(port=>port+"  "+(port==="22/tcp"?"ssh":port==="80/tcp"?"http":"https")+"  open").join("\n"):"NO SCAN DATA")+"\n\nSTATUS: "+(s.scanned?"SIMULATED REPORT READY":"AWAITING SCAN"))}</code></pre>
  <p>الأدلة الملتقطة: <strong>${s.evidence.length}</strong> · تقرير: <strong>${s.documented?"مكتمل":"غير مكتمل"}</strong></p></div>`;
  const scenes=[
  "MISSION_00 / BLUE ENTRY\n\n[+] Learn by doing\n[+] Test a simulated lab\n[+] Record what the evidence means\n\nNEXT: Configure the network",
