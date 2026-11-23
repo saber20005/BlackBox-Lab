@@ -693,7 +693,7 @@ try {
       assert.equal(await tourPage.locator('.bb-tour-entry button[data-bb-tour-step]').count(),2,'first choice can guide visitor');
       const title=tourPage.locator('#bb-tour-main-title');
       await tourPage.locator('[data-bb-tour-next]').click();
-      assert.match(await title.innerText(),/اختر المسار/);
+      assert.match(await title.innerText(),/أي طريق ستبدأ به/);
       assert.equal(await title.evaluate(el=>document.activeElement===el),true,'step receives keyboard focus');
       await tourPage.locator('[data-bb-tour-answer="logs"]').click();
       assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/مناسب للبدء/);
