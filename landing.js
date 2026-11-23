@@ -26,7 +26,9 @@ const requestedWorkspace=initialScreen&&['view','track','stage'].some(key=>initi
 initialScreen=false;
 if(requestedWorkspace){enter();return;}
 if(!isHome()){landing.hidden=true;document.body.classList.remove('bb-landing-active');return;}
-if(hasSeenIntro()&&!url.searchParams.has('intro')){landing.hidden=true;document.body.classList.remove('bb-landing-active');return;}
+// The new five-step route owns first-visit education. This older VirtualBox
+// setup/wizard is kept intact but opens only for explicit ?intro=1 requests.
+if(url.searchParams.get('intro')!=='1'){landing.hidden=true;document.body.classList.remove('bb-landing-active');return;}
 landing.hidden=false;document.body.classList.add('bb-landing-active');
 const setup=$('local-lab-setup');
 if(url.searchParams.get('intro')==='1'&&url.hash==='#local-lab-setup'&&setup){setup.open=true;setup.scrollIntoView({block:'start'});}

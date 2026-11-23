@@ -200,7 +200,7 @@ async function runViewport(viewport) {
   const result = { width: viewport.width, height: viewport.height };
   report.activeViewport = result;
   try {
-    await navigate(page, '/');
+    await navigate(page, '/?intro=1');
     await page.locator('#landing-start-tour').click();
     assert.equal(await page.locator('#bb-tour-overlay').isVisible(), true);
     assert.equal(await page.locator('#bb-whats-new').evaluate(el => el.open), false, 'new-features modal must not open automatically over onboarding');
@@ -669,6 +669,71 @@ try {
   report.mobileReportExportVerified=true;
   console.log('PASS standalone RTL report: real HTML download, offline viewing, print all sections, 320/390/1440 fit');
 
+  // First-time BLACKBOX onboarding must work in the REAL static SPA, not only unit markup.
+  for (const viewport of [{width:320,height:740},{width:390,height:844},{width:1440,height:1000}]) {
+    const tourContext=await browser.newContext({viewport});
+    const tourErrors=[],outside=[];
+    await tourContext.route('**/*',route=>{
+      const url=new URL(route.request().url());
+      if(url.origin===origin)return route.continue();
+      outside.push(url.href);return route.abort('blockedbyclient');
+    });
+    const tourPage=await tourContext.newPage();activePage=tourPage;
+    tourPage.on('pageerror',error=>tourErrors.push(error.message));
+    try{
+      await navigate(tourPage,'/');
+      await tourPage.locator('[data-bb-first-visit]').waitFor({state:'visible'});
+      assert.equal(await tourPage.evaluate(()=>new URL(location.href).searchParams.get('view')),'welcome');
+      assert.equal(await tourPage.locator('body.bb-welcome-active').count(),1);
+      assert.equal(await tourPage.locator('#landing-page').isVisible(),false,'old landing is not layered under new guide');
+      assert.equal(await tourPage.locator('.bb-tour-progress button').count(),5);
+      assert.equal(await tourPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'intro fits '+viewport.width+'px');
+      const title=tourPage.locator('#bb-tour-main-title');
+      await tourPage.locator('[data-bb-tour-next]').click();
+      assert.match(await title.innerText(),/اختر المسار/);
+      assert.equal(await title.evaluate(el=>document.activeElement===el),true,'step receives keyboard focus');
+      await tourPage.locator('[data-bb-tour-answer="logs"]').click();
+      assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/مناسب للبدء/);
+      await tourPage.locator('[data-bb-tour-next]').click();
+      await tourPage.locator('[data-bb-tour-answer="bridged"]').click();
+      assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/لا تستخدم Bridged/);
+      await tourPage.locator('[data-bb-tour-step="3"]').click();
+      await tourPage.locator('[data-bb-tour-answer="evidence"]').click();
+      assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/توثيق مفيد/);
+      await tourPage.locator('[data-bb-tour-step="4"]').click();
+      assert.equal(await tourPage.locator('.bb-tour-links button').count(),5);
+      assert.equal(await tourPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'last step fits mobile width');
+      await tourPage.locator('[data-bb-tour-go="tracks"]').click();
+      await tourPage.locator('.training-home, #selectedTrack, #content h1').first().waitFor({state:'visible'});
+      assert.equal(await tourPage.evaluate(()=>localStorage.getItem('blackbox.first-visit-tour.v1')),'done');
+      assert.equal(await tourPage.locator('[data-bb-first-visit]').count(),0);
+      // Going Back after finishing cannot reopen the explicitly replayable welcome.
+      await tourPage.goBack({waitUntil:'domcontentloaded'});
+      await tourPage.locator('[data-training-home]').waitFor({state:'visible'});
+      assert.equal(await tourPage.locator('[data-bb-first-visit]').count(),0,'Back must not replay a finished tour');
+      await tourPage.evaluate(()=>history.forward());
+      await tourPage.waitForFunction(()=>new URL(location.href).searchParams.get('view')==='tracks');
+      await navigate(tourPage,'/');
+      await tourPage.locator('[data-training-home]').waitFor({state:'visible'});
+      assert.equal(await tourPage.locator('[data-bb-first-visit]').count(),0,'no auto replay for returning browser');
+      await disclosure(tourPage,'#workspace-tools',true);
+      await tourPage.locator('#bb-replay-tour').click();
+      await tourPage.locator('[data-bb-first-visit]').waitFor({state:'visible'});
+      assert.equal(await tourPage.locator('#bb-tour-main-title').innerText(),'ابدأ رحلتك داخل BLACKBOX');
+      await tourPage.locator('[data-bb-tour-skip]').click();
+      await tourPage.locator('[data-training-home]').waitFor({state:'visible'});
+      await navigate(tourPage,'/?view=welcome');
+      await tourPage.locator('[data-bb-first-visit]').waitFor({state:'visible'});
+      await tourPage.locator('[data-bb-tour-skip]').click();
+      await navigate(tourPage,'/?view=account');
+      await tourPage.locator('[data-bb-first-visit]').waitFor({state:'detached'});
+      assert.equal(await tourPage.locator('body.bb-welcome-active').count(),0,'deep linked account is never intercepted');
+      assert.deepEqual(tourErrors,[],'no guest browser exceptions in first visit');
+      assert.deepEqual(outside,[],'no API or third party requests caused by intro');
+    }finally{await tourContext.close();}
+  }
+  report.interactiveOnboardingVerified=true;
+  console.log('PASS BLACKBOX first-visit blue tour: five steps, safe choices, replay, skip, deep links, mobile 320/390/1440');
   const lifecycle = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-training-plan-lifecycle.mjs')], {
     env: { ...process.env, BLACKBOX_TEST_URL: origin + '/?view=plan' }, timeout: 60000,
   });

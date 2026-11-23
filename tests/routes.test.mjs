@@ -135,3 +135,13 @@ test('explicit local setup help survives initial normalization and clears on lea
   assert.equal(routeURL({ view: 'home' }, 'https://blackboxlab.dev/?intro=2#private').href, 'https://blackboxlab.dev/');
   assert.equal(routeURL({ view: 'home' }, 'https://blackboxlab.dev/?intro=1#private').hash, '');
 });
+
+test('welcome introduction has a non-indexed replay route and never unlocks stages',()=>{
+ const page=parseRoute('https://blackboxlab.dev/?view=welcome');
+ assert.equal(page.view,'welcome');
+ assert.equal(primaryView('welcome'),'home');
+ assert.equal(routeURL({view:'welcome'}).searchParams.get('view'),'welcome');
+ assert.equal(routeMetadata({view:'welcome'}).shouldIndex,false);
+ assert.equal(parseRoute('https://blackboxlab.dev/?view=tracks&track=logs').view,'tracks');
+ assert.equal(parseRoute('https://blackboxlab.dev/?intro=1#local-lab-setup').view,'home');
+});

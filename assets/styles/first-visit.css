@@ -1,0 +1,91 @@
+/* A dedicated workspace-first introduction; no changes to Firebase or training state. */
+body.bb-welcome-active{background:var(--bg,#090f20);overflow-x:hidden}
+body.bb-welcome-active .bb-landing,body.bb-welcome-active #landing-page{display:none!important}
+body.bb-welcome-active .app{display:block!important;min-height:100svh;background:var(--bg,#090f20)}
+body.bb-welcome-active .sidebar,body.bb-welcome-active .topbar,body.bb-welcome-active #welcome-guide,
+body.bb-welcome-active #welcome-reopen,body.bb-welcome-active #bb-quick-dock,
+body.bb-welcome-active .main>.footer,body.bb-welcome-active #storageNotice,
+body.bb-welcome-active #accountSyncNotice{display:none!important}
+body.bb-welcome-active .main{display:block!important;width:100%!important;max-width:none!important;min-width:0!important;padding:0!important;margin:0!important;overflow:visible!important}
+body.bb-welcome-active #content{width:100%;max-width:none!important;padding:0!important;margin:0!important;display:block!important}
+.bb-first-visit{--tour-bg:var(--bg,#090f20);--tour-panel:var(--panel,#14233c);--tour-soft:var(--panel2,#1c3251);--tour-line:var(--line,#365475);--tour-ink:var(--text,#eff6ff);--tour-muted:var(--muted,#b0c3df);--tour-blue:var(--green,#3f91ff);
+ font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;color:var(--tour-ink);min-height:100svh;direction:rtl;background:radial-gradient(ellipse at 82% 8%,color-mix(in srgb,var(--tour-blue) 17%,transparent),transparent 37%),radial-gradient(ellipse at 12% 75%,color-mix(in srgb,var(--tour-blue) 7%,transparent),transparent 38%),var(--tour-bg);overflow-x:clip;box-sizing:border-box}
+.bb-first-visit *{box-sizing:border-box}
+.bb-first-visit button{font:inherit;cursor:pointer}
+.bb-first-visit :is(button,a):focus-visible{outline:3px solid var(--tour-blue)!important;outline-offset:3px}
+.bb-tour-header{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:13px clamp(15px,4vw,56px);border-bottom:1px solid var(--tour-line);background:color-mix(in srgb,var(--tour-panel) 78%,transparent)}
+.bb-tour-logo{display:flex;align-items:center;gap:12px;direction:ltr;text-align:left}
+.bb-tour-logo>span{display:grid;place-items:center;color:var(--tour-blue);border:1px solid var(--tour-blue);width:42px;height:42px;border-radius:10px;font-weight:900;font-size:20px;background:var(--tour-bg)}
+.bb-tour-logo strong{display:block;letter-spacing:.11em;font:800 16px/1.3 system-ui,sans-serif}
+.bb-tour-logo small{display:block;font:600 9px system-ui,sans-serif;letter-spacing:.13em;color:var(--tour-muted)}
+.bb-tour-skip{background:var(--tour-panel);color:var(--tour-ink);border:1px solid var(--tour-line);border-radius:10px;padding:10px 15px;min-height:44px;font-size:12px}
+.bb-tour-shell{max-width:1320px;margin:auto;padding:clamp(15px,3vw,36px) clamp(14px,3vw,38px)}
+.bb-tour-overview{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:var(--tour-muted);margin-bottom:15px}
+.bb-tour-overview b{font:700 13px system-ui,sans-serif;color:var(--tour-blue)}
+.bb-tour-progress{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:clamp(23px,4vw,45px)}
+.bb-tour-progress button{display:grid;gap:8px;min-width:0;padding:0;background:none;border:0;text-align:right;color:var(--tour-muted)}
+.bb-tour-progress button>span{height:5px;border-radius:10px;background:var(--tour-line)}
+.bb-tour-progress button.selected>span,.bb-tour-progress button.visited>span{background:var(--tour-blue)}
+.bb-tour-progress button small{font-size:11px;line-height:1.6}
+.bb-tour-progress button.selected{color:var(--tour-ink)}
+.bb-tour-stage{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(305px,.94fr);align-items:center;gap:clamp(20px,4vw,54px)}
+.bb-tour-copy{min-width:0}
+.bb-tour-kicker{color:var(--tour-blue);font:700 11px system-ui,sans-serif;letter-spacing:.12em}
+.bb-tour-copy h1{font-size:clamp(29px,4vw,48px);line-height:1.45;margin:15px 0 17px;outline:none}
+.bb-tour-lead{font-size:clamp(13px,1.4vw,16px);line-height:2;color:var(--tour-muted);margin:0 0 24px;max-width:630px}
+.bb-tour-fake-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.bb-tour-fake-steps>div{background:var(--tour-panel);border:1px solid var(--tour-line);border-radius:13px;padding:14px 12px;min-width:0}
+.bb-tour-fake-steps span{display:block;color:var(--tour-blue);font:800 14px system-ui,sans-serif}
+.bb-tour-fake-steps strong,.bb-tour-fake-steps small{display:block}
+.bb-tour-fake-steps strong{font-size:14px;margin:9px 0 4px}
+.bb-tour-fake-steps small{font-size:11px;line-height:1.7;color:var(--tour-muted)}
+.bb-tour-demo{border:1px solid var(--tour-line);background:var(--tour-panel);border-radius:17px;padding:clamp(15px,2vw,23px)}
+.bb-tour-demo-eyebrow{color:var(--tour-blue);font:700 10px system-ui,sans-serif;letter-spacing:.04em}
+.bb-tour-demo h2{font-size:17px;line-height:1.8;margin:9px 0 15px}
+.bb-tour-demo-choices{display:grid;gap:9px}
+.bb-tour-demo-choices button{display:flex;align-items:center;gap:11px;min-height:53px;text-align:right;border:1px solid var(--tour-line);background:var(--tour-bg);color:var(--tour-ink);border-radius:10px;padding:9px 12px;font-size:12px;line-height:1.7}
+.bb-tour-demo-choices button span{flex:0 0 28px;width:28px;height:28px;display:grid;place-items:center;background:var(--tour-panel);border-radius:8px;color:var(--tour-blue);font:700 12px system-ui,sans-serif}
+.bb-tour-demo-choices button[aria-pressed="true"]{border-color:var(--tour-blue);background:color-mix(in srgb,var(--tour-blue) 11%,var(--tour-bg))}
+.bb-tour-demo [data-bb-tour-feedback]{min-height:56px;color:var(--tour-muted);font-size:12px;line-height:1.85;margin:14px 0 0}
+.bb-tour-demo [data-bb-tour-feedback][data-correct="true"]{color:var(--tour-ink)}
+.bb-tour-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.bb-tour-links button{position:relative;display:grid;min-width:0;gap:3px;text-align:right;border:1px solid var(--tour-line);background:var(--tour-panel);color:var(--tour-ink);border-radius:12px;padding:11px 14px;min-height:78px;font-size:16px}
+.bb-tour-links button:hover{border-color:var(--tour-blue)}
+.bb-tour-links strong{font-size:12px}
+.bb-tour-links small{color:var(--tour-muted);font-size:11px}
+.bb-tour-simulator{min-width:0}
+.bb-tour-screen{border:1px solid var(--tour-line);background:color-mix(in srgb,var(--tour-panel) 82%,var(--tour-bg));border-radius:21px;overflow:hidden;box-shadow:0 23px 55px #0004}
+.bb-tour-screen-top{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--tour-bg);padding:12px 17px;border-bottom:1px solid var(--tour-line);color:var(--tour-muted);font:700 9px system-ui,sans-serif;letter-spacing:.07em}
+.bb-tour-screen-top span{color:var(--tour-blue)}
+.bb-tour-screen-body{padding:clamp(18px,2.6vw,30px)}
+.bb-tour-screen-kicker{font:700 10px system-ui,sans-serif;color:var(--tour-blue)}
+.bb-tour-screen-body h2{font-size:clamp(21px,3vw,29px);line-height:1.65;margin:13px 0 18px}
+.bb-tour-signal{height:86px;display:flex;gap:5px;align-items:end;margin-bottom:20px}
+.bb-tour-signal i{width:calc(100% / 7);height:47%;border-radius:5px 5px 0 0;background:color-mix(in srgb,var(--tour-blue) 43%,var(--tour-bg))}
+.bb-tour-signal i:nth-child(2),.bb-tour-signal i:nth-child(6){height:75%;opacity:.68}
+.bb-tour-signal i:nth-child(3){height:94%;background:var(--tour-blue)}
+.bb-tour-signal i:nth-child(4){height:56%}
+.bb-tour-signal i:nth-child(5){height:83%;opacity:.7}
+.bb-tour-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.bb-tour-metrics>div{background:var(--tour-bg);border:1px solid var(--tour-line);border-radius:9px;padding:10px}
+.bb-tour-metrics small,.bb-tour-metrics strong{display:block}
+.bb-tour-metrics small{color:var(--tour-muted);font-size:10px}
+.bb-tour-metrics strong{color:var(--tour-blue);font:800 18px system-ui,sans-serif;overflow-wrap:anywhere}
+.bb-tour-log{display:flex;align-items:center;gap:11px;border:1px solid var(--tour-line);background:var(--tour-bg);border-radius:10px;padding:13px;margin-top:14px}
+.bb-tour-log>span{font-size:24px;color:var(--tour-blue)}
+.bb-tour-log strong,.bb-tour-log small{display:block}
+.bb-tour-log strong{font-size:12px}
+.bb-tour-log small{font-size:10px;line-height:1.7;color:var(--tour-muted)}
+.bb-tour-screen-bottom{display:flex;gap:9px;justify-content:space-evenly;color:var(--tour-blue);border-top:1px solid var(--tour-line);padding:12px;font:700 10px system-ui,sans-serif;letter-spacing:.07em}
+.bb-tour-simulator>p{text-align:center;font-size:11px;color:var(--tour-muted);margin:11px 0}
+.bb-tour-footer{border-top:1px solid var(--tour-line);margin-top:29px;padding-top:18px;display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap}
+.bb-tour-buttons{display:flex;align-items:center;gap:10px}
+.bb-tour-buttons button{min-height:45px;border-radius:10px;padding:10px 22px;font-size:13px}
+.bb-tour-previous{border:1px solid var(--tour-line);background:var(--tour-panel);color:var(--tour-ink)}
+.bb-tour-previous:disabled{opacity:.44;cursor:not-allowed}
+.bb-tour-next{border:1px solid var(--tour-blue);background:var(--tour-blue);color:var(--tour-bg);font-weight:800}
+.bb-tour-footer p{color:var(--tour-muted);font-size:11px;line-height:1.8}
+@media(max-width:950px){.bb-tour-stage{grid-template-columns:1fr}.bb-tour-simulator{width:100%;max-width:650px;margin:auto}.bb-tour-stage{gap:20px}}
+@media(max-width:600px){.bb-tour-header{padding:10px 13px}.bb-tour-logo>span{width:37px;height:37px}.bb-tour-shell{padding:15px 13px}.bb-tour-progress{gap:5px;margin-bottom:22px}.bb-tour-progress button small{font-size:8px}.bb-tour-copy h1{font-size:clamp(27px,7vw,37px);margin:9px 0 12px}.bb-tour-lead{font-size:13px;margin-bottom:17px}.bb-tour-fake-steps{gap:7px}.bb-tour-fake-steps>div{padding:10px 8px}.bb-tour-fake-steps strong{font-size:11px}.bb-tour-fake-steps small{font-size:9px}.bb-tour-screen-body{padding:15px}.bb-tour-screen-body h2{font-size:21px;margin:9px 0}.bb-tour-signal{height:60px}.bb-tour-footer{margin-top:20px}.bb-tour-buttons{width:100%;justify-content:space-between}}
+@media(max-width:365px){.bb-tour-fake-steps{grid-template-columns:1fr}.bb-tour-fake-steps>div{display:grid;grid-template-columns:27px 1fr;gap:2px}.bb-tour-fake-steps small{grid-column:2}.bb-tour-links{grid-template-columns:1fr}.bb-tour-progress button small{font-size:7px}}
+@media(prefers-reduced-motion:reduce){.bb-first-visit *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

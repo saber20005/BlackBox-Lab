@@ -142,7 +142,7 @@ test('ending the final feature step closes the dialog through its ordinary close
 });
 
 test('opening the feature guide stops the custom tour before the native dialog takes focus', () => {
-  const f = fixture(); f.activate('landing-start-tour');
+  const f = fixture({ href: 'https://blackboxlab.dev/?intro=1' }); f.activate('landing-start-tour');
   assert.equal(f.overlay.hidden, false);
   assert.equal(f.bubble.getAttribute('aria-modal'), 'false');
   assert.equal(f.dialog.open, false);
@@ -154,7 +154,7 @@ test('opening the feature guide stops the custom tour before the native dialog t
 });
 
 test('Escape finishes the nonmodal tour and restores visible focus instead of the hidden landing button', () => {
-  const f = fixture(); f.activate('landing-start-tour');
+  const f = fixture({ href: 'https://blackboxlab.dev/?intro=1' }); f.activate('landing-start-tour');
   const escape = new Event('keydown'); escape.key = 'Escape'; f.document.dispatchEvent(escape);
   assert.equal(escape.defaultPrevented, true);
   assert.equal(f.overlay.hidden, true);
@@ -163,7 +163,7 @@ test('Escape finishes the nonmodal tour and restores visible focus instead of th
 });
 
 test('the four-section tour finishes at the account section and releases its listeners', () => {
-  const f = fixture(); f.activate('landing-start-tour');
+  const f = fixture({ href: 'https://blackboxlab.dev/?intro=1' }); f.activate('landing-start-tour');
   for (let index = 0; index < 4; index++) {
     assert.equal(f.nodes.get('bb-tour-count').textContent, `${index + 1} / 4`);
     assert(f.nodes.get('bb-tour-heading').textContent.startsWith(`${index + 1}.`));
@@ -175,7 +175,7 @@ test('the four-section tour finishes at the account section and releases its lis
 });
 
 test('opening another native dialog stops the tour without taking focus from that dialog', () => {
-  const f = fixture(); f.activate('landing-start-tour'); f.otherDialog.showModal();
+  const f = fixture({ href: 'https://blackboxlab.dev/?intro=1' }); f.activate('landing-start-tour'); f.otherDialog.showModal();
   assert.equal(f.overlay.hidden, true);
   assert.equal(f.document.activeElement, f.otherDialog);
   f.nodes.get('landing-start-tour').click();
@@ -184,7 +184,7 @@ test('opening another native dialog stops the tour without taking focus from tha
 });
 
 test('a failed native open after stopping a tour leaves visible workspace focus', () => {
-  const f = fixture(); f.activate('landing-start-tour');
+  const f = fixture({ href: 'https://blackboxlab.dev/?intro=1' }); f.activate('landing-start-tour');
   f.dialog.showModal = () => { throw new Error('InvalidStateError'); };
   // A programmatic launcher retains the tour-control focus until that tour stops.
   f.nodes.get('bb-whats-new-open').click();
@@ -194,7 +194,7 @@ test('a failed native open after stopping a tour leaves visible workspace focus'
 });
 
 test('returning to the explicit introduction during a tour restores focus in that visible introduction', () => {
-  const f = fixture(); f.activate('landing-start-tour');
+  const f = fixture({ href: 'https://blackboxlab.dev/?intro=1' }); f.activate('landing-start-tour');
   f.location.href = 'https://blackboxlab.dev/?intro=1';
   f.window.dispatchEvent(new Event('popstate'));
   assert.equal(f.overlay.hidden, true);

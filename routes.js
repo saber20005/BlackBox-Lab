@@ -3,7 +3,7 @@ import { tracks } from './data.js';
 export const SITE_ORIGIN = 'https://blackboxlab.dev';
 const HOME = `${SITE_ORIGIN}/`;
 const totalStages = tracks.reduce((sum, track) => sum + track.stages.length, 0);
-const VIEWS = new Set(['home', 'tracks', 'journeys', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'troubleshoot', 'settings']);
+const VIEWS = new Set(['home', 'welcome', 'tracks', 'journeys', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'troubleshoot', 'settings']);
 const CAMPAIGN_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 const trackById = id => tracks.find(track => track.id === id);
 const defaultTrack = id => trackById(id)?.id || tracks[0].id;
@@ -105,6 +105,7 @@ export function routeMetadata(route) {
   }
   if (route?.view === 'troubleshoot') return { ...base, title: 'حلول أعطال المختبر | BLACKBOX', description: 'إرشادات عملية لحل أعطال المختبر المحلي والشبكة وأدوات التدريب، مع البحث في الحلول.' };
   if (route?.view === 'progress') return { ...base, title: 'تقدّمي | BLACKBOX', description: 'تقدّم التدريب، وسجل الملاحظات، والمهام وملف الأعمال في مكان واحد.' };
+  if (route?.view === 'welcome') return { ...base, title: 'تعرف على BLACKBOX | جولة تفاعلية', description: 'جولة تعليمية اختيارية إلى مسارات BLACKBOX ومختبر VirtualBox وحفظ النتائج.', shouldIndex: false };
   if (route?.view === 'settings') return { ...base, title: 'إعدادات العرض | BLACKBOX', description: 'تخصيص مظهر مساحة التدريب وإمكانية الوصول محليًا دون تغيير التقدم.' };
   if (route?.view === 'account') return { ...base, title: 'حسابي | BLACKBOX', description: 'إدارة الحساب وحالة الحفظ والنسخ الاحتياطية ومساعدة المختبر.' };
   if (route?.view === 'journeys') return { ...base, title:'المسارات المشتركة | BLACKBOX', shouldIndex:false };
