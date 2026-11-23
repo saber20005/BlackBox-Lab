@@ -695,7 +695,7 @@ try {
       await tourPage.locator('[data-bb-tour-next]').click();
       assert.match(await title.innerText(),/اختر طريقك/);
       assert.equal(await title.evaluate(el=>document.activeElement===el),true,'step receives keyboard focus');
-      await tourPage.locator('[data-bb-tour-step="2"]').click();
+      await tourPage.locator('.bb-tour-progress [data-bb-tour-step="2"]').click();
       assert.match(await title.innerText(),/اضبط شبكة المختبر/);
       assert.equal(await tourPage.locator('[data-bb-mission-adapter="nat"]').getAttribute('aria-pressed'),'true');
       await tourPage.locator('[data-bb-mission-adapter="bridged"]').click();
@@ -747,9 +747,9 @@ try {
       await disclosure(tourPage,'#workspace-tools',true);
       await tourPage.locator('#bb-replay-tour').click();
       await tourPage.locator('[data-bb-first-visit]').waitFor({state:'visible'});
-      await tourPage.locator('[data-bb-tour-step="5"]').click();
+      await tourPage.locator('.bb-tour-progress [data-bb-tour-step="5"]').click();
       assert.match(await tourPage.locator('.bb-mission-debrief-score').innerText(),/0 \/ 3/,'replay starts clean, no persisted mission attempts');
-      await tourPage.locator('[data-bb-tour-step="0"]').click();
+      await tourPage.locator('.bb-tour-progress [data-bb-tour-step="0"]').click();
       assert.equal(await tourPage.locator('#bb-tour-main-title').innerText(),'ابدأ رحلتك داخل BLACKBOX');
       await tourPage.locator('[data-bb-tour-skip]').click();
       await tourPage.locator('[data-training-home]').waitFor({state:'visible'});
