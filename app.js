@@ -212,6 +212,7 @@ function navigate(view, focus = true) {
 function leaveWelcome(destination = 'home') {
   // This writes only a separate device-local discovery marker, never training progress.
   finishBbTour();
+  document.dispatchEvent(new Event('blackbox:welcome-completed'));
   if (destination === 'lab') {
     window.location.assign('./?intro=1#local-lab-setup');
     return;
