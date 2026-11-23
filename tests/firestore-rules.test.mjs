@@ -341,6 +341,28 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
     assert.equal((await getDoc(doc(alice, receiptPath('alice')))).data().bestScore, 70);
     await assertFails(setDoc(doc(alice, 'blackboxUsers/alice/integrations/cybertrace'), receipt()));
   });
+
+  test('security finding: legacy client-reported score cannot forge verified proof or certificates', async () => {
+    // Only the local Firestore emulator is accessed. This documents the boundary:
+    // user-supplied legacy results are NOT a verified assessment.
+    const alice = environment.authenticatedContext('legacy-auditor').firestore();
+    const caseId = CASE_IDS[0];
+    const legacy = doc(alice, receiptPath('legacy-auditor', caseId));
+    await assertSucceeds(setDoc(legacy, receipt(caseId, 70)));
+    assert.equal((await assertSucceeds(getDoc(legacy))).data().bestScore, 70);
+    await assertFails(setDoc(doc(alice, `blackboxUsers/legacy-auditor/verifiedCybertrace/${caseId}`), {
+      schemaVersion: 1, source: 'server-grading', caseId, bestScore: 70,
+    }));
+    await assertFails(setDoc(doc(alice, 'blackboxUsers/legacy-auditor/certificateAwards/fake'), {
+      schemaVersion: 1, certificateId: 'ffffffffffffffffffffffffffffffff', status: 'active',
+    }));
+    await assertFails(setDoc(doc(alice, 'certificateRegistry/ffffffffffffffffffffffffffffffff'), {
+      issuer: 'blackbox', source: 'user-supplied', status: 'active',
+    }));
+    const stranger = environment.authenticatedContext('different-user').firestore();
+    await assertFails(setDoc(doc(stranger, receiptPath('legacy-auditor', caseId)), receipt(caseId, 70)));
+  });
+
   test('verified results are readable only by their owner and never writable by client SDK', async () => {
     const verifiedPath = uid => `blackboxUsers/${uid}/verifiedCybertrace/${CASE_IDS[0]}`;
     const verified = { schemaVersion: 1, caseId: CASE_IDS[0], bestScore: 70, verification: 'server', evidenceDigest: 'example' };
