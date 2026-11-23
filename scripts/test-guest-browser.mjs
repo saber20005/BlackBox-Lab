@@ -715,6 +715,11 @@ try {
       await command.fill('curl https://example.com');
       await tourPage.locator('[data-bb-mission-terminal] button[type="submit"]').click();
       assert.match(await tourPage.locator('[data-bb-mission-console]').innerText(),/NOT EXECUTED/);
+      // Alternative target changes the synthetic result, never the network.
+      await tourPage.locator('[data-bb-mission-scenario="hardened"]').click();
+      assert.equal(await tourPage.locator('[data-bb-mission-scenario="hardened"]').getAttribute('aria-pressed'),'true');
+      assert.match(await tourPage.locator('.bb-mission-context').innerText(),/HTTPS/);
+      await tourPage.locator('[data-bb-mission-scenario="web"]').click();
       await command.fill('nmap -sV 192.168.56.10');
       await tourPage.locator('[data-bb-mission-terminal] button[type="submit"]').click();
       assert.match(await tourPage.locator('[data-bb-mission-console]').innerText(),/22\/tcp/);
