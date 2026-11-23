@@ -33,27 +33,38 @@ test('skip and finish store only distinct key; local fallback to session, deny n
  assert.equal(hasFinishedBbTour(denied,session),true);
  assert.equal(finishBbTour(denied,denied),false);
 });
-test('welcome has five actionable steps and practice examples never write progress',()=>{
+test('welcome preview has six actionable steps and practice examples never write progress',()=>{
  assert.equal(parseRoute('https://blackboxlab.dev/?view=welcome').view,'welcome');
  assert.equal(primaryView('welcome'),'home');
  assert.equal(routeURL({view:'welcome'}).searchParams.get('view'),'welcome');
- assert.equal(BB_TOUR_STEPS.length,5);
- for(const id of ['tracks','isolation','evidence']){
+ assert.equal(BB_TOUR_STEPS.length,6);
+ for(const id of ['tracks','isolation','nmap','evidence']){
   assert.equal(BB_TOUR_DEMOS[id].filter(item=>item.correct).length,1);
   assert(BB_TOUR_DEMOS[id].every(item=>typeof item.reply==='string'));
  }
- for(let i=0;i<5;i++){
+ for(let i=0;i<6;i++){
   const html=renderBbWelcome(i);
   assert.match(html,/data-bb-first-visit/);
   assert.match(html,/data-bb-tour-skip/);
   assert.match(html,/data-bb-tour-prev/);
-  assert.equal((html.match(/data-bb-tour-step=/g)||[]).length,5);
+  assert.equal((html.match(/data-bb-tour-step=/g)||[]).length,6);
   assert.match(html,/لم يتم تشغيل أي أداة/);
  }
- assert.match(renderBbWelcome(4),/data-bb-tour-go="logs"/);
+ assert.match(renderBbWelcome(5),/data-bb-tour-go="logs"/);
  const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
  assert.match(app,/finishBbTour/);
  assert.match(app,/shouldStartBbTour/);
  assert.match(app,/data-bb-tour-answer/);
  assert.doesNotMatch(readFileSync(new URL('../assets/modules/onboarding/welcome-page.js',import.meta.url),'utf8'),/localStorage|fetch\(|firebase/);
+});
+
+test('Nmap preview remains a network-free interactive simulation',()=>{
+ const html=renderBbWelcome(3);
+ assert.match(html,/Nmap/);
+ assert.match(html,/192\.168\.56\.10/);
+ assert.match(html,/data-bb-tour-answer="safe"/);
+ assert.match(html,/SAMPLE ONLY/);
+ assert.match(html,/معاينة تجريبية/);
+ assert.match(html,/blackboxlab\.dev\/\?view=welcome/);
+ assert.equal(BB_TOUR_DEMOS.nmap.filter(item=>item.correct).length,1);
 });

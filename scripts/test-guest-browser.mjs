@@ -686,7 +686,7 @@ try {
       assert.equal(await tourPage.evaluate(()=>new URL(location.href).searchParams.get('view')),'welcome');
       assert.equal(await tourPage.locator('body.bb-welcome-active').count(),1);
       assert.equal(await tourPage.locator('#landing-page').isVisible(),false,'old landing is not layered under new guide');
-      assert.equal(await tourPage.locator('.bb-tour-progress button').count(),5);
+      assert.equal(await tourPage.locator('.bb-tour-progress button').count(),6);
       assert.equal(await tourPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'intro fits '+viewport.width+'px');
       const title=tourPage.locator('#bb-tour-main-title');
       await tourPage.locator('[data-bb-tour-next]').click();
@@ -698,9 +698,13 @@ try {
       await tourPage.locator('[data-bb-tour-answer="bridged"]').click();
       assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/لا تستخدم Bridged/);
       await tourPage.locator('[data-bb-tour-step="3"]').click();
+      await tourPage.locator('[data-bb-tour-answer="safe"]').click();
+      assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/اختيار مناسب لمختبر/);
+      assert.equal(await tourPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Nmap step fits mobile');
+      await tourPage.locator('[data-bb-tour-step="4"]').click();
       await tourPage.locator('[data-bb-tour-answer="evidence"]').click();
       assert.match(await tourPage.locator('[data-bb-tour-feedback]').innerText(),/توثيق مفيد/);
-      await tourPage.locator('[data-bb-tour-step="4"]').click();
+      await tourPage.locator('[data-bb-tour-step="5"]').click();
       assert.equal(await tourPage.locator('.bb-tour-links button').count(),5);
       assert.equal(await tourPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'last step fits mobile width');
       await tourPage.locator('[data-bb-tour-go="tracks"]').click();
@@ -733,7 +737,7 @@ try {
     }finally{await tourContext.close();}
   }
   report.interactiveOnboardingVerified=true;
-  console.log('PASS BLACKBOX first-visit blue tour: five steps, safe choices, replay, skip, deep links, mobile 320/390/1440');
+  console.log('PASS BLACKBOX first-visit blue tour: six steps including Nmap simulation, safe choices, replay, skip, deep links, mobile 320/390/1440');
   const lifecycle = await promisify(execFile)(process.execPath, [resolve(root, 'scripts/test-training-plan-lifecycle.mjs')], {
     env: { ...process.env, BLACKBOX_TEST_URL: origin + '/?view=plan' }, timeout: 60000,
   });

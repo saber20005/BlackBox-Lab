@@ -22,7 +22,7 @@ body.bb-welcome-active #content{width:100%;max-width:none!important;padding:0!im
 .bb-tour-shell{max-width:1320px;margin:auto;padding:clamp(15px,3vw,36px) clamp(14px,3vw,38px)}
 .bb-tour-overview{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:var(--tour-muted);margin-bottom:15px}
 .bb-tour-overview b{font:700 13px system-ui,sans-serif;color:var(--tour-blue)}
-.bb-tour-progress{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:clamp(23px,4vw,45px)}
+.bb-tour-progress{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-bottom:clamp(23px,4vw,45px)}
 .bb-tour-progress button{display:grid;gap:8px;min-width:0;padding:0;background:none;border:0;text-align:right;color:var(--tour-muted)}
 .bb-tour-progress button>span{height:5px;border-radius:10px;background:var(--tour-line)}
 .bb-tour-progress button.selected>span,.bb-tour-progress button.visited>span{background:var(--tour-blue)}
@@ -89,3 +89,15 @@ body.bb-welcome-active #content{width:100%;max-width:none!important;padding:0!im
 @media(max-width:600px){.bb-tour-header{padding:10px 13px}.bb-tour-logo>span{width:37px;height:37px}.bb-tour-shell{padding:15px 13px}.bb-tour-progress{gap:5px;margin-bottom:22px}.bb-tour-progress button small{font-size:8px}.bb-tour-copy h1{font-size:clamp(27px,7vw,37px);margin:9px 0 12px}.bb-tour-lead{font-size:13px;margin-bottom:17px}.bb-tour-fake-steps{gap:7px}.bb-tour-fake-steps>div{padding:10px 8px}.bb-tour-fake-steps strong{font-size:11px}.bb-tour-fake-steps small{font-size:9px}.bb-tour-screen-body{padding:15px}.bb-tour-screen-body h2{font-size:21px;margin:9px 0}.bb-tour-signal{height:60px}.bb-tour-footer{margin-top:20px}.bb-tour-buttons{width:100%;justify-content:space-between}}
 @media(max-width:365px){.bb-tour-fake-steps{grid-template-columns:1fr}.bb-tour-fake-steps>div{display:grid;grid-template-columns:27px 1fr;gap:2px}.bb-tour-fake-steps small{grid-column:2}.bb-tour-links{grid-template-columns:1fr}.bb-tour-progress button small{font-size:7px}}
 @media(prefers-reduced-motion:reduce){.bb-first-visit *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Draft-only additions for the alternate six-step BLACKBOX tour. */
+.bb-tour-preview-flag{display:inline-flex;align-items:center;border:1px solid #3d78b4;background:#113154;border-radius:50px;padding:7px 12px;font-size:11px;color:#9bd4ff}
+.bb-tour-command-example{border:1px solid var(--tour-line);border-radius:10px;display:grid;gap:8px;background:color-mix(in srgb,var(--tour-bg) 87%,#2563eb);padding:12px;margin-bottom:15px}
+.bb-tour-command-example>span{font-size:11px;color:var(--tour-muted)}
+.bb-tour-command-example code{font:700 12px/1.8 "IBM Plex Mono",monospace;color:#91dbff;word-break:break-word;white-space:normal}
+.bb-tour-command-example small{font:600 9px system-ui,sans-serif;color:var(--tour-muted);letter-spacing:.04em}
+.bb-tour-production-link{color:var(--tour-blue);font-size:11px;min-height:36px;display:inline-flex;align-items:center;text-decoration:underline}
+.bb-tour-production-link:hover{color:var(--tour-ink)}
+@media(max-width:700px){.bb-tour-preview-flag{order:3;flex-basis:100%;max-width:max-content;padding:4px 9px;font-size:10px}
+ .bb-tour-progress button small{font-size:9px}.bb-tour-header{gap:8px}}
+@media(max-width:365px){.bb-tour-progress{gap:3px}.bb-tour-progress button small{font-size:7px}}
