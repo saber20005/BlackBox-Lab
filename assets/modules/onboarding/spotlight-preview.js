@@ -23,6 +23,8 @@
   const host=document.createElement("div");
   host.className="bb-sp-preview";host.hidden=true;
   host.innerHTML='<div class="bb-sp-hole" aria-hidden="true"></div>'+
+    '<div class="bb-sp-beam" aria-hidden="true"></div>'+
+    '<div class="bb-sp-lamp" aria-hidden="true"><span class="bb-sp-lamp-grip"></span><span class="bb-sp-lamp-head"></span></div>'+
     '<section class="bb-sp-panel" role="dialog" aria-modal="false" aria-labelledby="bb-sp-title" dir="rtl">'+
     '<div class="bb-sp-meta"><span>◈ BLACKBOX / INTERACTIVE GUIDE</span><span class="bb-sp-count">01 / 03</span></div>'+
     '<div class="bb-sp-meter"><i></i></div><h2 id="bb-sp-title"></h2><p class="bb-sp-desc"></p>'+
@@ -31,6 +33,7 @@
     '<button type="button" class="bb-sp-next" hidden>إنهاء الجولة</button></div>'+
     '<small>معاينة تفاعلية • بدون حفظ بيانات أو تغيير إنجازات</small></section>';
   const hole=host.querySelector(".bb-sp-hole"),panel=host.querySelector(".bb-sp-panel");
+  const beam=host.querySelector(".bb-sp-beam"),lamp=host.querySelector(".bb-sp-lamp");
   const meter=host.querySelector(".bb-sp-meter i"),counter=host.querySelector(".bb-sp-count");
   const nextButton=host.querySelector(".bb-sp-next"),hint=host.querySelector(".bb-sp-hint");
   const replay=document.createElement("button");
@@ -53,6 +56,21 @@
     const r=node.getBoundingClientRect(),pad=7;
     Object.assign(hole.style,{left:Math.max(3,r.left-pad)+"px",top:Math.max(3,r.top-pad)+"px",
       width:Math.min(innerWidth-6,r.width+pad*2)+"px",height:Math.min(innerHeight-6,r.height+pad*2)+"px"});
+    // The video uses a visible rotating light fixture and a triangular cone.
+    // Project a soft, non-interactive beam towards the real highlighted control.
+    const tx=r.left+r.width/2,ty=r.top+r.height/2;
+    const originX=r.left>=innerWidth-r.right?Math.max(54,r.left-106):Math.min(innerWidth-54,r.right+106);
+    const originY=Math.max(58,Math.min(innerHeight-58,ty+(ty>innerHeight/2?-112:112)));
+    const angle=Math.atan2(ty-originY,tx-originX),deg=angle*180/Math.PI;
+    const startX=originX+Math.cos(angle)*29,startY=originY+Math.sin(angle)*29;
+    const distance=Math.max(26,Math.hypot(tx-startX,ty-startY));
+    const coneHeight=Math.min(205,Math.max(84,r.width*.85+72));
+    Object.assign(lamp.style,{left:originX+"px",top:originY+"px",
+      transform:"translate(-50%,-50%) rotate("+deg+"deg)"});
+    Object.assign(beam.style,{left:startX+"px",top:startY+"px",
+      width:distance+"px",height:coneHeight+"px",
+      transform:"translateY(-50%) rotate("+deg+"deg)"});
+    lamp.hidden=false;beam.hidden=false;
     panel.querySelector("#bb-sp-title").textContent=item.title;
     panel.querySelector(".bb-sp-desc").textContent=item.text;
     counter.textContent=String(index+1).padStart(2,"0")+" / "+String(steps.length).padStart(2,"0");
@@ -72,7 +90,7 @@
   }
   function complete(){
     if(!active)return;
-    index=steps.length;target=null;hole.style.opacity="0";
+    index=steps.length;target=null;hole.style.opacity="0";lamp.hidden=true;beam.hidden=true;
     panel.querySelector("#bb-sp-title").textContent="عرفت طريقك داخل BLACKBOX";
     panel.querySelector(".bb-sp-desc").textContent="انتقلت بين الأقسام الحقيقية بنفسك. تابع التدريب أو أعد الجولة من الزر الصغير. لم يتغير تقدّمك.";
     counter.textContent="COMPLETE";meter.style.width="100%";
@@ -105,7 +123,7 @@
     if(document.querySelector("dialog[open]"))return;
     stop();steps=compact()?mobile:desktop;index=0;target=null;lastFocus=document.activeElement;
     const dock=query("#bb-quick-dock");if(dock)dock.open=false;
-    active=true;hole.style.opacity="1";host.hidden=false;
+    active=true;hole.style.opacity="1";host.hidden=false;lamp.hidden=false;beam.hidden=false;
     document.addEventListener("click",onClick,true);document.addEventListener("keydown",onKey,true);
     addEventListener("resize",onResize);addEventListener("scroll",onResize,true);
     position();panel.querySelector(".bb-sp-skip").focus({preventScroll:true});
