@@ -707,6 +707,12 @@ try {
       await tourPage.locator('.training-home, #selectedTrack, #content h1').first().waitFor({state:'visible'});
       assert.equal(await tourPage.evaluate(()=>localStorage.getItem('blackbox.first-visit-tour.v1')),'done');
       assert.equal(await tourPage.locator('[data-bb-first-visit]').count(),0);
+      // Going Back after finishing cannot reopen the explicitly replayable welcome.
+      await tourPage.goBack({waitUntil:'domcontentloaded'});
+      await tourPage.locator('[data-training-home]').waitFor({state:'visible'});
+      assert.equal(await tourPage.locator('[data-bb-first-visit]').count(),0,'Back must not replay a finished tour');
+      await tourPage.evaluate(()=>history.forward());
+      await tourPage.waitForFunction(()=>new URL(location.href).searchParams.get('view')==='tracks');
       await navigate(tourPage,'/');
       await tourPage.locator('[data-training-home]').waitFor({state:'visible'});
       assert.equal(await tourPage.locator('[data-bb-first-visit]').count(),0,'no auto replay for returning browser');
