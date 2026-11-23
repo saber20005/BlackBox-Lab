@@ -781,12 +781,17 @@ try {
       assert.match(await spotPage.locator('#bb-sp-title').innerText(),viewport.width<850?/اختصاراتك/:/المسارات/);
       if(viewport.width<850){
         await spotPage.locator('#bb-quick-dock > summary').click();
+        await spotPage.getByText('افتح المسارات',{exact:true}).waitFor();
         await spotPage.locator('#bb-quick-dock [data-bb-dock-view="tracks"]').click();
+        await spotPage.getByText('اختصاراتك موجودة دائمًا').waitFor();
         await spotPage.locator('#bb-quick-dock > summary').click();
+        await spotPage.getByText('راجع تقدّمك',{exact:true}).waitFor();
         await spotPage.locator('#bb-quick-dock [data-bb-dock-view="progress"]').click();
       } else {
         await spotPage.locator('.sidebar [data-view="tracks"]').click();
+        await spotPage.getByText('راجع تقدّمك',{exact:true}).waitFor();
         await spotPage.locator('.sidebar [data-view="progress"]').click();
+        await spotPage.getByText('أدوات ومساعدة',{exact:true}).waitFor();
         await spotPage.locator('#workspace-tools > summary').click();
       }
       await spotPage.getByText('عرفت طريقك داخل BLACKBOX').waitFor({state:'visible'});
