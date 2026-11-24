@@ -22,7 +22,7 @@ const origin='http://127.0.0.1:'+server.address().port;
 let browser,page;let activeErrors=[];const report=[];
 try{
  browser=await chromium.launch({executablePath:process.env.BLACKBOX_CHROMIUM_PATH||undefined,headless:true,args:['--no-sandbox']});
- for(const width of [320,390,1440]){
+ for(const width of [320,390,768,1024,1440]){
   const context=await browser.newContext({viewport:{width,height:1000},reducedMotion:'reduce'});const errors=[],external=[];activeErrors=errors;
   await context.route('**/*',route=>{if(new URL(route.request().url()).origin===origin)return route.continue();external.push(new URL(route.request().url()).hostname);return route.abort('blockedbyclient');});
   page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',error=>errors.push(error.message));
@@ -63,7 +63,18 @@ try{
   assert.equal(await page.locator('#nav [data-view]').count(),4);assert.equal(await page.locator('#bb-quick-dock').count(),0);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'dock and page fit '+width+'px');
   assert.equal(await page.locator('#content').evaluate(node=>getComputedStyle(node).animationName),'none','reduced motion avoids route animation');
-  if(width<700){const box=await page.locator('#nav').boundingBox();assert(box.y>800&&box.width<=width);await page.locator('#nav [data-view=home]').click();await page.locator('.app-search-launcher').waitFor();assert.equal(await page.locator('#nav').evaluate(node=>getComputedStyle(node).position),'fixed');}
+  const bar=page.locator('#nav'),box=await bar.boundingBox();
+  assert.equal(await bar.evaluate(node=>getComputedStyle(node).position),'fixed','primary navigation floats on phones, tablets and computers');
+  assert(box.y>=page.viewportSize().height-box.height-40&&box.y+box.height<=page.viewportSize().height,'navigation stays at the bottom');
+  assert(Math.abs(box.x+box.width/2-width/2)<1,'navigation stays centered');
+  await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+  assert(Math.abs((await bar.boundingBox()).y-box.y)<1,'scrolling does not move the bottom bar');
+  await page.emulateMedia({media:'print'});assert.equal(await bar.isVisible(),false,'the fixed bar stays out of printed documents');await page.emulateMedia({media:'screen'});
+  await page.locator('#nav [data-view=home]').click();await page.locator('.app-search-launcher').waitFor();
+  const brand=await page.locator('.brand').boundingBox(),main=await page.locator('main#main-content').boundingBox();
+  assert(brand.y<main.y,'branding remains in the compact header above the content');
+  const targets=await bar.locator('button').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {width:r.width,height:r.height};}));
+  assert(targets.every(r=>r.width>=44&&r.height>=44),'all navigation controls stay touch-sized');
   await page.screenshot({path:out+'/workspace-'+width+'.png',fullPage:true});await opener.click();await page.screenshot({path:out+'/search-'+width+'.png'});await page.keyboard.press('Escape');
   assert.deepEqual(errors,[]);assert.deepEqual(external,[]);report.push({width,publicSearch:true,privateDraftExcluded:true,locks:true,historyAndDraft:true,errors,external});
   console.log('PASS app navigation '+width+'px: persistent routes, native search, private draft exclusion, locks, pending save, Back/Forward and reduced motion');await context.close();
