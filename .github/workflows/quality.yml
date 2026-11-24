@@ -53,6 +53,7 @@ jobs:
         run: |
           node scripts/test-guest-browser.mjs
           node scripts/test-loading-browser.mjs
+          node scripts/test-app-navigation-browser.mjs
           node scripts/test-presentation-browser.mjs
           BB_REVIEW_THEME=light BB_REVIEW_TEXT=xlarge BB_REVIEW_DENSITY=compact node scripts/test-presentation-browser.mjs
       - name: Upload guest browser failure details

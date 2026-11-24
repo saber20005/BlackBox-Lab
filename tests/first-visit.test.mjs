@@ -169,7 +169,7 @@ test('spotlight preview is explicit, uses real navigation targets and never pers
  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
  const css=readFileSync(new URL('../assets/styles/spotlight-preview.css',import.meta.url),'utf8');
  assert.match(js,/spotlight-preview/);
- for(const selector of ['data-view="tracks"','data-view="progress"','bb-quick-dock','workspace-tools'])assert.ok(js.includes(selector));
+ for(const selector of ['data-view="tracks"','data-view="progress"','#nav','workspace-tools'])assert.ok(js.includes(selector));
  assert.match(js,/stopImmediatePropagation/);
  assert.match(html,/spotlight-preview\.js/);
  assert.match(css,/prefers-reduced-motion/);

@@ -14,16 +14,16 @@ test('BLACKBOX phone dock fits readable 2x2 grid and does not block main cards w
   assert.match(mobile,/white-space:normal;overflow-wrap:anywhere/);
 });
 
-test('BLACKBOX dock closes when navigating, clicking outside, pressing Escape or scrolling',()=>{
+test('main workspace uses persistent primary navigation instead of the optional legacy dock',()=>{
   const app=read('../app.js');
-  assert.match(app,/const quickDock = document\.getElementById\('bb-quick-dock'\)/);
-  assert.match(app,/navigate\(button\.dataset\.bbDockView\)/);
-  assert.match(app,/if \(quickDock\?\.open && !quickDock\.contains\(event\.target\)\)/);
-  assert.match(app,/event\.key !== 'Escape'/);
-  assert.match(app,/quickDock\.querySelector\('summary'\)\?\.focus\(\)/);
-  assert.match(app,/window\.addEventListener\('scroll'/);
-  assert.match(app,/passive: true/);
+  assert.match(app,/mountAppNavigation\(/);
+  assert.doesNotMatch(app,/const quickDock = document\.getElementById\('bb-quick-dock'\)/);
   const html=read('../index.html');
-  for(const id of ['home','tracks','progress','backups']) assert(html.includes('data-bb-dock-view="'+id+'"'));
+  assert.match(html,/id="bb-app-search-open"/);
+  assert.match(html,/<dialog\b[^>]*\bid="bb-app-search"/);
+  assert.doesNotMatch(html,/<details\b[^>]*id="bb-quick-dock"/);
+  const css=read('../assets/styles/app-navigation.css');
+  assert.match(css,/position:\s*fixed/);
+  assert.match(css,/safe-area-inset-bottom/);
   assert.doesNotMatch(html,/data-bb-dock-view="logout"/);
 });

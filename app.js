@@ -1,4 +1,5 @@
 import { tracks, errors } from './data.js';
+import { appIcon, mountAppNavigation } from './assets/modules/navigation/app-navigation.js';
 import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPreferences, applyBbPreset, BB_UI_DEFAULTS } from './assets/modules/preferences/ui-preferences.js';
 import { renderBbStudio } from './assets/modules/preferences/ui-studio.js';
 import { createTrainingReportHtml } from './assets/modules/reports/training-report.js';
@@ -69,6 +70,9 @@ let importError = false;
 let routeNotice = '';
 const titles = { home: 'تدريبي', welcome: 'الجولة التعريفية', tracks: 'المسارات', journeys: 'المسارات المشتركة', progress: 'تقدّمي', account: 'حسابي', settings: 'الإعدادات', plan: 'خطة جلستك', skills: 'المهارات المترابطة', exercise: 'التمرين الحالي', journal: 'سجل المختبر', backups: 'النسخ والتقارير', troubleshoot: 'حلول الأعطال' };
 const content = document.getElementById('content');
+let appNavigation;
+let renderedNavigationURL;
+const navigationPositions = new Map();
 const stageKey = (trackId, index) => `${trackId}-${index}`;
 const trackById = id => tracks.find(track => track.id === id);
 const isDone = (id, index) => Boolean(state.completed[stageKey(id, index)]);
@@ -85,6 +89,8 @@ const percentage = (value, total) => total ? Math.round(value / total * 100) : 0
 function resetSkillOwner(uid) {
   if (uid === skillOwnerUid) return false;
   skillOwnerUid = uid;
+  navigationPositions.clear();
+  appNavigation?.close(false);
   gradingSession = null;
   gradingMessage = '';
   skillState = { enabled: accountConfig.linkedSkillsEnabled === true, phase: uid ? 'loading' : 'guest', receipts: {}, fromCache: false, error: null, message: '' };
@@ -177,7 +183,28 @@ function closeWorkspaceTools() {
   const tools = document.getElementById('workspace-tools');
   if (tools) tools.open = false;
 }
+function rememberNavigationPosition() {
+  if (!renderedNavigationURL) return;
+  const active = document.activeElement;
+  const button = active?.closest?.('[data-open],[data-track],[data-view],[data-nav]');
+  const focus = active?.id ? { id: active.id } : button ? Object.fromEntries(['data-open','data-stage','data-track','data-view','data-nav'].filter(key => button.hasAttribute(key)).map(key => [key, button.getAttribute(key)])) : null;
+  navigationPositions.set(renderedNavigationURL, { top: window.scrollY, focus });
+}
+function restoreNavigationPosition() {
+  const saved = navigationPositions.get(window.location.href);
+  if (!saved) return;
+  let target;
+  if (saved.focus?.id) target = document.getElementById(saved.focus.id);
+  else if (saved.focus) {
+    const selector = Object.entries(saved.focus).map(([key,value]) => `[${key}="${CSS.escape(value)}"]`).join('');
+    if (selector) target = content.querySelector(selector) || document.querySelector(selector);
+  }
+  target?.focus({ preventScroll: true });
+  window.scrollTo({ top: saved.top, behavior: 'instant' });
+}
 function applyLocation() {
+  rememberNavigationPosition();
+  appNavigation?.close(false);
   closeWorkspaceTools();
   flushDraft();
   const route = parseRoute(window.location.href, currentTrack);
@@ -197,8 +224,12 @@ function applyLocation() {
   if (currentView === 'tracks') trackEvent('track_open', { track_id: currentTrack });
   syncRoute(true);
   render(true);
+  renderedNavigationURL = window.location.href;
+  restoreNavigationPosition();
 }
 function navigate(view, focus = true) {
+  rememberNavigationPosition();
+  appNavigation?.close(false);
   closeWorkspaceTools();
   flushDraft();
   routeNotice = '';
@@ -239,6 +270,8 @@ function leaveWelcome(destination = 'home') {
 }
 function openTrack(trackId) {
   if (!trackById(trackId)) return;
+  rememberNavigationPosition();
+  appNavigation?.close(false);
   closeWorkspaceTools();
   flushDraft();
   currentTrack = trackId;
@@ -247,9 +280,14 @@ function openTrack(trackId) {
   syncRoute();
   trackEvent('track_open', { track_id: trackId });
   render();
-  document.getElementById('selectedTrack')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const detail = document.getElementById('selectedTrack');
+  detail?.setAttribute('tabindex', '-1');
+  detail?.focus({ preventScroll: true });
+  detail?.scrollIntoView({ behavior: displayPreferences.motion === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
 }
 function openStage(trackId, index) {
+  rememberNavigationPosition();
+  appNavigation?.close(false);
   closeWorkspaceTools();
   flushDraft();
   const track = trackById(trackId);
@@ -310,7 +348,7 @@ function home() {
   const stage = track.stages[next.index];
   const allDone = completedCount() === allStages;
   const hasProgress = Boolean(state.lastActivity || completedCount() || checkedCount() || documentedCount());
-  return `<div class="training-home" data-training-home>${hero('تدريبي', 'خطوة واحدة واضحة، ثم تابع من حيث توقفت.')}<section class="resume-card" aria-labelledby="resumeTitle"><div><h2 id="resumeTitle">${allDone ? 'حان وقت مراجعة ما أنجزته' : hasProgress ? 'واصل تدريبك' : 'ابدأ أول تدريب'}</h2><p>${esc(track.name)} · ${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : 'افتح المرحلة واقرأ المطلوب، ثم دوّن ما تتوصل إليه.'}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} ←</button></section>${compactProgress()}${trainingPlanSummary(state, planOptions())}</div>`;
+  return `<div class="training-home" data-training-home>${hero('تدريبي', 'خطوة واحدة واضحة، ثم تابع من حيث توقفت.')}<button type="button" class="app-search-launcher" data-app-search-open aria-haspopup="dialog" aria-controls="bb-app-search">${appIcon('search')}<span><strong>ماذا تريد أن تتعلّم؟</strong><small>ابحث عن مهارة، مسار، أو مرحلة</small></span>${appIcon('arrow')}</button><div class="app-track-categories" aria-label="اكتشف مهارات التدريب">${tracks.slice(0, 6).map(item => `<button type="button" class="app-track-chip" data-track="${item.id}">${appIcon('tracks')}${esc(item.name)}</button>`).join('')}</div><section class="resume-card" aria-labelledby="resumeTitle"><span class="resume-illustration" aria-hidden="true">${appIcon("tracks")}</span><div><h2 id="resumeTitle">${allDone ? 'حان وقت مراجعة ما أنجزته' : hasProgress ? 'واصل تدريبك' : 'ابدأ أول تدريب'}</h2><p>${esc(track.name)} · ${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : 'افتح المرحلة واقرأ المطلوب، ثم دوّن ما تتوصل إليه.'}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} ←</button></section>${compactProgress()}${trainingPlanSummary(state, planOptions())}</div>`;
 }
 function sectionNavigation() {
   const group = primaryView(currentView);
@@ -363,7 +401,7 @@ function exercisePage() {
   const done = isDone(track.id, currentStage);
   const browserEvidence = track.id === 'logs';
   const commands = stage.commands.map(([label, command]) => `<div class="field command-field"><span class="command-label">${esc(label)}</span><div class="cmd"><button type="button" class="copy" data-copy="${esc(command)}" aria-label="نسخ: ${esc(label)}">نسخ</button><code>${esc(command)}</code></div></div>`).join('');
-  return `<div class="exercise-breadcrumb"><button type="button" class="link-btn" data-nav="tracks">المسارات</button><span aria-hidden="true">/</span><span>${esc(track.name)}</span><span aria-hidden="true">/</span><span>المرحلة ${currentStage + 1} من ${track.stages.length}</span></div>
+  return `<div class="exercise-breadcrumb"><button type="button" class="link-btn" data-nav="tracks" data-return-track>العودة إلى المسارات</button><span aria-hidden="true">/</span><span>${esc(track.name)}</span><span aria-hidden="true">/</span><span>المرحلة ${currentStage + 1} من ${track.stages.length}</span></div>
   <section class="track-head exercise-heading"><div><h1 tabindex="-1">${esc(stage.name)}</h1><p>${esc(stage.goal)}</p></div><div class="track-actions"><span class="badge ${done ? 'done' : 'current'}">${done ? 'مكتملة' : 'قيد التدريب'}</span><button type="button" class="link-btn" data-share-stage="${track.id}" data-stage-index="${currentStage}">نسخ رابط المرحلة</button></div></section>
   <section class="card task-brief" data-task-brief aria-labelledby="taskGuideTitle"><span class="workflow-step">١ · افهم المطلوب</span><h2 id="taskGuideTitle">مهمتك في هذه المرحلة</h2><p class="stage-guide">${esc(stage.guide)}</p><details class="optional-panel hints-disclosure" data-training-hints-disclosure><summary>تحتاج إلى تلميح؟</summary><div data-training-hints><p role="status">جارٍ تحميل التلميحات…</p></div></details></section>
   ${browserEvidence ? '<section class="card section evidence-step" aria-label="أدلة المرحلة"><span class="workflow-step">٢ · اقرأ الأدلة</span><div data-evidence-workbench><p role="status">جارٍ تحميل قارئ السجلات…</p></div></section>' : ''}
@@ -419,11 +457,6 @@ function render(focus = false) {
   evidenceDisposer = undefined;
   const evidenceRun = ++viewGeneration;
   updateMetadata();
-  document.querySelectorAll('#bb-quick-dock [data-bb-dock-view]').forEach(button => {
-    const selected = button.dataset.bbDockView === (currentView === 'exercise' ? 'tracks' : currentView);
-    if (selected) button.setAttribute('aria-current', 'page');
-    else button.removeAttribute('aria-current');
-  });
   document.querySelectorAll('#nav [data-view]').forEach(button => {
     const active = button.dataset.view === primaryView(currentView);
     button.classList.toggle('active', active);
@@ -434,11 +467,15 @@ function render(focus = false) {
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
   const pages = { journeys:()=>suiteJourneysPage(state,tracks), welcome:()=>renderBbWelcome(welcomeStep,welcomeMission), home, progress: progressPage, account: accountPage, settings: settingsPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
+  if (!sameScope) { content.classList.remove('bb-screen-enter'); void content.offsetWidth; }
   content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${sectionNavigation()}${pages[currentView]()}`;
   if (expandedJourneys) content.querySelectorAll('details.suite-card').forEach(panel => {
     panel.open = expandedJourneys.has(panel.dataset.journey);
   });
   renderedContentScope = nextScope;
+  renderedNavigationURL = window.location.href;
+  document.documentElement.dataset.bbView = currentView;
+  if (!sameScope && currentView !== 'welcome') content.classList.add('bb-screen-enter');
   // A same-owner account refresh must not close a guide while it is being used.
   // Route, stage and account changes deliberately start with folded panels.
   for (const selector of openPanels) {
@@ -777,7 +814,7 @@ function bind() {
     };
   }
   document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => navigate(button.dataset.view));
-  document.querySelectorAll('[data-nav]').forEach(button => button.onclick = () => navigate(button.dataset.nav));
+  document.querySelectorAll('[data-nav]').forEach(button => button.onclick = () => { navigate(button.dataset.nav); if (button.hasAttribute('data-return-track')) restoreNavigationPosition(); });
   document.querySelectorAll('[data-open-account]').forEach(button => button.onclick = () => accountUI.open());
   document.querySelectorAll('[data-retry-skills]').forEach(button => button.onclick = async () => {
     button.disabled = true;
@@ -882,26 +919,6 @@ function bind() {
 
 document.getElementById('quickBackup').addEventListener('click', exportBackup);
 document.getElementById('bb-replay-tour')?.addEventListener('click', () => navigate('welcome'));
-// Keyboard/touch-friendly native disclosure; only existing navigation targets.
-const quickDock = document.getElementById('bb-quick-dock');
-quickDock?.addEventListener('click', event => {
-  const button = event.target.closest('[data-bb-dock-view]');
-  if (!button || !quickDock.contains(button)) return;
-  quickDock.open = false;
-  navigate(button.dataset.bbDockView);
-});
-// Do not leave the open dock covering training content on mobile.
-document.addEventListener('pointerdown', event => {
-  if (quickDock?.open && !quickDock.contains(event.target)) quickDock.open = false;
-});
-document.addEventListener('keydown', event => {
-  if (event.key !== 'Escape' || !quickDock?.open) return;
-  quickDock.open = false;
-  quickDock.querySelector('summary')?.focus();
-});
-window.addEventListener('scroll', () => {
-  if (quickDock?.open) quickDock.open = false;
-}, { passive: true });
 document.querySelector('.brand').addEventListener('click', event => {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
@@ -981,6 +998,9 @@ accountController = createAccountSync({
     if (previous !== JSON.stringify(skillState)) repaintLinkedSkills();
   },
 });
+document.querySelectorAll('[data-app-icon]').forEach(node => { node.innerHTML = appIcon(node.dataset.appIcon); });
+appNavigation = mountAppNavigation({ tracks, navigate, openTrack, openStage, canOpenStage: stageOpen, beforeOpen: () => { closeWorkspaceTools(); flushDraft(); document.dispatchEvent(new Event('blackbox:stop-tour')); } });
+if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
 applyLocation();
 document.documentElement.dataset.bbAppReady = 'true';
 document.dispatchEvent(new Event('blackbox:screen-ready'));

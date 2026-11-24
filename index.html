@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="./assets/styles/styles.css">
   <link rel="stylesheet" href="./assets/styles/suite-learning-pathways.css">
   <link rel="stylesheet" href="./assets/styles/workspace-shell.css">
-  <link rel="stylesheet" href="./assets/styles/quick-dock.css">
+  <link rel="stylesheet" href="./assets/styles/app-navigation.css">
   <link rel="stylesheet" href="./assets/styles/ui-preferences.css">
   <link rel="stylesheet" href="./assets/styles/first-visit.css">
   <link rel="stylesheet" href="./assets/styles/loading.css">
@@ -94,10 +94,11 @@
       <div class="sidebar-section">
         <div class="nav-title">مساحة العمل</div>
         <nav class="nav" id="nav" aria-label="أقسام التدريب الأساسية">
-          <button type="button" data-view="home"><span class="ic" aria-hidden="true">◈</span><span>تدريبي</span></button>
-          <button type="button" data-view="tracks"><span class="ic" aria-hidden="true">▤</span><span>المسارات</span></button>
-          <button type="button" data-view="progress"><span class="ic" aria-hidden="true">↗</span><span>تقدّمي</span></button>
-          <button type="button" data-view="account"><span class="ic" aria-hidden="true">○</span><span>حسابي</span></button>
+          <button type="button" data-view="home"><span class="ic" aria-hidden="true" data-app-icon="home"></span><span>تدريبي</span></button>
+          <button type="button" data-view="tracks"><span class="ic" aria-hidden="true" data-app-icon="tracks"></span><span>المسارات</span></button>
+          <button type="button" id="bb-app-search-open" class="bb-nav-search" data-app-search-open aria-haspopup="dialog" aria-controls="bb-app-search"><span class="bb-nav-search-circle" data-app-icon="search"></span><span>بحث</span></button>
+          <button type="button" data-view="progress"><span class="ic" aria-hidden="true" data-app-icon="progress"></span><span>تقدّمي</span></button>
+          <button type="button" data-view="account"><span class="ic" aria-hidden="true" data-app-icon="account"></span><span>حسابي</span></button>
           <a class="bb-pro-sidebar" href="./pro.html" aria-label="خطط اشتراك Suite Pro — لم يبدأ البيع"><span class="ic" aria-hidden="true">✧</span><span>الاشتراك Pro</span><small>قريبًا</small></a>
         </nav>
       </div>
@@ -147,16 +148,14 @@
       <div id="content"></div>
       <footer class="footer">BLACKBOX · تعلّم، وثّق، وراجع تقدّمك · تدريب للضيف وحفظ اختياري في الحساب</footer>
     </main>
-    <details id="bb-quick-dock" class="bb-quick-dock">
-      <summary aria-label="فتح الاختصارات السريعة">⌘ <span>اختصارات</span></summary>
-      <nav aria-label="اختصارات BLACKBOX" class="bb-quick-dock-items">
-        <button type="button" data-bb-dock-view="home" title="تدريبي"><span aria-hidden="true">⌂</span><small>تدريبي</small></button>
-        <button type="button" data-bb-dock-view="tracks" title="المسارات"><span aria-hidden="true">▦</span><small>المسارات</small></button>
-        <button type="button" data-bb-dock-view="progress" title="تقدّمي"><span aria-hidden="true">↗</span><small>تقدّمي</small></button>
-        <button type="button" data-bb-dock-view="backups" title="النسخ والتقارير"><span aria-hidden="true">▤</span><small>التقارير</small></button>
-      </nav>
-    </details>
+
   </div>
+  <dialog id="bb-app-search" class="bb-app-search" aria-labelledby="bb-app-search-title" aria-describedby="bb-app-search-description">
+    <header class="bb-search-header"><div><h2 id="bb-app-search-title">ما المهارة التي تبحث عنها؟</h2><p id="bb-app-search-description">اكتشف المسارات والمراحل التدريبية</p></div><button type="button" class="bb-search-close" data-app-search-close aria-label="إغلاق البحث"><span data-app-icon="close"></span></button></header>
+    <label class="bb-search-field" for="bb-app-search-input"><span data-app-icon="search"></span><input id="bb-app-search-input" type="search" maxlength="100" autocomplete="off" placeholder="مثل السجلات أو Nmap…" aria-label="ابحث في محتوى التدريب العام"></label>
+    <div class="bb-search-chips" role="group" aria-label="نوع نتيجة البحث"><button type="button" data-app-search-category="all" aria-pressed="true">الكل</button><button type="button" data-app-search-category="track" aria-pressed="false">المسارات</button><button type="button" data-app-search-category="stage" aria-pressed="false">المراحل</button></div>
+    <p id="bb-app-search-count" role="status" aria-live="polite"></p><div id="bb-app-search-results" class="bb-search-results" aria-label="نتائج البحث"></div>
+  </dialog>
   <dialog id="bb-whats-new" aria-labelledby="bb-whats-new-title" aria-describedby="bb-whats-new-description"><span id="bb-whats-new-step"></span><h2 id="bb-whats-new-title"></h2><p id="bb-whats-new-description"></p><p><a href="./labs.html">زيارة دليل المختبرات ←</a></p><div class="bb-new-actions"><button type="button" id="bb-whats-new-prev">السابق</button><button type="button" id="bb-whats-new-next">التالي ←</button><button type="button" id="bb-whats-new-close">إغلاق</button></div></dialog><div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 </body>
 </html>
