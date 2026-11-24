@@ -1,0 +1,46 @@
+/* Low-cost, non-animated blue highlights for selectable BLACKBOX paths.
+   Inspired by modern neon-card design, not a third-party UI dependency.
+   Does not change stages, controls, saved progress, or learning semantics. */
+.paths .path {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.paths .path::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse 68% 58% at 90% 0%,
+    color-mix(in srgb, var(--green) 17%, transparent) 0%,
+    color-mix(in srgb, var(--green) 5%, transparent) 52%,
+    transparent 100%
+  );
+  transition: opacity .18s ease;
+}
+.paths .path > * { position: relative; z-index: 1; }
+.paths .path.active::before,
+.paths .path:focus-visible::before { opacity: 1; }
+.paths .path.active {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--green) 32%, transparent),
+              0 7px 22px color-mix(in srgb, var(--green) 9%, transparent);
+}
+.paths .path:focus-visible {
+  box-shadow: 0 0 0 2px var(--green),
+              0 6px 18px color-mix(in srgb, var(--green) 12%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .paths .path:hover:not(:disabled)::before { opacity: 1; }
+  .paths .path:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--green) 58%, var(--line));
+    box-shadow: 0 5px 18px color-mix(in srgb, var(--green) 10%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paths .path,.paths .path::before { transition: none; }
+}
