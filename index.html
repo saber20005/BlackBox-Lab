@@ -87,7 +87,7 @@
   </div>
   <div id="bb-tour-overlay" class="bb-tour-overlay" hidden><div class="bb-tour-spotlight" id="bb-tour-spotlight"></div><div class="bb-tour-bubble" id="bb-tour-bubble" role="dialog" aria-modal="false" aria-labelledby="bb-tour-heading"><span id="bb-tour-count"></span><h2 id="bb-tour-heading"></h2><p id="bb-tour-description"></p><div class="bb-tour-actions"><button type="button" id="bb-tour-skip">إنهاء الجولة</button><button type="button" id="bb-tour-prev">السابق</button><button type="button" id="bb-tour-next">التالي ←</button></div></div></div>
   <div class="app">
-    <aside class="sidebar" aria-label="التنقل الرئيسي">
+    <header class="sidebar bb-workspace-header" aria-label="رأس مساحة BLACKBOX">
       <a class="brand" href="./" aria-label="BLACKBOX — تدريبي">
         <span class="brand-icon" aria-hidden="true">B.</span>
         <span><strong>BLACKBOX</strong><small>TRAINING WORKSPACE</small></span>
@@ -107,12 +107,12 @@
         <section class="side-progress" aria-label="ملخص تقدمك"><span>رحلتك في المختبر</span><strong id="sideProgress">0 / 30</strong><progress id="sideProgressBar" max="30" value="0">0</progress><small>مراحل أكّدت إنجازها</small></section>
         <div class="profile"><span class="avatar" aria-hidden="true">BB</span><div><b id="accountSidebarName">مساحتك الخاصة</b><small id="accountSidebarNote">تدريب متاح للضيف</small></div></div>
       </div>
-    </aside>
-    <main class="main" id="main-content" tabindex="-1">
-      <header class="topbar">
+      <div class="topbar">
         <div class="crumb"><span class="mono">BLACKBOX</span><span aria-hidden="true"> / </span><b id="crumb">تدريبي</b></div>
         <div class="right-actions"><span class="save-status" id="saveStatus" role="status" aria-live="polite">جارٍ تحميل تقدمك</span><a class="bb-pro-cta" href="./pro.html" aria-label="الاشتراك Suite Pro — قريبًا ولم يبدأ البيع">✧ الاشتراك Pro</a><details class="workspace-tools" id="workspace-tools"><summary>أدوات ومساعدة</summary><div class="workspace-tools-menu"><button type="button" class="secondary compact account-trigger" id="accountButton">سجّل لحفظ تقدّمك</button><button type="button" class="secondary compact" id="quickBackup">تنزيل نسخة احتياطية</button><a href="./?view=backups">النسخ والتقارير</a><a href="./?view=journeys">المسارات المشتركة</a><a href="./training-guide.html">دليل التدريب</a><a href="./labs.html">دليل المختبرات المحلية</a><a href="./pro.html">الاشتراك Suite Pro — قريبًا</a><a href="./?view=troubleshoot">حلول الأعطال</a><button type="button" id="bb-replay-tour">الجولة التعريفية التفاعلية</button><button type="button" id="bb-whats-new-open">تعرّف على الميزات الجديدة</button></div></details></div>
-      </header>
+      </div>
+    </header>
+    <main class="main" id="main-content" tabindex="-1">
       <div id="storageNotice" class="storage-notice hidden" role="status"></div>
       <div id="accountSyncNotice" class="account-sync-notice hidden" role="status"><span id="accountSyncNoticeText"></span><button type="button" class="link-btn" id="reviewAccountSync">مراجعة الحساب</button></div>
   <button type="button" id="welcome-reopen" class="welcome-reopen" hidden>؟ عرض دليل البداية</button>
