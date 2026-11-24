@@ -3,19 +3,20 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 
-test('optional quick dock has four real route destinations inside workspace',()=>{
+test('workspace navigation exposes four routes and a native public search dialog',()=>{
   const html=read('../index.html');
   const app=read('../app.js');
-  for(const view of ['home','tracks','progress','backups']){
-    assert.match(html,new RegExp('data-bb-dock-view="'+view+'"'));
+  const nav=html.match(/<nav\b(?=[^>]*\bid="nav")[\s\S]*?<\/nav>/)?.[0];
+  assert(nav);
+  for(const view of ['home','tracks','progress','account']){
+    assert.match(nav,new RegExp('data-view="'+view+'"'));
   }
-  assert.match(html,/id="bb-quick-dock"/);
-  assert.match(html,/aria-label="اختصارات BLACKBOX"/);
-  assert.match(app,/quickDock\.open = false/);
-  assert.match(app,/navigate\(button\.dataset\.bbDockView\)/);
-  const styles=read('../assets/styles/quick-dock.css');
-  assert.match(styles,/prefers-reduced-motion:reduce/);
-  assert.match(styles,/max-width:420px/);
+  assert.match(nav,/id="bb-app-search-open"/);
+  assert.match(html,/<dialog\b[^>]*\bid="bb-app-search"/);
+  assert.match(app,/mountAppNavigation\(/);
+  const styles=read('../assets/styles/app-navigation.css');
+  assert.match(styles,/prefers-reduced-motion:\s*reduce/);
+  assert.match(styles,/safe-area-inset-bottom/);
   assert.match(styles,/@media print/);
 });
 

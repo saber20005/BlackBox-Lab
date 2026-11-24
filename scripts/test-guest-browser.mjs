@@ -102,6 +102,7 @@ async function assertCompactHome(page) {
   assert.equal(await page.locator('#bb-whats-new-open').isVisible(), false, 'feature announcements stay inside closed tools');
   const resume = await home.locator('.resume-button').boundingBox();
   assert(resume && resume.y >= 0 && resume.y + resume.height <= page.viewportSize().height, 'the main training action is visible without scrolling past announcements');
+  if (page.viewportSize().width <= 700) assert.equal(await home.locator('.resume-button').evaluate(node => {const r=node.getBoundingClientRect();return node.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));}),true,'the persistent phone bar leaves the main training action reachable');
 }
 async function freshPrimaryLinks() {
   for (const view of ['home', 'tracks', 'progress', 'account']) {
@@ -778,7 +779,7 @@ try {
     try {
       await spotPage.goto(origin+'/?view=home&spotlight-preview=1',{waitUntil:'load'});
       await spotPage.locator('.bb-sp-preview:not([hidden]) .bb-sp-panel').waitFor({state:'visible'});
-      assert.match(await spotPage.locator('#bb-sp-title').innerText(),viewport.width<850?/اختصاراتك/:/المسارات/);
+      assert.match(await spotPage.locator('#bb-sp-title').innerText(),/المسارات/);
       await spotPage.locator('.bb-sp-lamp').waitFor({state:'visible'});
       await spotPage.locator('.bb-sp-beam').waitFor({state:'visible'});
       const torch=await spotPage.locator('.bb-sp-lamp').evaluate(el=>({
@@ -788,21 +789,11 @@ try {
       assert.equal(torch.head,true,'real lamp head is rendered');
       assert.ok(torch.width>18,'physical lamp is visible on screen');
       assert.match(torch.beam,/polygon/,'directional light cone is visible');
-      if(viewport.width<850){
-        await spotPage.locator('#bb-quick-dock > summary').click();
-        await spotPage.getByText('افتح المسارات',{exact:true}).waitFor();
-        await spotPage.locator('#bb-quick-dock [data-bb-dock-view="tracks"]').click();
-        await spotPage.getByText('اختصاراتك موجودة دائمًا').waitFor();
-        await spotPage.locator('#bb-quick-dock > summary').click();
-        await spotPage.getByText('راجع تقدّمك',{exact:true}).waitFor();
-        await spotPage.locator('#bb-quick-dock [data-bb-dock-view="progress"]').click();
-      } else {
-        await spotPage.locator('.sidebar [data-view="tracks"]').click();
-        await spotPage.getByText('راجع تقدّمك',{exact:true}).waitFor();
-        await spotPage.locator('.sidebar [data-view="progress"]').click();
-        await spotPage.locator('#bb-sp-title').filter({hasText:'أدوات ومساعدة'}).waitFor();
-        await spotPage.locator('#workspace-tools > summary').click();
-      }
+      await spotPage.locator('#nav [data-view="tracks"]').click();
+      await spotPage.getByText('راجع تقدّمك',{exact:true}).waitFor();
+      await spotPage.locator('#nav [data-view="progress"]').click();
+      await spotPage.locator('#bb-sp-title').filter({hasText:'أدوات ومساعدة'}).waitFor();
+      await spotPage.locator('#workspace-tools > summary').click();
       await spotPage.getByText('عرفت طريقك داخل BLACKBOX').waitFor({state:'visible'});
       assert.equal(await spotPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'spotlight fits '+viewport.width+'px');
       await spotPage.locator('.bb-sp-next').click();

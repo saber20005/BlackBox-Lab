@@ -7,17 +7,16 @@
   catch { url=new URL(location.href); }
   if(url.searchParams.get("spotlight-preview")!=="1")return;
   const query=selector=>document.querySelector(selector);
-  const compact=()=>matchMedia("(max-width: 850px)").matches;
+  const compact=()=>matchMedia("(max-width: 700px)").matches;
   const desktop=[
     {selector:'.sidebar [data-view="tracks"]',title:"افتح المسارات",text:"اضغط «المسارات» بنفسك. سينتقل الكشاف إلى المكان التالي بعد أن تتنقل فعليًا."},
     {selector:'.sidebar [data-view="progress"]',title:"راجع تقدّمك",text:"اضغط «تقدّمي» لترى لوحة الإنجازات. هذه المعاينة لا تعدّل أي مرحلة أو نقطة."},
     {selector:"#workspace-tools > summary",title:"أدوات ومساعدة",text:"افتح أدوات المساعدة من الشريط العلوي. ستجد التقارير ودليل المختبر وإعادة الجولة هنا."}
   ];
   const mobile=[
-    {selector:"#bb-quick-dock > summary",title:"افتح اختصاراتك",text:"اضغط زر الاختصارات أسفل الشاشة. الكشاف يوجّهك داخل واجهة BLACKBOX الأصلية."},
-    {selector:'#bb-quick-dock [data-bb-dock-view="tracks"]',title:"افتح المسارات",text:"اختر «المسارات» بنفسك؛ هذه الجولة تعتمد على الفعل وليس الإجابات الجاهزة."},
-    {selector:"#bb-quick-dock > summary",title:"اختصاراتك موجودة دائمًا",text:"افتح القائمة مرة أخرى للوصول إلى لوحة التقدّم من أي مكان."},
-    {selector:'#bb-quick-dock [data-bb-dock-view="progress"]',title:"راجع تقدّمك",text:"اضغط «تقدّمي». لم تتغير أي بيانات محفوظة؛ هذه تجربة توجيه بصري."}
+    {selector:'#nav [data-view="tracks"]',title:"افتح المسارات",text:"اضغط «المسارات» في شريط التنقل الدائم أسفل الشاشة. الكشاف يتابع اختيارك الحقيقي."},
+    {selector:'#nav [data-view="progress"]',title:"راجع تقدّمك",text:"اضغط «تقدّمي» في الشريط السفلي لترى لوحة الإنجازات. هذه المعاينة لا تغيّر بياناتك."},
+    {selector:"#workspace-tools > summary",title:"أدوات ومساعدة",text:"افتح أدوات المساعدة. ستجد التقارير ودليل التدريب وإعادة الجولة هنا."}
   ];
   let steps=[],index=0,active=false,target=null,lastFocus=null,frame=0;
   const host=document.createElement("div");
@@ -122,7 +121,6 @@
   function start(){
     if(document.querySelector("dialog[open]"))return;
     stop();steps=compact()?mobile:desktop;index=0;target=null;lastFocus=document.activeElement;
-    const dock=query("#bb-quick-dock");if(dock)dock.open=false;
     active=true;hole.style.opacity="1";host.hidden=false;lamp.hidden=false;beam.hidden=false;
     document.addEventListener("click",onClick,true);document.addEventListener("keydown",onKey,true);
     addEventListener("resize",onResize);addEventListener("scroll",onResize,true);
