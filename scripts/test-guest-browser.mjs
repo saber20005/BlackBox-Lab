@@ -236,6 +236,16 @@ async function runViewport(viewport) {
 
     for (const view of ['home', 'tracks', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'troubleshoot']) {
       await openView(page, view);
+      if (view === 'tracks') {
+        const pathCard=page.locator('.paths .path').first();
+        await pathCard.waitFor({state:'visible'});
+        const initial=await pathCard.evaluate(el=>({pseudo:getComputedStyle(el,'::before').content,overflow:getComputedStyle(el).overflow,before:getComputedStyle(el,'::before').pointerEvents}));
+        assert.notEqual(initial.pseudo,'none','training path has a lightweight glow layer');
+        assert.equal(initial.before,'none','decorative layer does not block clicks');
+        assert.equal(initial.overflow,'hidden','path glow is clipped inside card edges');
+        await pathCard.focus();
+        assert.equal(await pathCard.evaluate(el=>document.activeElement===el),true,'training card remains keyboard focusable');
+      }
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${view} must fit the viewport`);
     }
     result.navigation = true;
