@@ -7,6 +7,7 @@
 import {readFileSync} from "node:fs";
 import {createHash} from "node:crypto";
 import {pathToFileURL} from "node:url";
+import process from "node:process";
 
 export const normalizeRules = input => String(input).replace(/\r\n/g,"\n").trimEnd()+"\n";
 export const sha256 = input => createHash("sha256").update(normalizeRules(input),"utf8").digest("hex");
