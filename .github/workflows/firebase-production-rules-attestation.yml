@@ -1,0 +1,79 @@
+name: Firebase production rules attestation (read-only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: firebase-rules-attestation
+  cancel-in-progress: false
+
+jobs:
+  compare-live-rules:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check repository-scoped federation configuration
+        env:
+          FIREBASE_WIF_PROVIDER: ${{ vars.FIREBASE_RULES_WIF_PROVIDER }}
+          FIREBASE_RULES_VIEWER_SA: ${{ vars.FIREBASE_RULES_VIEWER_SA }}
+        run: |
+          if [[ -z "$FIREBASE_WIF_PROVIDER" || -z "$FIREBASE_RULES_VIEWER_SA" ]]; then
+            echo "::error::Configure FIREBASE_RULES_WIF_PROVIDER and FIREBASE_RULES_VIEWER_SA under repository Actions variables. No permanent keys."
+            exit 1
+          fi
+      - id: google-auth
+        name: Exchange GitHub OIDC for temporary read-only service-account token
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.FIREBASE_RULES_WIF_PROVIDER }}
+          service_account: ${{ vars.FIREBASE_RULES_VIEWER_SA }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+          create_credentials_file: false
+          export_environment_variables: false
+      - name: Read active Firebase rules and attest to GitHub source
+        shell: bash
+        env:
+          FIREBASE_RULES_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
+          ATTESTATION_FILE: ${{ runner.temp }}/firestore-rules-attestation.json
+        run: |
+          set +e
+          node scripts/audit-deployed-firestore-rules.mjs --project=black-box-lab --file=firestore.rules > "$ATTESTATION_FILE"
+          result=$?
+          set -e
+          if [[ -s "$ATTESTATION_FILE" ]]; then
+            node --input-type=module <<'JS'
+          import {readFileSync,appendFileSync} from "node:fs";
+          const result=JSON.parse(readFileSync(process.env.ATTESTATION_FILE,"utf8"));
+          const rows=[
+            "## Deployed Firebase Rules attestation",
+            "",
+            "| Field | Observed |",
+            "| --- | --- |",
+            "| Firebase project | `"+result.project+"` |",
+            "| Release | `"+result.releaseName+"` |",
+            "| Active ruleset | `"+result.rulesetName+"` |",
+            "| Repository source SHA-256 | `"+(result.localSha256??"not comparable")+"` |",
+            "| Active source SHA-256 | `"+(result.deployedSha256??"not comparable")+"` |",
+            "| Comparison | **"+result.status+"** |",
+            "| Reference-only input | "+(result.referenceOnly?"yes — manual reconciliation required":"no")+" |",
+            "",
+            "No credential or Firestore document data is included in this report."
+          ];
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,rows.join("\n")+"\n");
+          JS
+          fi
+          if [[ "$result" != 0 ]]; then
+            echo "::error::Production rules could not be confirmed identical to the checked-in source (exit $result)."
+            exit "$result"
+          fi
+          echo "BLACKBOX rules source matches the live release after normalization."
