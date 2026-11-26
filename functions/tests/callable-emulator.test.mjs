@@ -8,7 +8,7 @@ if (!endpoint) {
   test('Callable integration requires Functions emulator', { skip: true }, () => {});
 } else {
   const base = `http://${endpoint}/${project}/us-central1`;
-  for (const fn of ['startGradingSession', 'submitGradingAnswer', 'startVerifiedSocShift', 'submitVerifiedSocShift']) {
+  for (const fn of ['startGradingSession', 'submitGradingAnswer', 'startVerifiedSocShift', 'submitVerifiedSocShift', 'getAdminTrainingOverview']) {
     test(`${fn} rejects requests without Firebase Auth`, async () => {
       const response = await fetch(`${base}/${fn}`, {
         method: 'POST',
@@ -39,7 +39,7 @@ if (!endpoint) {
     const { idToken } = await signup.json();
     assert.ok(idToken);
     // Exercise both callable handlers with a real Auth-emulator identity but no App Check.
-    for (const fn of ['startGradingSession', 'submitGradingAnswer', 'startVerifiedSocShift', 'submitVerifiedSocShift']) {
+    for (const fn of ['startGradingSession', 'submitGradingAnswer', 'startVerifiedSocShift', 'submitVerifiedSocShift', 'getAdminTrainingOverview']) {
       const response = await fetch(`${base}/${fn}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },

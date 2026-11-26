@@ -8,6 +8,7 @@ import { issueVerifiedGroupCertificate } from './certificate-issuance-service.js
 import { requireCaseId } from './grading-core.js';
 import { membershipForClient } from './suite-membership.js';
 import { getAuth } from 'firebase-admin/auth';
+import { requireBlackBoxAdmin, buildBlackBoxTrainingOverview } from './admin-operations.js';
 import { getApps, initializeApp as initializeSecondaryApp } from 'firebase-admin/app';
 import { linkCyberTraceIdentity, currentCyberTraceLink, unlinkCyberTraceIdentity } from './cybertrace-identity-service.js';
 import { requireLabStageKey, beginLabStageAssessment, submitLabStageAssessment } from './lab-stage-assessment.js';
@@ -346,4 +347,24 @@ export const issueGroupCertificate = onCall({
     }
     throw new HttpsError('unavailable','Certificate issuance could not be completed.');
   }
+});
+
+// Private, read-only admin operations pilot. It has no user-list, score-aggregation,
+// write, billing or certificate features. App Check is mandatory and roles are
+// independently verified against Firebase Admin (including revoked sessions).
+export const getAdminTrainingOverview = onCall({
+  region: REGION, enforceAppCheck: true, maxInstances: 5,
+}, async request => {
+  const uid = authUid(request);
+  if (request.data != null &&
+      (typeof request.data !== 'object' || Array.isArray(request.data) ||
+       Object.keys(request.data).length !== 0)) {
+    throw new HttpsError('invalid-argument', 'This operation accepts no parameters.');
+  }
+  try {
+    await requireBlackBoxAdmin(request, async () => getAuth(), uid);
+  } catch {
+    throw new HttpsError('permission-denied', 'Administrator access denied.');
+  }
+  return buildBlackBoxTrainingOverview();
 });
