@@ -124,6 +124,24 @@ async function freshPrimaryLinks() {
         `fresh ${view} remains in the workspace after both startup scripts settle`);
       await assertPrimaryNavigation(page);
       assert.equal(await page.locator('#nav [aria-current="page"]').getAttribute('data-view'), view);
+      if (view === 'home') {
+        const start = page.locator('[data-training-home] .resume-button');
+        assert.equal(await start.getAttribute('data-open'), 'logs', 'a new learner can begin inside the browser');
+        assert.match(await page.locator('.resume-mode').innerText(), /داخل المتصفح دون تثبيت/);
+        assert((await page.locator('.plan-teaser').innerText()).includes(tracks.find(track => track.id === 'logs').name), 'home and next-session suggestion agree on the browser-first start');
+        assert.deepEqual(await page.locator('.app-track-chip').evaluateAll(nodes => nodes.slice(0, 4).map(node => node.dataset.track)), ['logs', 'integrity', 'headers', 'email']);
+        assert.equal(await page.locator('.app-track-chip').count(), tracks.length, 'all training tracks remain discoverable');
+        await start.click();
+        await page.locator('#stageNotes').waitFor();
+        assert.equal(new URL(page.url()).searchParams.get('track'), 'logs');
+        await navigate(page, '/?track=recon&stage=0');
+        await page.locator('#stageNotes').waitFor();
+        await page.locator('#nav [data-view="home"]').click();
+        assert.equal(await start.getAttribute('data-open'), 'recon', 'an explicit local-lab choice becomes the existing resume activity');
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await start.waitFor();
+        assert.equal(await start.getAttribute('data-open'), 'recon', 'returning learners retain their selected training after reload');
+      }
       assert.deepEqual(errors, []); assert.deepEqual(external, []);
     } finally { await context.close(); }
   }
@@ -770,6 +788,7 @@ try {
       assert.equal(await tourPage.locator('#bb-tour-main-title').innerText(),'مهمتك الأولى تبدأ هنا');
       await tourPage.locator('[data-bb-tour-skip]').click();
       await tourPage.locator('[data-training-home]').waitFor({state:'visible'});
+      assert.equal(await tourPage.locator('.resume-button').getAttribute('data-open'), 'logs', 'skipping the replay still offers the browser-first route before any training');
       await navigate(tourPage,'/?view=welcome');
       await tourPage.locator('[data-bb-first-visit]').waitFor({state:'visible'});
       await tourPage.locator('[data-bb-tour-skip]').click();

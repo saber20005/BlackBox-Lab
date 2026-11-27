@@ -56,11 +56,13 @@ export function buildTrainingPlan(rawProgress, options = {}) {
     const current = last?.trackId === track.id && last.stageIndex === index;
     const relatedCaseIds = getRelatedCaseIds(track);
     const related = receipts.find(receipt => relatedCaseIds.includes(receipt.id));
-    const priority = draft ? 0 : current ? 1 : related ? 2 : index > 0 ? 3 : 4;
+    const starter = options?.starterTrack === track.id;
+    const priority = draft ? 0 : current ? 1 : related ? 2 : index > 0 || starter ? 3 : 4;
     const reason = draft ? 'لديك خطوات أو ملاحظات بدأت بها في هذه المرحلة.'
       : current ? 'هذه آخر مرحلة بدأت بها ولم تؤكّد إكمالها.'
       : related ? `تطبيق عملي مكمّل لتحقيق «${related.meta.title}» المسجّل في حسابك.`
       : index > 0 ? 'أكملت المرحلة السابقة؛ هذه الخطوة التالية المتاحة.'
+      : starter ? 'ابدأ بتحليل السجلات داخل المتصفح دون تثبيت برامج.'
       : track.id === 'recon' ? 'ابدأ بتجهيز حدود المختبر قبل التوسّع في الأدوات.' : 'خطوة متاحة لاستكشاف هذه المهارة.';
     const suggestedCaseId = related?.id || relatedCaseIds[0] || null;
     candidates.push({ trackId: track.id, trackName: track.name, stageIndex: index, stageName: stage.name, goal: stage.goal, priority, order, reason, minutes: index === 0 ? 15 : 20, relatedCaseId: suggestedCaseId, linkedCaseId: related?.id || null });

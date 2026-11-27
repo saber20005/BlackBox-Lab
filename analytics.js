@@ -2,6 +2,13 @@ const SITE = "BlackBoxLab";
 const PRODUCTION_HOSTS = ["blackboxlab.dev", "www.blackboxlab.dev", "blackbox-lab-pied.vercel.app"];
 const CASE_IDS = new Set(["INC-0417", "INC-0512", "INC-0633", "INC-0701", "INC-0755", "INC-0812", "INC-0890", "INC-0944", "INC-1002", "INC-1055", "INC-1101", "INC-1102", "INC-1103", "INC-1104", "INC-1105", "INC-1106", "INC-1201", "INC-1202", "INC-1203", "INC-1204", "INC-1205", "INC-1206", "INC-1207", "INC-1208", "INC-1209", "INC-1210", "INC-1211", "INC-1212"]);
 const TRACK_IDS = new Set(["recon", "nmap", "network", "webgoat", "proxy", "metasploit", "logs", "integrity", "headers", "email"]);
+// Public route names are finite; no account, certificate or other per-user IDs
+// are part of analytics locations. Keep this list aligned with each app router.
+const PUBLIC_VIEWS = {
+  CyberTrace: new Set(["home", "library", "auth", "pro", "soc", "verified-soc", "certificates", "joint-certificate", "verify-certificate", "settings", "journeys", "welcome"]),
+  BlackBoxLab: new Set(["home", "welcome", "tracks", "journeys", "progress", "account", "plan", "skills", "journal", "backups", "troubleshoot", "settings"]),
+};
+const SOC_SHIFT_IDS = new Set(["SOC-SHIFT-01", "SOC-SHIFT-02", "SOC-SHIFT-03"]);
 const CAMPAIGN_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
 const identifier = value => typeof value === "string" && /^[a-z][a-z0-9_-]{0,63}$/i.test(value);
 const integer = (value, max) => Number.isInteger(value) && value >= 0 && value <= max;
@@ -35,17 +42,21 @@ function safeEvent(name, properties) {
 function safeLocation(value, site) {
   const source = new URL(value);
   const target = new URL(source.origin + source.pathname);
-  const view = source.searchParams.get("view");
-  const views = site === "CyberTrace" ? ["home", "library", "auth"] : ["home", "tracks", "progress", "account", "plan", "skills", "journal", "backups", "troubleshoot"];
-  if (views.includes(view)) target.searchParams.set("view", view);
+  const single = key => source.searchParams.getAll(key).length === 1 ? source.searchParams.get(key) : null;
+  const view = single("view");
+  if (PUBLIC_VIEWS[site].has(view)) target.searchParams.set("view", view);
   if (site === "CyberTrace") {
-    const caseId = source.searchParams.get("case");
+    const caseId = single("case");
     if (CASE_IDS.has(caseId)) target.searchParams.set("case", caseId);
+    const shiftId = single("shift");
+    if (view === "soc" && SOC_SHIFT_IDS.has(shiftId)) target.searchParams.set("shift", shiftId);
+    // A verification page is public, but its certificate ID may identify a
+    // learner. Measure the page type without forwarding that ID.
   } else {
-    const trackId = source.searchParams.get("track");
+    const trackId = single("track");
     if (TRACK_IDS.has(trackId)) {
       target.searchParams.set("track", trackId);
-      const stage = source.searchParams.get("stage");
+      const stage = single("stage");
       if (/^[0-2]$/.test(stage ?? "")) target.searchParams.set("stage", stage);
     }
   }

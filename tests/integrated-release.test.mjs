@@ -15,7 +15,7 @@ test('integrated release retains both account settings and shared suite pathways
   assert.equal(routeURL({view:'journeys'}).searchParams.get('view'), 'journeys');
   assert.equal(routeURL({view:'settings'}).searchParams.get('view'), 'settings');
   const app = source('../app.js');
-  assert.match(app, /journeys:\s*\(\)\s*=>\s*suiteJourneysPage\(state,tracks\)/);
+  assert.match(app, /journeys:\s*\(\)\s*=>\s*suiteJourneysPage\(state,\s*tracks,\s*planOptions\(\)\)/);
   assert.match(app, /settings:\s*settingsPage/);
   assert.match(app, /displayPreferences\s*=\s*applyBbPreferences\(readBbPreferences/);
 });

@@ -3,7 +3,7 @@ import { appIcon, mountAppNavigation } from './assets/modules/navigation/app-nav
 import { readBbPreferences, saveBbPreferences, applyBbPreferences, normalizeBbPreferences, applyBbPreset, BB_UI_DEFAULTS } from './assets/modules/preferences/ui-preferences.js';
 import { renderBbStudio } from './assets/modules/preferences/ui-studio.js';
 import { createTrainingReportHtml } from './assets/modules/reports/training-report.js';
-import { shouldStartBbTour, finishBbTour } from './assets/modules/onboarding/first-visit.js';
+import { shouldStartBbTour, finishBbTour, hasTrainingHistory } from './assets/modules/onboarding/first-visit.js';
 import { BB_TOUR_STEPS, renderBbWelcome } from './assets/modules/onboarding/welcome-page.js';
 import { createBbMission, bbConfigureAdapter, bbToggleSnapshot, bbSelectScenario, bbSimulateCommand, bbCaptureEvidence, bbSubmitFinding } from './assets/modules/onboarding/mission-simulator.js';
 import { parseRoute, routeURL, routeMetadata, primaryView } from './routes.js';
@@ -15,7 +15,7 @@ import { gradingAvailable, startVerifiedGrading, submitVerifiedAnswer } from './
 import { linkedSkillsPage } from './linked-skills-ui.js';
 import { trainingPlanPage, trainingPlanSummary } from './training-plan-ui.js';
 import {suiteJourneysPage} from './assets/modules/training/suite-learning-pathways-ui.js';
-import { getRelatedCaseIds } from './training-plan.js';
+import { buildTrainingPlan, getRelatedCaseIds } from './training-plan.js';
 import { CASE_META } from './cybertrace-catalog.js';
 import { appendDocumentationTemplate, hasMeaningfulDocumentation } from './assets/modules/training/documentation-templates.js';
 import {
@@ -98,10 +98,10 @@ function resetSkillOwner(uid) {
 }
 function repaintLinkedSkills() {
   // Receipt updates must never replace a textarea while a draft is being edited.
-  if (['home', 'progress', 'skills', 'plan'].includes(currentView)) render();
+  if (['home', 'progress', 'skills', 'plan', 'journeys'].includes(currentView)) render();
 }
 function planOptions() {
-  return { focus: planFocus, budget: planBudget, linked: { userUid: accountStatus.user?.uid, ownerUid: skillOwnerUid, accountPhase: accountStatus.phase, state: skillState } };
+  return { focus: planFocus, budget: planBudget, starterTrack: hasTrainingHistory(state) ? null : 'logs', linked: { userUid: accountStatus.user?.uid, ownerUid: skillOwnerUid, accountPhase: accountStatus.phase, state: skillState } };
 }
 function planPage() {
   return `${hero('جهّز جلسة تناسب وقتك', 'اختر المهارة والوقت التقريبي، ثم ابدأ بخطوة عملية متاحة من تقدّمك الحالي.')} ${trainingPlanPage(state, planOptions())}`;
@@ -303,6 +303,12 @@ function openStage(trackId, index) {
   render(true);
 }
 function resumeActivity() {
+  // A new learner can start on a phone without first installing a local lab.
+  // Existing history and explicit training links keep their current resume path.
+  if (!hasTrainingHistory(state)) {
+    const first = buildTrainingPlan(state, planOptions()).tasks[0];
+    if (first) return { trackId: first.trackId, index: first.stageIndex };
+  }
   const last = state.lastActivity;
   if (last && trackById(last.trackId)?.stages[last.stageIndex] && stageOpen(last.trackId, last.stageIndex) && !isDone(last.trackId, last.stageIndex)) return { trackId: last.trackId, index: last.stageIndex };
   const preferred = trackById(last?.trackId || currentTrack);
@@ -348,7 +354,9 @@ function home() {
   const stage = track.stages[next.index];
   const allDone = completedCount() === allStages;
   const hasProgress = Boolean(state.lastActivity || completedCount() || checkedCount() || documentedCount());
-  return `<div class="training-home" data-training-home>${hero('تدريبي', 'خطوة واحدة واضحة، ثم تابع من حيث توقفت.')}<button type="button" class="app-search-launcher" data-app-search-open aria-haspopup="dialog" aria-controls="bb-app-search">${appIcon('search')}<span><strong>ماذا تريد أن تتعلّم؟</strong><small>ابحث عن مهارة، مسار، أو مرحلة</small></span>${appIcon('arrow')}</button><div class="app-track-categories" aria-label="اكتشف مهارات التدريب">${tracks.slice(0, 6).map(item => `<button type="button" class="app-track-chip" data-track="${item.id}">${appIcon('tracks')}${esc(item.name)}</button>`).join('')}</div><section class="resume-card" aria-labelledby="resumeTitle"><span class="resume-illustration" aria-hidden="true">${appIcon("tracks")}</span><div><h2 id="resumeTitle">${allDone ? 'حان وقت مراجعة ما أنجزته' : hasProgress ? 'واصل تدريبك' : 'ابدأ أول تدريب'}</h2><p>${esc(track.name)} · ${esc(stage.name)}</p><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : 'افتح المرحلة واقرأ المطلوب، ثم دوّن ما تتوصل إليه.'}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} ←</button></section>${compactProgress()}${trainingPlanSummary(state, planOptions())}</div>`;
+  const categories = [...tracks.filter(item => item.trainingKit === 'defense-v1'), ...tracks.filter(item => item.trainingKit !== 'defense-v1')];
+  const trainingMode = track.trainingKit === 'defense-v1' ? 'ابدأ داخل المتصفح دون تثبيت برامج.' : 'تدريب عملي في مختبرك المحلي.';
+  return `<div class="training-home" data-training-home>${hero('تدريبي', 'خطوة واحدة واضحة، ثم تابع من حيث توقفت.')}<button type="button" class="app-search-launcher" data-app-search-open aria-haspopup="dialog" aria-controls="bb-app-search">${appIcon('search')}<span><strong>ماذا تريد أن تتعلّم؟</strong><small>ابحث عن مهارة، مسار، أو مرحلة</small></span>${appIcon('arrow')}</button><div class="app-track-categories" aria-label="اكتشف مهارات التدريب">${categories.map(item => `<button type="button" class="app-track-chip" data-track="${item.id}">${appIcon('tracks')}${esc(item.name)}</button>`).join('')}</div><section class="resume-card" aria-labelledby="resumeTitle"><span class="resume-illustration" aria-hidden="true">${appIcon("tracks")}</span><div><h2 id="resumeTitle">${allDone ? 'حان وقت مراجعة ما أنجزته' : hasProgress ? 'واصل تدريبك' : 'ابدأ أول تدريب'}</h2><p>${esc(track.name)} · ${esc(stage.name)}</p><small class="resume-mode">${esc(trainingMode)}</small><div class="resume-meta">${state.lastActivity ? `آخر نشاط: ${esc(dateLabel(state.lastActivity.at))}` : 'افتح المرحلة واقرأ المطلوب، ثم دوّن ما تتوصل إليه.'}</div></div><button type="button" class="primary resume-button" data-open="${track.id}" data-stage="${next.index}">${allDone ? 'مراجعة التدريب' : hasProgress ? 'متابعة التدريب' : 'ابدأ التدريب'} ←</button></section>${compactProgress()}${trainingPlanSummary(state, planOptions())}</div>`;
 }
 function sectionNavigation() {
   const group = primaryView(currentView);
@@ -466,7 +474,7 @@ function render(focus = false) {
   const count = completedCount();
   document.getElementById('sideProgress').textContent = `${count} / ${allStages}`;
   document.getElementById('sideProgressBar').value = count;
-  const pages = { journeys:()=>suiteJourneysPage(state,tracks), welcome:()=>renderBbWelcome(welcomeStep,welcomeMission), home, progress: progressPage, account: accountPage, settings: settingsPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
+  const pages = { journeys:()=>suiteJourneysPage(state, tracks, planOptions()), welcome:()=>renderBbWelcome(welcomeStep,welcomeMission), home, progress: progressPage, account: accountPage, settings: settingsPage, tracks: tracksPage, plan: planPage, skills: skillsPage, exercise: exercisePage, journal: journalPage, backups: backupsPage, troubleshoot: troublePage };
   if (!sameScope) { content.classList.remove('bb-screen-enter'); void content.offsetWidth; }
   content.innerHTML = `${routeNotice ? `<div class="route-notice" role="status">${esc(routeNotice)}</div>` : ''}${sectionNavigation()}${pages[currentView]()}`;
   if (expandedJourneys) content.querySelectorAll('details.suite-card').forEach(panel => {

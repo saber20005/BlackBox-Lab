@@ -183,3 +183,18 @@ test('local related-case metadata rejects unknown and unsafe IDs and deduplicate
   assert.deepEqual(getRelatedCaseIds(null), []);
   assert.equal(investigationURL('unknown'), null);
 });
+
+
+test('browser-first starter is optional and cannot override existing work, linked receipts or chosen focus', () => {
+  const state = createInitialState();
+  const before = JSON.stringify(state);
+  assert.equal(buildTrainingPlan(state, { starterTrack: 'logs' }).tasks[0].trackId, 'logs');
+  assert.equal(buildTrainingPlan(state, { starterTrack: 'logs', linked }).tasks[0].trackId, 'webgoat');
+  assert.equal(buildTrainingPlan(state, { starterTrack: 'logs', focus: 'foundation' }).tasks[0].trackId, 'recon');
+  assert.equal(buildTrainingPlan(state, { starterTrack: 'unknown' }).tasks[0].trackId, 'recon');
+  assert.equal(JSON.stringify(state), before);
+  state.lastActivity = { trackId: 'nmap', stageIndex: 0, at: timestamp };
+  assert.equal(buildTrainingPlan(state, { starterTrack: 'logs' }).tasks[0].trackId, 'nmap');
+  state.notes['headers-0'] = 'تحليل بدأه المستخدم';
+  assert.equal(buildTrainingPlan(state, { starterTrack: 'logs' }).tasks[0].trackId, 'headers');
+});

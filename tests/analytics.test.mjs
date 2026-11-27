@@ -109,6 +109,41 @@ test('page views deduplicate repeated renders and StrictMode calls while trackin
   assert.equal(events(fixture, 'page_view').length, 2);
 });
 
+test('learner funnel pages remain distinct from home and repeated renders stay deduplicated', () => {
+  const fixture = browser({ url: 'https://test.example/' });
+  const api = analytics(fixture);
+  assert.equal(api.trackPageView(), true);
+  const views = ['welcome', 'journeys', 'tracks', 'progress', 'account', 'plan', 'skills', 'journal', 'backups', 'troubleshoot', 'settings'];
+  for (const view of views) {
+    fixture.window.location = new URL(`https://test.example/?view=${view}&notes=PRIVATE_NOTE#PRIVATE_HASH`);
+    assert.equal(api.trackPageView(), true, `${view} must have its own page view`);
+    assert.equal(api.trackPageView(), false, `${view} rerender must not duplicate the page view`);
+    assert.equal(new URL(events(fixture, 'page_view').at(-1)[2].page_location).searchParams.get('view'), view);
+  }
+  fixture.window.location = new URL('https://test.example/');
+  assert.equal(api.trackPageView(), true, 'returning home is a new navigation');
+  assert.equal(events(fixture, 'page_view').length, views.length + 2);
+  assert.equal(JSON.stringify(events(fixture)).includes('PRIVATE_'), false);
+});
+
+test('ambiguous track and stage identifiers and private account fields are not forwarded', () => {
+  for (const query of [
+    'view=journeys&view=account&track=logs&track=email&stage=0',
+    'view=tracks&track=logs&stage=0&stage=1',
+    'view=tracks&track=PRIVATE_TRACK&stage=0',
+    'view=PRIVATE_VIEW&uid=PRIVATE_OWNER&notes=PRIVATE_NOTE&token=PRIVATE_TOKEN',
+  ]) {
+    const fixture = browser({ url: 'https://test.example/?' + query });
+    const api = analytics(fixture);
+    assert.equal(api.trackPageView(), true);
+    const location = new URL(events(fixture, 'page_view')[0][2].page_location);
+    assert.equal(location.searchParams.has('stage'), false);
+    if (query.includes('track=logs&track=email') || query.includes('PRIVATE_TRACK')) assert.equal(location.searchParams.has('track'), false);
+    if (query.includes('view=journeys&view=account') || query.includes('PRIVATE_VIEW')) assert.equal(location.searchParams.has('view'), false);
+    assert.equal(JSON.stringify(events(fixture)).includes('PRIVATE_'), false);
+  }
+});
+
 test('session plans, linked skills and defensive stages retain distinct public routes without private fields', () => {
   const fixture = browser({ url: 'https://test.example/' });
   const api = analytics(fixture);
