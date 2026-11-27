@@ -1,3 +1,4 @@
+import { readAuthAccountMetrics } from './admin-auth-metrics.js';
 import { allocateGradingSession } from './session-store.js';
 import { submitVerifiedGrading } from './grading-submission.js';
 import { initializeApp } from 'firebase-admin/app';
@@ -346,4 +347,30 @@ export const issueGroupCertificate = onCall({
     }
     throw new HttpsError('unavailable','Certificate issuance could not be completed.');
   }
+});
+
+ 
+// Aggregate-only account statistics; no user records are returned.
+let adminMetricsCache, adminMetricsPending;
+export const getAdminAuthMetrics = onCall({region: REGION, enforceAppCheck: true, maxInstances: 2, timeoutSeconds: 60}, async request => {
+  const uid = authUid(request);
+  if (request.auth.token.admin !== true) throw new HttpsError('permission-denied','Admin required.');
+  if (!request.data || Object.keys(request.data).length !== 0) throw new HttpsError('invalid-argument','No arguments accepted.');
+  const adminAuth = getAuth();
+  let user;
+  try { user = await adminAuth.getUser(uid); } catch { throw new HttpsError('permission-denied','Admin verification failed.'); }
+  const validAfter = Date.parse(user.tokensValidAfterTime ?? '');
+  if (user.disabled || user.customClaims?.admin !== true ||
+      !Number.isFinite(validAfter) || !Number.isInteger(request.auth.token.auth_time) ||
+      request.auth.token.auth_time < Math.floor(validAfter / 1000)) {
+    throw new HttpsError('permission-denied','Current admin session required.');
+  }
+  if (process.env.ADMIN_AUTH_METRICS_ENABLED !== 'true') return {status:'data_source_not_configured',metrics:null};
+  try {
+    if (adminMetricsCache && Date.now() < adminMetricsCache.expires) return {status:'ready',metrics:adminMetricsCache.metrics};
+    adminMetricsPending ??= readAuthAccountMetrics((size, token) => adminAuth.listUsers(size, token))
+      .then(metrics => { adminMetricsCache = {metrics,expires:Date.now()+60000}; return metrics; })
+      .finally(() => { adminMetricsPending = undefined; });
+    return {status:'ready',metrics:await adminMetricsPending};
+  } catch { throw new HttpsError('unavailable','Account statistics unavailable.'); }
 });
