@@ -20,6 +20,36 @@ const server=createServer(async(req,res)=>{try{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin='http://127.0.0.1:'+server.address().port;
 let browser,page;let activeErrors=[];const report=[];
+async function checkNoticeNavigation(page, width, textSize = 'normal') {
+ const destinations = ['home', 'tracks', 'search', 'progress', 'account'];
+ for (const destination of destinations) {
+  await page.goto(origin+'/?track=logs&stage=0',{waitUntil:'domcontentloaded'});
+  await page.locator('#stageNotes').waitFor();
+  await page.locator('#saveDraft').click();
+  const notice=page.locator('#toast');
+  await notice.waitFor({state:'visible'});
+  if (destination==='home') await page.screenshot({path:out+'/notice-'+width+'-'+textSize+'.png'});
+  const geometry=await page.evaluate(()=>{
+   const notice=document.getElementById('toast').getBoundingClientRect();
+   const dock=document.getElementById('nav').getBoundingClientRect();
+   const search=document.querySelector('.bb-nav-search-circle').getBoundingClientRect();
+   return {noticeBottom:notice.bottom,dockTop:Math.min(dock.top,search.top),targets:[...document.querySelectorAll('#nav>button')].map(button=>{
+    const box=button.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
+    return {name:button.dataset.view||'search',receivesPointer:hit===button||button.contains(hit)};
+   })};
+  });
+  assert(geometry.noticeBottom<geometry.dockTop,'save feedback stays above the whole bottom bar at '+width+'px ('+textSize+')');
+  assert(geometry.targets.every(target=>target.receivesPointer),'all five bottom controls receive immediate pointer input while feedback is visible');
+  assert.equal(await notice.isVisible(),true,'notice is still visible when navigating');
+  const target=destination==='search'?'#bb-app-search-open':'#nav [data-view='+destination+']';
+  await page.locator(target).click({timeout:2000});
+  if (destination==='search') {
+   await page.locator('#bb-app-search').waitFor({state:'visible'});
+   await page.keyboard.press('Escape');
+  } else await page.waitForFunction(view=>document.documentElement.dataset.bbView===view,destination);
+ }
+ console.log('PASS save notice '+width+'px ('+textSize+'): feedback clears the dock, all five centers receive pointers and all destinations open immediately');
+}
 try{
  browser=await chromium.launch({executablePath:process.env.BLACKBOX_CHROMIUM_PATH||undefined,headless:true,args:['--no-sandbox']});
  for(const width of [320,390,768,1024,1440]){
@@ -76,8 +106,21 @@ try{
   const targets=await bar.locator('button').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {width:r.width,height:r.height};}));
   assert(targets.every(r=>r.width>=44&&r.height>=44),'all navigation controls stay touch-sized');
   await page.screenshot({path:out+'/workspace-'+width+'.png',fullPage:true});await opener.click();await page.screenshot({path:out+'/search-'+width+'.png'});await page.keyboard.press('Escape');
+  await checkNoticeNavigation(page,width);
   assert.deepEqual(errors,[]);assert.deepEqual(external,[]);report.push({width,publicSearch:true,privateDraftExcluded:true,locks:true,historyAndDraft:true,errors,external});
   console.log('PASS app navigation '+width+'px: persistent routes, native search, private draft exclusion, locks, pending save, Back/Forward and reduced motion');await context.close();
+ }
+ for(const width of [390,1440]) {
+  const context=await browser.newContext({viewport:{width,height:1000},reducedMotion:'reduce'});
+  const errors=[],external=[];activeErrors=errors;
+  await context.route('**/*',route=>{if(new URL(route.request().url()).origin===origin)return route.continue();external.push(new URL(route.request().url()).hostname);return route.abort('blockedbyclient');});
+  await context.addInitScript(()=>localStorage.setItem('blackbox.ui-preferences.v1',JSON.stringify({theme:'light',accent:'brand',textSize:'xlarge',density:'compact',contrast:'standard',motion:'reduce',level:'unset'})));
+  page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',error=>errors.push(error.message));
+  await checkNoticeNavigation(page,width,'xlarge');
+  assert.equal(await page.locator('html').getAttribute('data-bb-text'),'xlarge');
+  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
+  report.push({width,textSize:'xlarge',noticeNavigation:true,errors,external});
+  await context.close();
  }
  await writeFile(out+'/results.json',JSON.stringify(report,null,2));
 }catch(error){console.error(JSON.stringify({error:error.message,pageErrors:activeErrors}));if(page&&!page.isClosed())await page.screenshot({path:out+'/failure.png',fullPage:true}).catch(()=>{});throw error;}

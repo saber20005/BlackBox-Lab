@@ -52,7 +52,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(testURL.href);
   await page.waitForFunction(() => typeof window.testLifecycle?.emitUser === 'function');
-  assert.equal(await page.locator('[data-plan-track]').first().getAttribute('data-plan-track'), 'recon');
+  assert.equal(await page.locator('[data-plan-track]').first().getAttribute('data-plan-track'), 'logs');
   await page.evaluate(() => window.testLifecycle.emitUser({ uid: 'local-owner-a', email: 'a@example.test' }));
   await page.waitForFunction(() => !!window.testLifecycle.reads['local-owner-a'] && !!window.testLifecycle.watches['local-owner-a']);
   await page.evaluate(() => window.testLifecycle.watches['local-owner-a']({
@@ -77,14 +77,15 @@ try {
   }));
   await page.evaluate(() => window.testLifecycle.reads['local-owner-b'](null));
   await page.waitForFunction(() => !document.querySelector('#content').inert);
-  assert.equal(await page.locator('[data-plan-track]').first().getAttribute('data-plan-track'), 'recon');
+  assert.equal(await page.locator('[data-plan-track]').first().getAttribute('data-plan-track'), 'logs');
   assert(!(await page.locator('#content').innerText()).includes('المسجّل في حسابك'));
   assert(await page.evaluate(() => window.testLifecycle.unsubscribed.includes('local-owner-a')));
   console.log('PASS account switch: old plan clears during loading and late previous-owner receipts cannot personalize the next account');
 
   // Open the exercise in B first: navigating after C's failed read would itself
   // dirty the controller and conceal the clean-state remote repaint race.
-  await page.locator('#nav [data-view="home"]').click();
+  await page.locator('#nav [data-view="tracks"]').click();
+  await page.locator('.path[data-track="recon"]').click();
   await page.locator('#content [data-open="recon"][data-stage="0"]').first().click();
   await page.evaluate(() => window.testLifecycle.emitUser({ uid: 'local-owner-c', email: 'c@example.test' }));
   await page.waitForFunction(() => !!window.testLifecycle.rejects['local-owner-c']);

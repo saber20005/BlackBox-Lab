@@ -66,6 +66,8 @@ html:not([data-bb-motion=reduce]) #content.bb-screen-enter {animation:bb-screen-
 .sidebar #nav .bb-nav-search-circle svg {width:1.5rem;height:1.5rem}
 .sidebar #nav .bb-pro-sidebar {display:none}
 #nav>button:focus-visible {outline:2px solid var(--green);outline-offset:4px}
+/* Status-only feedback stays above the dock, including its raised search button. */
+#toast {bottom:calc(8.5rem + env(safe-area-inset-bottom,0px));pointer-events:none}
 .main {padding-bottom:calc(8.5rem + env(safe-area-inset-bottom,0px))}
 html {scroll-padding-bottom:calc(8.5rem + env(safe-area-inset-bottom,0px))}
 @media(max-width:700px) {

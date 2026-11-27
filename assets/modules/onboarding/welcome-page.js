@@ -105,6 +105,6 @@ export function renderBbWelcome(step=0,mission){
  </div></div>
  <p>لم يتم تشغيل أي أداة على جهازك · هذه أمثلة اصطناعية للتعلم فقط</p></aside></div>
  <footer class="bb-tour-footer"><div class="bb-tour-buttons"><button type="button" class="bb-tour-previous" data-bb-tour-prev ${index===0?"disabled":""}>السابق</button><button type="button" class="bb-tour-next" ${index===5?'data-bb-tour-go="logs"':'data-bb-tour-next'}>${index===5?"ابدأ أول تدريب":"التالي"} ←</button></div><p>${index===5?"نتائج المحاكاة مؤقتة. لا يتم احتساب XP أو إنجاز مراحل.":"يمكنك التنقل بحرية، أو تخطي الجولة، أو إعادة فتحها من «أدوات ومساعدة»."}</p>
- <a class="bb-tour-production-link" href="https://blackboxlab.dev/?view=welcome" target="_blank" rel="noopener noreferrer">شاهد الجولة المنشورة حاليًا ↗</a></footer>
+ </footer>
  </div></div>`;
 }
